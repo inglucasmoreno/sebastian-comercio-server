@@ -11,7 +11,7 @@ export class ProductosService {
   constructor(@InjectModel('Productos') private readonly productosModel: Model<IProductos>){}
 
   // Producto por ID
-  async getProducto(id: string): Promise<IProductos> {
+  async getId(id: string): Promise<IProductos> {
 
     const productoDB = await this.productosModel.findById(id);
     if(!productoDB) throw new NotFoundException('El producto no existe');
@@ -64,7 +64,7 @@ export class ProductosService {
   }
   
   // Listar productos
-  async listarProductos(querys: any): Promise<any> {
+  async getAll(querys: any): Promise<any> {
         
     const {
 						columna, 
@@ -74,8 +74,6 @@ export class ProductosService {
 						activo,
 						parametro
 		} = querys;
-
-		console.log(querys)
 
 		// Pipelines
     const pipeline = [];
@@ -159,7 +157,7 @@ export class ProductosService {
   }
   
   // Crear producto
-  async crearProducto(productoDTO: ProductosDTO): Promise<IProductos> {
+  async insert(productoDTO: ProductosDTO): Promise<IProductos> {
     
     // Verificacion: descripcion repetida
     const productoDescripcion = await this.productosModel.findOne({descripcion: productoDTO.descripcion.trim().toUpperCase()})
@@ -178,7 +176,7 @@ export class ProductosService {
   } 
 
   // Actualizar producto
-  async actualizarProducto(id: string, productoUpdateDTO: ProductosUpdateDTO): Promise<IProductos> {
+  async update(id: string, productoUpdateDTO: ProductosUpdateDTO): Promise<IProductos> {
   
     const { descripcion } = productoUpdateDTO;
 

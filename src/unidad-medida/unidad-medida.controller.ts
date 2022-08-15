@@ -12,8 +12,8 @@ export class UnidadMedidaController {
   // Unidad por ID
   @UseGuards(JwtAuthGuard)
   @Get('/:id')
-  async getUnidad(@Res() res, @Param('id') unidadID) {
-      const unidad = await this.unidadMedidaService.getUnidad(unidadID);
+  async getId(@Res() res, @Param('id') unidadID) {
+      const unidad = await this.unidadMedidaService.getId(unidadID);
       res.status(HttpStatus.OK).json({
           message: 'Unidad obtenida correctamente',
           unidad
@@ -23,8 +23,8 @@ export class UnidadMedidaController {
   // Listar unidades
   @UseGuards(JwtAuthGuard)
   @Get('/')
-  async listarUnidades(@Res() res, @Query() querys) {
-      const unidades = await this.unidadMedidaService.listarUnidades(querys);
+  async getAll(@Res() res, @Query() querys) {
+      const unidades = await this.unidadMedidaService.getAll(querys);
       res.status(HttpStatus.OK).json({
           message: 'Listado de unidades correcto',
           unidades
@@ -34,8 +34,8 @@ export class UnidadMedidaController {
   // Crear unidad
   @UseGuards(JwtAuthGuard)
   @Post('/')
-  async crearUnidad(@Res() res, @Body() unidadMedidaDTO: UnidadMedidaDTO ) {
-      const unidad = await this.unidadMedidaService.crearUnidad(unidadMedidaDTO);        
+  async insert(@Res() res, @Body() unidadMedidaDTO: UnidadMedidaDTO ) {
+      const unidad = await this.unidadMedidaService.insert(unidadMedidaDTO);        
       res.status(HttpStatus.CREATED).json({
           message: 'Unidad creada correctamente',
           unidad
@@ -45,8 +45,8 @@ export class UnidadMedidaController {
   // Actualizar unidad
   @UseGuards(JwtAuthGuard)
   @Put('/:id')
-  async actualizarUnidad(@Res() res, @Body() unidadMedidaUpdateDTO: UnidadMedidaUpdateDTO, @Param('id') unidadID ) {
-      const unidad = await this.unidadMedidaService.actualizarUnidad(unidadID, unidadMedidaUpdateDTO);
+  async update(@Res() res, @Body() unidadMedidaUpdateDTO: UnidadMedidaUpdateDTO, @Param('id') unidadID ) {
+      const unidad = await this.unidadMedidaService.update(unidadID, unidadMedidaUpdateDTO);
       res.status(HttpStatus.OK).json({
           message: 'Unidad actualizada correctamente',
           unidad

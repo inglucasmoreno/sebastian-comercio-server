@@ -12,8 +12,8 @@ export class ProductosController {
   // Productos por ID
   @UseGuards(JwtAuthGuard)
   @Get('/:id')
-  async getProducto(@Res() res, @Param('id') productoID) {
-      const producto = await this.productosService.getProducto(productoID);
+  async getId(@Res() res, @Param('id') productoID) {
+      const producto = await this.productosService.getId(productoID);
       res.status(HttpStatus.OK).json({
           message: 'Producto obtenido correctamente',
           producto
@@ -23,8 +23,8 @@ export class ProductosController {
   // Listar productos
   @UseGuards(JwtAuthGuard)
   @Get('/')
-  async listarProductos(@Res() res, @Query() querys) {
-      const {productos, totalItems} = await this.productosService.listarProductos(querys);
+  async getAll(@Res() res, @Query() querys) {
+      const {productos, totalItems} = await this.productosService.getAll(querys);
       res.status(HttpStatus.OK).json({
           message: 'Listado de productos correcto',
           productos,
@@ -35,8 +35,8 @@ export class ProductosController {
   // Crear producto
   @UseGuards(JwtAuthGuard)
   @Post('/')
-  async crearProducto(@Res() res, @Body() productoDTO: ProductosDTO ) {
-      const producto = await this.productosService.crearProducto(productoDTO);        
+  async insert(@Res() res, @Body() productoDTO: ProductosDTO ) {
+      const producto = await this.productosService.insert(productoDTO);        
       res.status(HttpStatus.CREATED).json({
           message: 'Producto creada correctamente',
           producto
@@ -46,9 +46,9 @@ export class ProductosController {
   // Actualizar producto
   @UseGuards(JwtAuthGuard)
   @Put('/:id')
-  async actualizarProducto(@Res() res, @Body() productosUpdateDTO: ProductosUpdateDTO, @Param('id') productoID ) {
+  async update(@Res() res, @Body() productosUpdateDTO: ProductosUpdateDTO, @Param('id') productoID ) {
       
-      const producto = await this.productosService.actualizarProducto(productoID, productosUpdateDTO);
+      const producto = await this.productosService.update(productoID, productosUpdateDTO);
 
       res.status(HttpStatus.OK).json({
           message: 'Producto actualizada correctamente',

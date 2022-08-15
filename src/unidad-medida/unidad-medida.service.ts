@@ -13,7 +13,7 @@ export class UnidadMedidaService {
               @InjectModel('Productos') private readonly productosModel: Model<IProductos>){};
 
   // Unidad de medida por ID
-  async getUnidad(id: string): Promise<IUnidadMedida> {
+  async getId(id: string): Promise<IUnidadMedida> {
     
     // Se verifica que la unidad de medida existe
     const unidadDB = await this.unidadMedidaModel.findById(id);
@@ -56,7 +56,7 @@ export class UnidadMedidaService {
   }
 
   // Listar unidad de medida
-  async listarUnidades(querys: any): Promise<IUnidadMedida[]> {
+  async getAll(querys: any): Promise<IUnidadMedida[]> {
         
     const {columna, direccion} = querys;
 
@@ -101,7 +101,7 @@ export class UnidadMedidaService {
   }    
 
   // Crear unidad
-  async crearUnidad(unidadMedidaDTO: UnidadMedidaDTO): Promise<IUnidadMedida> {
+  async insert(unidadMedidaDTO: UnidadMedidaDTO): Promise<IUnidadMedida> {
 
     // Verificacion: descripcion repetida
     const unidad = await this.unidadMedidaModel.findOne({descripcion: unidadMedidaDTO.descripcion.trim().toUpperCase()})
@@ -112,7 +112,7 @@ export class UnidadMedidaService {
   }  
 
   // Actualizar unidad
-  async actualizarUnidad(id: string, unidadMedidaUpdateDTO: UnidadMedidaUpdateDTO): Promise<IUnidadMedida> {
+  async update(id: string, unidadMedidaUpdateDTO: UnidadMedidaUpdateDTO): Promise<IUnidadMedida> {
 
     const { descripcion, activo } = unidadMedidaUpdateDTO;
 
