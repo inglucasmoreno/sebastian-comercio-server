@@ -72,7 +72,8 @@ export class ProductosService {
 						desde,
 						registerpp,
 						activo,
-						parametro
+						parametro,
+            alerta_stock
 		} = querys;
 
 		// Pipelines
@@ -96,7 +97,7 @@ export class ProductosService {
       pipeline.push({$match: filtroActivo});
       pipelineTotal.push({$match: filtroActivo});
     }
-
+    
 		// Filtro por parametros
 		if(parametro && parametro !== ''){
 			const regex = new RegExp(parametro, 'i');
@@ -144,10 +145,16 @@ export class ProductosService {
     pipeline.push({ $unwind: '$updatorUser' });
 
 		// Busqueda de productos
-		const [productos, productosTotal] = await Promise.all([
+		let [productos, productosTotal] = await Promise.all([
 			this.productosModel.aggregate(pipeline),
 			this.productosModel.aggregate(pipelineTotal),
 		]);
+
+    // Filtro por alerta de stock
+    if(alerta_stock === 'true'){
+      productos = productos.filter( producto => (producto.stock_minimo_alerta && (producto.cantidad <= producto.cantidad_minima)));
+      productosTotal = productosTotal.filter( producto => (producto.stock_minimo_alerta && (producto.cantidad <= producto.cantidad_minima)));
+    }
     
     return {
 			productos,

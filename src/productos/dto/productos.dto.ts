@@ -2,6 +2,7 @@ import { IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class ProductosDTO {
 
+  @IsString()
   readonly codigo: string;
 
   @IsString()
@@ -10,11 +11,15 @@ export class ProductosDTO {
   @IsString()
   readonly unidad_medida: string;
   
-  @IsNumber()
-  readonly precio: number;
+  readonly cantidad: number;
 
   @IsString()
-  readonly moneda: string;
+  readonly stock_minimo_alerta: boolean;
+
+  readonly cantidad_minima: number;
+  
+  @IsNumber()
+  readonly precio: number;
 
   readonly activo: boolean;
 

@@ -4,9 +4,9 @@ export const productosSchema = new Schema({
 
   codigo: {
     type: String,
+    required: true,
     uppercase: true,
     unique: true,
-    default: ''
   },
 
   descripcion: {
@@ -27,9 +27,19 @@ export const productosSchema = new Schema({
     required: true
   },
 
-  moneda: {
-    type: String,
+  cantidad: {
+    type: Number,
+    default: 0
+  },
+
+  stock_minimo_alerta: {
+    type: Boolean,
     required: true
+  },
+
+  cantidad_minima: {
+    type: Number,
+    default: 0
   },
 
   activo: {

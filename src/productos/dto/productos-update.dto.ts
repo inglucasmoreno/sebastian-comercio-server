@@ -7,9 +7,13 @@ export class ProductosUpdateDTO {
 
   readonly unidad_medida: string;
   
-  readonly precio: number;
+  readonly cantidad: number;
 
-  readonly moneda: string;
+  readonly stock_minimo_alerta: boolean;
+
+  readonly cantidad_minima: number;
+
+  readonly precio: number;
 
   readonly activo: boolean;
 
