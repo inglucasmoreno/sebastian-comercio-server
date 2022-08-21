@@ -1,5 +1,8 @@
+import { IsNumber, IsString } from "class-validator";
+
 export class PresupuestosDTO {
 
+    @IsString()
     readonly cliente: string;
     
     readonly nro: string;
@@ -13,6 +16,9 @@ export class PresupuestosDTO {
     readonly telefono: string;
 
     readonly correo_electronico: string;
+
+    @IsNumber()
+    readonly precio_total: number;
 
     readonly activo: boolean;
 

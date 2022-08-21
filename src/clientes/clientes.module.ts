@@ -5,12 +5,12 @@ import { ClientesService } from './clientes.service';
 import { clientesSchema } from './schema/clientes.schema';
 
 @Module({
-  imports: [
+  	imports: [
 		MongooseModule.forFeature([
 			{ name: 'Clientes', schema: clientesSchema },
 		])
 	],
-  controllers: [ClientesController],
-  providers: [ClientesService]
+	controllers: [ClientesController],
+	providers: [ClientesService]
 })
 export class ClientesModule {}

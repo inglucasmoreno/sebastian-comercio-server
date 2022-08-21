@@ -14,6 +14,8 @@ export class PresupuestosUpdateDTO {
 
     readonly correo_electronico: string;
 
+    readonly precio_total: number;
+
     readonly activo: boolean;
 
     readonly creatorUser: string;

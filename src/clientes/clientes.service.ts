@@ -107,8 +107,6 @@ export class ClientesService {
     // Actualizar cliente
     async update(id: string, clientesUpdateDTO: ClientesUpdateDTO): Promise<IClientes> {
 
-        const { descripcion, activo } = clientesUpdateDTO;
-
         const clienteDB = await this.clientesModel.findById(id);
         
         // Verificacion: El cliente no existe

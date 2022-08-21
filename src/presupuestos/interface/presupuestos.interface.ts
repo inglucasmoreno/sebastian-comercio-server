@@ -1,6 +1,6 @@
 import { Document } from 'mongoose';
 
-export interface IClientes extends Document {
+export interface IPresupuestos extends Document {
     readonly cliente: string;
     readonly nro: string;
     readonly descripcion: string;
