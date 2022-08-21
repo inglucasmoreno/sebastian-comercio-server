@@ -12,6 +12,9 @@ import { join } from 'path';
 import { ConfigModule } from '@nestjs/config';
 import { UnidadMedidaModule } from './unidad-medida/unidad-medida.module';
 import { ProductosModule } from './productos/productos.module';
+import { ClientesModule } from './clientes/clientes.module';
+import { PresupuestosModule } from './presupuestos/presupuestos.module';
+import { PresupuestoProductosModule } from './presupuesto-productos/presupuesto-productos.module';
 
 @Module({
   imports: [
@@ -40,7 +43,10 @@ import { ProductosModule } from './productos/productos.module';
     AuthModule,
     InicializacionModule,
     UnidadMedidaModule,
-    ProductosModule,  // Para inicializacion de tablas - Configurable en el controlador/servicio
+    ProductosModule,
+    ClientesModule,
+    PresupuestosModule,
+    PresupuestoProductosModule,  // Para inicializacion de tablas - Configurable en el controlador/servicio
     
   ],
   
