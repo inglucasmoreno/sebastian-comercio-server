@@ -10,28 +10,30 @@ export const clientesSchema = new Schema({
     
   tipo_identificacion: {
     type: String,
+    uppercase: true,
     required: true,
   },
 
   identificacion: {
     type: String,
     required: true,
-    uppercase: true,
   },
 
   telefono: {
     type: String,
-    uppercase: true,
+    default: ''
   },
 
   direccion: {
     type: String,
     uppercase: true,
+    default: ''
   },
 
   correo_electronico: {
     type: String,
-    uppercase: true,
+    lowercase: true,
+    default: ''
   },
 
   activo: {
