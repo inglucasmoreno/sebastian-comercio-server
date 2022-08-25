@@ -128,7 +128,7 @@ export class UnidadMedidaService {
     }
 
     // Baja de unidad - Siempre y cuando no este asociada a un producto
-    if(unidadDB.activo && !activo){
+    if(activo !== undefined && !activo){
       const producto = await this.productosModel.findOne({ unidad_medida: unidadDB._id });
       if(producto) throw new NotFoundException('Esta unidad de medida esta asociada a un producto');   
     }
