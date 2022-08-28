@@ -35,10 +35,9 @@ export class PresupuestosController {
     @UseGuards(JwtAuthGuard)
     @Post('/')
     async insert(@Res() res, @Body() presupuestosDTO: PresupuestosDTO ) {
-        const presupuesto = await this.presupuestosService.insert(presupuestosDTO);        
+        await this.presupuestosService.insert(presupuestosDTO);        
         res.status(HttpStatus.CREATED).json({
             message: 'Presupuesto creado correctamente',
-            presupuesto
         });
     }
       
@@ -53,5 +52,14 @@ export class PresupuestosController {
         });
     }
 
+    // Generar PDF
+    @UseGuards(JwtAuthGuard)
+    @Post('/generarPDF')
+    async generarPDF(@Res() res, @Body() data: any ) {
+        await this.presupuestosService.generarPDF(data);        
+        res.status(HttpStatus.CREATED).json({
+            message: 'PDF generado correctamente',
+        });
+    } 
 
 }

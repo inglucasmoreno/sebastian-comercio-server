@@ -1,14 +1,18 @@
 export class PresupuestosUpdateDTO {
 
     readonly cliente: string;
+
+    readonly productos: [];
     
-    readonly nro: string;
+    readonly nro: number;
     
     readonly descripcion: string;
     
     readonly tipo_identificacion: string;
 
     readonly identificacion: string;
+
+    readonly direccion: string;
 
     readonly telefono: string;
 

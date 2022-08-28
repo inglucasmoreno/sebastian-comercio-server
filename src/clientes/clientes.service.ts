@@ -94,7 +94,7 @@ export class ClientesService {
 
         const clientes = await this.clientesModel.aggregate(pipeline);
 
-        return clientes;
+        return clientes.filter(cliente => String(cliente._id) !== '000000000000000000000000');
 
     }    
 

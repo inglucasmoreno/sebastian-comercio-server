@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { IProductos } from 'src/productos/interface/productos.interface';
 import { FamiliaProductosUpdateDTO } from './dto/familia-productos-update.dto';
 import { FamiliaProductosDTO } from './dto/familia-productos.dto';
 import { IFamiliaProductos } from './interface/familia-productos.interface';
@@ -8,7 +9,10 @@ import { IFamiliaProductos } from './interface/familia-productos.interface';
 @Injectable()
 export class FamiliaProductosService {
 
-  constructor(@InjectModel('FamiliaProductos') private readonly familiaProductosModel: Model<IFamiliaProductos>){};
+  constructor(
+    @InjectModel('FamiliaProductos') private readonly familiaProductosModel: Model<IFamiliaProductos>,
+    @InjectModel('Productos') private readonly productosModel: Model<IProductos>
+    ){};
 
   // Familia por ID
   async getId(id: string): Promise<IFamiliaProductos> {
@@ -127,7 +131,7 @@ export class FamiliaProductosService {
 
     // Baja de familia - Siempre y cuando no este asociada a un producto
     if(activo !== undefined && !activo){
-      const producto = await this.familiaProductosModel.findOne({ familia: familiaDB._id });
+      const producto = await this.productosModel.findOne({ familia: familiaDB._id });
       if(producto) throw new NotFoundException('Esta familia esta asociada a un producto');   
     }
 

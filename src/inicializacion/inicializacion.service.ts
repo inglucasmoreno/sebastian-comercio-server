@@ -3,11 +3,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcryptjs from 'bcryptjs';
 import { IUsuario } from 'src/usuarios/interface/usuarios.interface';
+import { IClientes } from 'src/clientes/interface/clientes.interface';
 
 @Injectable()
 export class InicializacionService {
     
-    constructor(@InjectModel('Usuario') private readonly usuarioModel: Model<IUsuario>){}
+    constructor(
+        @InjectModel('Usuario') private readonly usuarioModel: Model<IUsuario>,
+        @InjectModel('Clientes') private readonly clientesModel: Model<IClientes>,
+    ){}
 
     async initUsuarios(): Promise<any> {
         
@@ -33,7 +37,20 @@ export class InicializacionService {
         // Se crea y se almacena en la base de datos al usuario administrador
         const usuario = new this.usuarioModel(data);
         await usuario.save();
-    
+
+        // Inicializacion de clientes - Tipo cliente: "Consumidor final"
+        const cliente = new this.clientesModel({
+            _id: '000000000000000000000000',
+            tipo_identificacion: 'DNI',
+            identificacion: 0,
+            descripcion: 'Consumidor final',
+            creatorUser: usuario._id,
+            updatorUser: usuario._id,
+        });
+
+        await cliente.save();
+
+
     }
 
 }

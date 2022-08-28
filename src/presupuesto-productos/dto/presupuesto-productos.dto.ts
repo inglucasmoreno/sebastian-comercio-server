@@ -7,7 +7,10 @@ export class PresupuestoProductosDTO {
     
     @IsString()
     readonly producto: string;
-    
+
+    @IsString()
+    readonly familia: string;
+
     @IsString()
     readonly descripcion: string;
     

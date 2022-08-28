@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsString } from "class-validator";
 
 export class ProductosDTO {
 
@@ -18,7 +18,6 @@ export class ProductosDTO {
 
   readonly cantidad_minima: number;
   
-  @IsNumber()
   readonly precio: number;
 
   readonly activo: boolean;

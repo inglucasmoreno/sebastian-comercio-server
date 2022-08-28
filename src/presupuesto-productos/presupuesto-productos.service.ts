@@ -80,32 +80,16 @@ export class PresupuestoProductosService {
     // Listar productos
     async getAll(querys: any): Promise<IPresupuestoProductos[]> {
 
-        const {columna, direccion} = querys;
+        const {columna, direccion, presupuesto} = querys;
 
         const pipeline = [];
         pipeline.push({$match:{}});
 
-        // Informacion de presupuesto
-        pipeline.push({
-            $lookup: { // Lookup
-                from: 'presupuestos',
-                localField: 'presupuesto',
-                foreignField: '_id',
-                as: 'presupuesto'
-            }}
-        );
-
-        pipeline.push({ $unwind: '$presupuesto' });
-
-        // Informacion de producto
-        pipeline.push({
-            $lookup: { // Lookup
-                from: 'productos',
-                localField: 'producto',
-                foreignField: '_id',
-                as: 'producto'
-            }}
-        );
+        // Listar por presupuesto
+        if(presupuesto && presupuesto !== ''){
+            const idPresupuesto = new Types.ObjectId(presupuesto);
+            pipeline.push({ $match:{ presupuesto: idPresupuesto } })        
+        }
 
         pipeline.push({ $unwind: '$producto' });
 

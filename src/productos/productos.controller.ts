@@ -24,11 +24,13 @@ export class ProductosController {
   @UseGuards(JwtAuthGuard)
   @Get('/')
   async getAll(@Res() res, @Query() querys) {
-      const {productos, totalItems} = await this.productosService.getAll(querys);
+      const {productos, totalItems, familias, unidades_medida} = await this.productosService.getAll(querys);
       res.status(HttpStatus.OK).json({
           message: 'Listado de productos correcto',
           productos,
-          totalItems
+          totalItems,
+          familias,
+          unidades_medida
       });
   }
 

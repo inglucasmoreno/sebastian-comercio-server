@@ -6,6 +6,8 @@ export class PresupuestoProductosUpdateDTO {
     
     readonly descripcion: string;
     
+    readonly familia: string;
+
     readonly unidad_medida: string;
     
     readonly cantidad: number;

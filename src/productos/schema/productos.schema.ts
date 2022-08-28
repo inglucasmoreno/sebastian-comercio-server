@@ -2,6 +2,12 @@ import { Schema } from 'mongoose';
 
 export const productosSchema = new Schema({
 
+  familia: {
+    type: Schema.Types.ObjectId,
+    ref: 'familia_productos',
+    required: true,
+  },
+
   codigo: {
     type: String,
     required: true,
@@ -24,7 +30,7 @@ export const productosSchema = new Schema({
 
   precio: {
     type: Number,
-    required: true
+    default: null
   },
 
   cantidad: {

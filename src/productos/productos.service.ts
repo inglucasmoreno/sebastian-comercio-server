@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { IFamiliaProductos } from 'src/familia-productos/interface/familia-productos.interface';
+import { IUnidadMedida } from 'src/unidad-medida/interface/unidad-medida.interface';
 import { ProductosUpdateDTO } from './dto/productos-update.dto';
 import { ProductosDTO } from './dto/productos.dto';
 import { IProductos } from './interface/productos.interface';
@@ -8,7 +10,11 @@ import { IProductos } from './interface/productos.interface';
 @Injectable()
 export class ProductosService {
 
-  constructor(@InjectModel('Productos') private readonly productosModel: Model<IProductos>){}
+  constructor(
+    @InjectModel('Productos') private readonly productosModel: Model<IProductos>,
+    @InjectModel('UnidadMedida') private readonly unidadesMedidaModel: Model<IUnidadMedida>,
+    @InjectModel('FamiliaProductos') private readonly familiaProductosModel: Model<IFamiliaProductos>,
+    ){}
 
   // Producto por ID
   async getId(id: string): Promise<IProductos> {
@@ -20,6 +26,18 @@ export class ProductosService {
 
     const idProducto= new Types.ObjectId(id);
     pipeline.push({ $match:{ _id: idProducto} }); 
+
+    // Informacion de familia del producto
+    pipeline.push({
+      $lookup: { // Lookup
+          from: 'familia_productos',
+          localField: 'familia',
+          foreignField: '_id',
+          as: 'familia'
+      }}
+    );
+
+    pipeline.push({ $unwind: '$familia' });
 
     // Informacion de unidad_medida
     pipeline.push({
@@ -98,15 +116,31 @@ export class ProductosService {
       pipelineTotal.push({$match: filtroActivo});
     }
     
-		// Filtro por parametros
-		if(parametro && parametro !== ''){
-			const regex = new RegExp(parametro, 'i');
-			pipeline.push({$match: { $or: [ { codigo: regex }, { descripcion: regex } ] }});
-			pipelineTotal.push({$match: { $or: [ { codigo: regex }, { descripcion: regex } ] }});
-		}
-
     // Paginacion
     pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
+
+    // Informacion de familia del producto
+    pipeline.push({
+      $lookup: { // Lookup
+          from: 'familia_productos',
+          localField: 'familia',
+          foreignField: '_id',
+          as: 'familia'
+      }}
+    );
+
+    pipeline.push({ $unwind: '$familia' });
+
+    pipelineTotal.push({
+      $lookup: { // Lookup
+          from: 'familia_productos',
+          localField: 'familia',
+          foreignField: '_id',
+          as: 'familia'
+      }}
+    );
+
+    pipelineTotal.push({ $unwind: '$familia' });
 
     // Informacion de unidad_medida
     pipeline.push({
@@ -144,10 +178,19 @@ export class ProductosService {
 
     pipeline.push({ $unwind: '$updatorUser' });
 
+		// Filtro por parametros
+		if(parametro && parametro !== ''){
+			const regex = new RegExp(parametro, 'i');
+			pipeline.push({$match: { $or: [ { codigo: regex }, { descripcion: regex }, { 'familia.descripcion': regex } ] }});
+			pipelineTotal.push({$match: { $or: [ { codigo: regex }, { descripcion: regex }, { 'familia.descripcion': regex } ] }});
+		}
+
 		// Busqueda de productos
-		let [productos, productosTotal] = await Promise.all([
+		let [productos, productosTotal, unidades_medida, familias] = await Promise.all([
 			this.productosModel.aggregate(pipeline),
 			this.productosModel.aggregate(pipelineTotal),
+      this.unidadesMedidaModel.find({activo: true}).sort({ descripcion: 1 }),
+      this.familiaProductosModel.find({activo: true}).sort({ descripcion: 1 }),
 		]);
 
     // Filtro por alerta de stock
@@ -158,6 +201,8 @@ export class ProductosService {
     
     return {
 			productos,
+      unidades_medida,
+      familias,
 			totalItems: productosTotal.length
 		};
 

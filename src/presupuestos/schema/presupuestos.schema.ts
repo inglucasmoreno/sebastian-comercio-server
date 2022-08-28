@@ -8,7 +8,7 @@ export const presupuestosSchema = new Schema({
     required: true,
   },
 
-  codigo: {
+  nro: {
     type: Number,
     required: true
   },
@@ -21,23 +21,31 @@ export const presupuestosSchema = new Schema({
 
   tipo_identificacion: {
     type: String,
-    required: true,
+    default: ''
   },
 
   identificacion: {
     type: String,
-    required: true,
     uppercase: true,
+    default: '',
+  },
+
+  direccion: {
+    type: String,
+    uppercase: true,
+    default: '',
   },
 
   telefono: {
     type: String,
     uppercase: true,
+    default: ''
   },
 
   correo_electronico: {
     type: String,
-    uppercase: true,
+    lowercase: true,
+    default: ''
   },
 
   precio_total: {

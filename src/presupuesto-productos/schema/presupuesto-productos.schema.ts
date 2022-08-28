@@ -19,6 +19,11 @@ export const presupuestosProductosSchema = new Schema({
     required: true,
   },
 
+  familia: {
+    type: String,
+    required: true,
+  },
+
   unidad_medida: {
     type: String,
     required: true,

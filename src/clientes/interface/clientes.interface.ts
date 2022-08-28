@@ -1,6 +1,7 @@
 import { Document } from 'mongoose';
 
 export interface IClientes extends Document {
+  readonly _id: string;
   readonly descripcion: string;
   readonly tipo_identificacion: string;
   readonly identificacion: string;
