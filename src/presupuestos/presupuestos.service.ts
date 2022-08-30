@@ -298,8 +298,23 @@ export class PresupuestosService {
             orientation: 'portrait',
             border: '10mm',
             footer: {
-                        height: "0mm",
-                        contents: {}
+                        height: "20mm",
+                        contents: {
+                            first: `
+                                <p style="width: 1300px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
+                                <p style="width: 1300px; padding-bottom: 30px;"> Los precios pueden modificarse sin previo aviso. </p>
+                                <table>
+                                    <tr>
+                                        <td style="width: 1300px"> Bº Ampare M:E C: 07 </td>
+                                        <td style="width: 1000px"> San Luis - Capital </td>
+                                        <td style="width: 700px"> Tel.: +54 9 2664 363225 </td>
+                                    </tr>
+                                </table>
+                            `,
+                            2: 'Second page',
+                            default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',
+                            last: 'Last Page'
+                        }
             }  
         }
         

@@ -23,15 +23,18 @@
 
   <body style="font-family: Arial, Helvetica, sans-serif;">
 
+  <!-- Logo -->
   <div style="position: absolute;">
     <img style="width: 100px;" src="http://localhost:3000/pdf/logo.png">            
   </div>
   
-  <div style="position: absolute; width: 572px; margin-top: 118px; border: 1px solid gray; padding: 10px; font-weight: bold; font-size: 13px; text-align: center; background-color: #ECECEC;"> DATOS DE CLIENTE </div>
+  <div style="position: absolute; width: 750px; margin-top: 118px; border: 1px solid gray; padding: 10px; font-weight: bold; font-size: 13px; text-align: center;"> 
+    DATOS DE CLIENTE 
+  </div>
 
   <!-- Numero y Fecha -->
-  <div style="margin-top: 50px; margin-left: 572px; position: absolute;">
-      <p style="margin-top: 20px; font-size: 14px; border: 1px solid gray; padding: 10px; background-color: #ECECEC;"> 
+  <div style="margin-top: 50px; margin-left: 750px; position: absolute;">
+      <p style="margin-top: 20px; font-size: 14px; border: 1px solid gray; padding: 10px;"> 
         <span style="font-weight: bold;"> 
           Número: 
         </span> 
@@ -39,7 +42,7 @@
           {{ numero }}
         </span>
       </p>
-      <p style="margin-top: 10px; font-size: 14px; border: 1px solid gray; border-left: 0px; background-color: #ECECEC; padding: 10px;"> <span style="font-weight: bold;"> Fecha: </span> {{ fecha }} </p>
+      <p style="margin-top: 10px; font-size: 14px; border: 1px solid gray; border-left: 0px; padding: 10px;"> <span style="font-weight: bold;"> Fecha: </span> {{ fecha }} </p>
   </div>
 
   <div style="position: absolute; margin-top: 175px">
@@ -48,15 +51,17 @@
     <div style="font-size: 13px; margin-top: 14px"> <span style="font-weight: bold;"> Télefono: </span> <span style="margin-left: 158px;"> {{ telefono }} </span>  </div>
   </div>
 
-  <div style="position: absolute; width: 100%; margin-top: 270px; border: 1px solid gray; padding: 10px; font-weight: bold; font-size: 13px; text-align: center; background-color: #ECECEC;"> PRESUPUESTO DE MATERIALES </div>
+  <div style="position: absolute; width: 100%; margin-top: 270px; border: 1px solid gray; padding: 10px; font-weight: bold; font-size: 13px; text-align: center;"> 
+    PRESUPUESTO DE MATERIALES 
+  </div>
 
   <!-- Tabla de productos -->
-  <div style="position: absolute; margin-top: 330px; font-size: 13px;">
+  <div style="position: absolute; margin-top: 330px; font-size: 14px;">
     <table>
       <tr>
         <th style="width: 100px; text-align: left;"> Cantidad </th>
         <th style="width: 100px; text-align: left;"> U/Medida</th>
-        <th style="width: 300px; text-align: left;"> Producto </th>
+        <th style="width: 500px; text-align: left;"> Producto </th>
         <th style="width: 100px; text-align: right;"> Unitario </th>
         <th style="width: 100px; text-align: right;"> Total </th>
       </tr>
@@ -71,7 +76,7 @@
       {{/each}} 
     </table>          
     <!-- <div style="width: 100%; border: 1px solid gray; margin-top: 10px;"></div> -->
-    <p style="margin-top: 10px; font-size: 15px; text-align: right; background-color: #ECECEC; padding: 10px; border: 1px solid gray"> <span style="font-weight: bold;"> Precio total: </span> ${{ total }} </p>
+    <p style="margin-top: 10px; font-size: 15px; text-align: right; padding-top: 10px; border-top: 1px solid gray"> <span style="font-weight: bold;"> Precio total: </span> ${{ total }} </p>
   </div>
   </body>
 
