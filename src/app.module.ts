@@ -16,6 +16,7 @@ import { ClientesModule } from './clientes/clientes.module';
 import { PresupuestosModule } from './presupuestos/presupuestos.module';
 import { PresupuestoProductosModule } from './presupuesto-productos/presupuesto-productos.module';
 import { FamiliaProductosModule } from './familia-productos/familia-productos.module';
+import { ProveedoresModule } from './proveedores/proveedores.module';
 
 @Module({
   imports: [
@@ -48,7 +49,8 @@ import { FamiliaProductosModule } from './familia-productos/familia-productos.mo
     ClientesModule,
     PresupuestosModule,
     PresupuestoProductosModule,
-    FamiliaProductosModule,  // Para inicializacion de tablas - Configurable en el controlador/servicio
+    FamiliaProductosModule,
+    ProveedoresModule,  // Para inicializacion de tablas - Configurable en el controlador/servicio
     
   ],
   

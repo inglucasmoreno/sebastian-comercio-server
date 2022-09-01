@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import * as bcryptjs from 'bcryptjs';
 import { IUsuario } from 'src/usuarios/interface/usuarios.interface';
 import { IClientes } from 'src/clientes/interface/clientes.interface';
+import { IProveedores } from 'src/proveedores/interface/proveedores.interface';
 
 @Injectable()
 export class InicializacionService {
@@ -11,6 +12,7 @@ export class InicializacionService {
     constructor(
         @InjectModel('Usuario') private readonly usuarioModel: Model<IUsuario>,
         @InjectModel('Clientes') private readonly clientesModel: Model<IClientes>,
+        @InjectModel('Proveedores') private readonly proveedoresModel: Model<IProveedores>,
     ){}
 
     async initUsuarios(): Promise<any> {
@@ -49,6 +51,18 @@ export class InicializacionService {
         });
 
         await cliente.save();
+
+        // Inicializacion de proveedores - Tipo proveedor: "Sin especificar"
+        const proveedor = new this.proveedoresModel({
+            _id: '000000000000000000000000',
+            tipo_identificacion: 'DNI',
+            identificacion: 0,
+            descripcion: 'SIN ESPECIFICAR',
+            creatorUser: usuario._id,
+            updatorUser: usuario._id,
+        });
+
+        await proveedor.save();
 
 
     }

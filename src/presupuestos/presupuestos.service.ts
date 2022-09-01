@@ -42,6 +42,18 @@ export class PresupuestosService {
 
         pipeline.push({ $unwind: '$cliente' });
 
+        // Informacion de proveedor
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'proveedores',
+                localField: 'despacha',
+                foreignField: '_id',
+                as: 'despacha'
+            }}
+        );
+
+        pipeline.push({ $unwind: '$despacha' });
+
         // Informacion de usuario creador
         pipeline.push({
             $lookup: { // Lookup
@@ -91,6 +103,18 @@ export class PresupuestosService {
         );
 
         pipeline.push({ $unwind: '$cliente' });
+
+        // Informacion de proveedor
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'proveedores',
+                localField: 'despacha',
+                foreignField: '_id',
+                as: 'despacha'
+            }}
+        );
+
+        pipeline.push({ $unwind: '$despacha' });
 
         // Informacion de usuario creador
         pipeline.push({
@@ -223,9 +247,24 @@ export class PresupuestosService {
             orientation: 'portrait',
             border: '10mm',
             footer: {
-                        height: "0mm",
-                        contents: {}
-            }  
+                height: "20mm",
+                contents: {
+                    first: `
+                        <p style="width: 1300px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
+                        <p style="width: 1300px; padding-bottom: 30px;"> Los precios pueden modificarse sin previo aviso. </p>
+                        <table>
+                            <tr>
+                                <td style="width: 1300px"> Bº Ampare M:E C: 07 </td>
+                                <td style="width: 1000px"> San Luis - Capital </td>
+                                <td style="width: 700px"> Tel.: +54 9 2664 363225 </td>
+                            </tr>
+                        </table>
+                    `,
+                    2: 'Second page',
+                    default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',
+                    last: 'Last Page'
+                }
+            } 
         }
 
         let productosPDF: any[] = [];
@@ -292,31 +331,6 @@ export class PresupuestosService {
         let html: any;
 
         html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/presupuesto.html', 'utf-8');
-
-        var options = {
-            format: 'A4',
-            orientation: 'portrait',
-            border: '10mm',
-            footer: {
-                        height: "20mm",
-                        contents: {
-                            first: `
-                                <p style="width: 1300px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
-                                <p style="width: 1300px; padding-bottom: 30px;"> Los precios pueden modificarse sin previo aviso. </p>
-                                <table>
-                                    <tr>
-                                        <td style="width: 1300px"> Bº Ampare M:E C: 07 </td>
-                                        <td style="width: 1000px"> San Luis - Capital </td>
-                                        <td style="width: 700px"> Tel.: +54 9 2664 363225 </td>
-                                    </tr>
-                                </table>
-                            `,
-                            2: 'Second page',
-                            default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',
-                            last: 'Last Page'
-                        }
-            }  
-        }
         
         let productosPDF: any[] = [];
 
@@ -340,6 +354,32 @@ export class PresupuestosService {
             productos: productosPDF,
             total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(presupuesto.precio_total)
         };
+
+        var options = {
+            format: 'A4',
+            orientation: 'portrait',
+            border: '10mm',
+            footer: {
+                        height: "35mm",
+                        contents: {
+                            first: `
+                                <p style="width: 100%; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${data.total} </span> </p>
+                                <p style="width: 1300px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
+                                <p style="width: 1300px; padding-bottom: 30px;"> Los precios pueden modificarse sin previo aviso. </p>
+                                <table>
+                                    <tr>
+                                        <td style="width: 1300px"> Bº Ampare M:E C: 07 </td>
+                                        <td style="width: 1000px"> San Luis - Capital </td>
+                                        <td style="width: 700px"> Tel.: +54 9 2664 363225 </td>
+                                    </tr>
+                                </table>
+                            `,
+                            2: 'Second page',
+                            default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',
+                            last: 'Last Page'
+                        }
+            }  
+        }
 
         // Configuraciones de documento
         var document = {

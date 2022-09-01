@@ -10,6 +10,7 @@ export interface IPresupuestos extends Document {
     readonly telefono: string;
     readonly correo_electronico: string;
     readonly precio_total: number,
+    readonly despacha: string,
     readonly activo: boolean;
     readonly creatorUser: string;
     readonly updatorUser: string;

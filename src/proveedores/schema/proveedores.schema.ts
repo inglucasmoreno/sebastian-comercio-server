@@ -1,42 +1,30 @@
 import { Schema } from 'mongoose';
 
-export const presupuestosSchema = new Schema({
+export const proveedoresSchema = new Schema({
   
-  cliente: {
-    type: Schema.Types.ObjectId,
-    ref: 'clientes',
-    required: true,
-  },
-
-  nro: {
-    type: Number,
-    required: true
-  },
-    
   descripcion: {
     type: String,
     required: true,
-    uppercase: true
+    uppercase: true,
   },
-
+    
   tipo_identificacion: {
     type: String,
-    default: ''
+    uppercase: true,
+    default: 'DNI'
   },
 
   identificacion: {
     type: String,
-    uppercase: true,
-    default: '',
-  },
-
-  direccion: {
-    type: String,
-    uppercase: true,
-    default: '',
+    default: ''
   },
 
   telefono: {
+    type: String,
+    default: ''
+  },
+
+  direccion: {
     type: String,
     uppercase: true,
     default: ''
@@ -46,17 +34,6 @@ export const presupuestosSchema = new Schema({
     type: String,
     lowercase: true,
     default: ''
-  },
-
-  precio_total: {
-    type: Number,
-    required: true
-  },
-
-  despacha: {
-    type: Schema.Types.ObjectId,
-    ref: 'proveedores',
-    default: '000000000000000000000000'
   },
 
   activo: {
@@ -76,4 +53,4 @@ export const presupuestosSchema = new Schema({
     required: true,
   }
 
-},{ timestamps: true, collection: 'presupuestos' })
+},{ timestamps: true, collection: 'proveedores' })

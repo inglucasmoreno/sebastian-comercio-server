@@ -23,6 +23,8 @@ export class PresupuestosDTO {
     @IsNumber()
     readonly precio_total: number;
 
+    readonly despacha: string;
+
     readonly activo: boolean;
 
     readonly creatorUser: string;

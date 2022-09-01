@@ -20,6 +20,8 @@ export class PresupuestosUpdateDTO {
 
     readonly precio_total: number;
 
+    readonly despacha: string;
+
     readonly activo: boolean;
 
     readonly creatorUser: string;
