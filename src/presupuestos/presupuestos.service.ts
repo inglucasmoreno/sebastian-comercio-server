@@ -165,6 +165,7 @@ export class PresupuestosService {
             direccion,
             telefono,
             correo_electronico,
+            condicion_iva,
             precio_total,
             creatorUser,
             updatorUser 
@@ -184,6 +185,7 @@ export class PresupuestosService {
                     identificacion,
                     direccion,
                     correo_electronico,
+                    condicion_iva,
                     creatorUser,
                     updatorUser
                 })
@@ -191,13 +193,12 @@ export class PresupuestosService {
                 const clienteRes = await nuevoCliente.save();
                 cliente = clienteRes._id;
                                 
-            }else{ // El identificador esta registrado -> Se corrige
-                
+            }else{ // El identificador esta registrado -> Se corrige      
                 cliente = clienteDB._id;
                 descripcion = clienteDB.descripcion;
                 identificacion = clienteDB.identificacion;
                 tipo_identificacion = clienteDB.tipo_identificacion;
-            
+                condicion_iva: clienteDB.condicion_iva;           
             }
         }
 
@@ -222,6 +223,7 @@ export class PresupuestosService {
             direccion,
             telefono,
             correo_electronico,
+            condicion_iva,
             precio_total,
             creatorUser,
             updatorUser     
@@ -270,6 +272,7 @@ export class PresupuestosService {
         let productosPDF: any[] = [];
         const productosMap: any = productos;
 
+        // Adaptando productos
         productosMap.map( producto => productosPDF.push({
             descripcion: producto.descripcion,
             cantidad: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.cantidad),
@@ -277,14 +280,13 @@ export class PresupuestosService {
             precio_unitario: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_unitario),
             precio_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_total)
         }));
-     
-        // Adaptando productos
 
         const data = {
             fecha: format(presupuestoDB.createdAt, 'dd/MM/yyyy'),
             numero: presupuestoDB.nro,
             descripcion: presupuestoDB.descripcion,
             correo_electronico: presupuestoDB.correo_electronico,
+            condicion_iva: presupuestoDB.condicion_iva,
             direccion: presupuestoDB.direccion,
             telefono: presupuestoDB.telefono,
             productos: productosPDF,
@@ -349,6 +351,7 @@ export class PresupuestosService {
             numero: presupuesto.nro,
             descripcion: presupuesto.descripcion,
             correo_electronico: presupuesto.correo_electronico,
+            condicion_iva: presupuesto.condicion_iva,
             direccion: presupuesto.direccion,
             telefono: presupuesto.telefono,
             productos: productosPDF,

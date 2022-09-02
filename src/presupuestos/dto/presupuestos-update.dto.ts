@@ -17,10 +17,14 @@ export class PresupuestosUpdateDTO {
     readonly telefono: string;
 
     readonly correo_electronico: string;
-
+    
     readonly precio_total: number;
-
+    
     readonly despacha: string;
+
+    readonly condicion_iva: string;
+
+    readonly observaciones: string;
 
     readonly activo: boolean;
 

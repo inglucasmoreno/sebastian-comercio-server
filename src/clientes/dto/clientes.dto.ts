@@ -16,7 +16,10 @@ export class ClientesDTO {
     readonly direccion: string;
     
     readonly correo_electronico: string;
-    
+ 
+    @IsString()
+    readonly condicion_iva: string;
+
     readonly activo: boolean;
 
 }

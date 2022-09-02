@@ -8,6 +8,7 @@ export interface IProveedores extends Document {
   readonly telefono: string;
   readonly direccion: string;
   readonly correo_electronico: string;
+  readonly condicion_iva: string;
   readonly activo: boolean;
   readonly creatorUser: string;
   readonly updatorUser: string;

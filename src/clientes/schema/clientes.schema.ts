@@ -36,6 +36,11 @@ export const clientesSchema = new Schema({
     default: ''
   },
 
+  condicion_iva: {
+    type: String,
+    required: true
+  },
+
   activo: {
     type: Boolean,
     default: true

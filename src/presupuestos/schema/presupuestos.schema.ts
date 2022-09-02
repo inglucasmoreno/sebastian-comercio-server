@@ -48,6 +48,16 @@ export const presupuestosSchema = new Schema({
     default: ''
   },
 
+  condicion_iva: {
+    type: String,
+    required: true
+  },
+
+  observaciones: {
+    type: String,
+    default: ''
+  },
+
   precio_total: {
     type: Number,
     required: true

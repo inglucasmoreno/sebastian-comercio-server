@@ -12,6 +12,8 @@ export class ClientesUpdateDTO {
     readonly direccion: string;
     
     readonly correo_electronico: string;
+
+    readonly condicion_iva: string;
     
     readonly activo: boolean;
 
