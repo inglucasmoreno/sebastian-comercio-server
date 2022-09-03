@@ -46,6 +46,7 @@ export class InicializacionService {
             tipo_identificacion: 'DNI',
             identificacion: 0,
             descripcion: 'Consumidor final',
+            condicion_iva: 'Consumidor Final',
             creatorUser: usuario._id,
             updatorUser: usuario._id,
         });
@@ -56,10 +57,9 @@ export class InicializacionService {
         const proveedor = new this.proveedoresModel({
             _id: '000000000000000000000000',
             tipo_identificacion: 'DNI',
-            condicion_iva: 'Consumidor Final',
             identificacion: 0,
             descripcion: 'SIN ESPECIFICAR',
-
+            condicion_iva: 'Consumidor Final',
             creatorUser: usuario._id,
             updatorUser: usuario._id,
         });
