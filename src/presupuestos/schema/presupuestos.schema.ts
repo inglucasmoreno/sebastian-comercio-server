@@ -36,6 +36,11 @@ export const presupuestosSchema = new Schema({
     default: '',
   },
 
+  observacion: {
+    type: String,
+    default: '',
+  },
+
   telefono: {
     type: String,
     uppercase: true,

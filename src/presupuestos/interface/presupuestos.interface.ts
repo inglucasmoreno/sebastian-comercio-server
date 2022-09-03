@@ -4,6 +4,7 @@ export interface IPresupuestos extends Document {
     readonly cliente: string;
     readonly nro: number;
     readonly descripcion: string;
+    readonly observacion: string;
     readonly tipo_identificacion: string;
     readonly identificacion: string;
     readonly direccion: string;

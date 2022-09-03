@@ -162,6 +162,7 @@ export class PresupuestosService {
             tipo_identificacion,
             identificacion,
             descripcion,
+            observacion,
             direccion,
             telefono,
             correo_electronico,
@@ -218,6 +219,7 @@ export class PresupuestosService {
             cliente,
             nro: nroPresupuesto,
             descripcion,
+            observacion,
             tipo_identificacion,
             identificacion,
             direccion,
@@ -249,24 +251,19 @@ export class PresupuestosService {
             orientation: 'portrait',
             border: '10mm',
             footer: {
-                height: "20mm",
+                height: "35mm",
                 contents: {
                     first: `
-                        <p style="width: 1300px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
-                        <p style="width: 1300px; padding-bottom: 30px;"> Los precios pueden modificarse sin previo aviso. </p>
-                        <table>
-                            <tr>
-                                <td style="width: 1300px"> Bº Ampare M:E C: 07 </td>
-                                <td style="width: 1000px"> San Luis - Capital </td>
-                                <td style="width: 700px"> Tel.: +54 9 2664 363225 </td>
-                            </tr>
-                        </table>
+                        <p style="width: 100%; font-size:14px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${precio_total} </span> </p>
+                        <p style="width: 100%; font-size: 12px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
+                        <p style="width: 100%; font-size: 12px;"> Los precios pueden modificarse sin previo aviso. </p>
+                        <p style="width: 100%; font-size: 12px;"> ${ presupuestoDB.observacion } </p>
                     `,
                     2: 'Second page',
                     default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',
                     last: 'Last Page'
                 }
-            } 
+    }  
         }
 
         let productosPDF: any[] = [];
@@ -281,9 +278,19 @@ export class PresupuestosService {
             precio_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_total)
         }));
 
+        // Adaptando numero
+        let mostrarNumero: string;
+        const { nro } = presupuestoDB;
+        if(nro <= 9)  mostrarNumero = 'P000000' + String(nro);
+        else if(nro <= 99) mostrarNumero = 'P00000' + String(nro);
+        else if(nro <= 999) mostrarNumero = 'P0000' + String(nro);
+        else if(nro <= 9999) mostrarNumero = 'P000' + String(nro);
+        else if(nro <= 99999) mostrarNumero = 'P00' + String(nro);
+        else if(nro <= 999999) mostrarNumero = 'P0' + String(nro);
+
         const data = {
             fecha: format(presupuestoDB.createdAt, 'dd/MM/yyyy'),
-            numero: presupuestoDB.nro,
+            numero: mostrarNumero,
             descripcion: presupuestoDB.descripcion,
             correo_electronico: presupuestoDB.correo_electronico,
             condicion_iva: presupuestoDB.condicion_iva,
@@ -336,6 +343,7 @@ export class PresupuestosService {
         
         let productosPDF: any[] = [];
 
+        // Adaptando productos
         productos.map( producto => productosPDF.push({
             descripcion: producto.descripcion,
             cantidad: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.cantidad),
@@ -344,11 +352,19 @@ export class PresupuestosService {
             precio_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_total)
         }));
 
-        // Adaptando productos
+        // Adaptando numero
+        let mostrarNumero: string;
+        const { nro } = presupuesto;
+        if(nro <= 9)  mostrarNumero = 'P000000' + String(nro);
+        else if(nro <= 99) mostrarNumero = 'P00000' + String(nro);
+        else if(nro <= 999) mostrarNumero = 'P0000' + String(nro);
+        else if(nro <= 9999) mostrarNumero = 'P000' + String(nro);
+        else if(nro <= 99999) mostrarNumero = 'P00' + String(nro);
+        else if(nro <= 999999) mostrarNumero = 'P0' + String(nro);
 
         const data = {
             fecha: format(presupuesto.createdAt, 'dd/MM/yyyy'),
-            numero: presupuesto.nro,
+            numero: mostrarNumero,
             descripcion: presupuesto.descripcion,
             correo_electronico: presupuesto.correo_electronico,
             condicion_iva: presupuesto.condicion_iva,
@@ -366,16 +382,10 @@ export class PresupuestosService {
                         height: "35mm",
                         contents: {
                             first: `
-                                <p style="width: 100%; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${data.total} </span> </p>
-                                <p style="width: 1300px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
-                                <p style="width: 1300px; padding-bottom: 30px;"> Los precios pueden modificarse sin previo aviso. </p>
-                                <table>
-                                    <tr>
-                                        <td style="width: 1300px"> Bº Ampare M:E C: 07 </td>
-                                        <td style="width: 1000px"> San Luis - Capital </td>
-                                        <td style="width: 700px"> Tel.: +54 9 2664 363225 </td>
-                                    </tr>
-                                </table>
+                                <p style="width: 100%; font-size:14px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${data.total} </span> </p>
+                                <p style="width: 100%; font-size: 12px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
+                                <p style="width: 100%; font-size: 12px;"> Los precios pueden modificarse sin previo aviso. </p>
+                                <p style="width: 100%; font-size: 12px;"> ${ presupuesto.observacion } </p>
                             `,
                             2: 'Second page',
                             default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',

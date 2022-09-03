@@ -9,6 +9,8 @@ export class PresupuestosDTO {
     readonly nro: number;
     
     readonly descripcion: string;
+
+    readonly observacion: string;
     
     readonly tipo_identificacion: string;
 
