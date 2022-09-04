@@ -19,7 +19,6 @@ export const productosSchema = new Schema({
     type: String,
     required: true,
     uppercase: true,
-    unique: true
   },
 
   unidad_medida: {

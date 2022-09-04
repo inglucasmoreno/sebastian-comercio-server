@@ -254,16 +254,16 @@ export class PresupuestosService {
                 height: "35mm",
                 contents: {
                     first: `
-                        <p style="width: 100%; font-size:14px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${precio_total} </span> </p>
-                        <p style="width: 100%; font-size: 12px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
-                        <p style="width: 100%; font-size: 12px;"> Los precios pueden modificarse sin previo aviso. </p>
-                        <p style="width: 100%; font-size: 12px;"> ${ presupuestoDB.observacion } </p>
+                        <p style="width: 100%; font-size: 9px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${precio_total} </span> </p>
+                        <p style="width: 100%; font-size: 8px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
+                        <p style="width: 100%; font-size: 8px;"> Los precios pueden modificarse sin previo aviso. </p>
+                        <p style="width: 100%; font-size: 8px;"> ${ presupuestoDB.observacion } </p>
                     `,
                     2: 'Second page',
                     default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',
                     last: 'Last Page'
                 }
-    }  
+            }  
         }
 
         let productosPDF: any[] = [];
@@ -379,18 +379,18 @@ export class PresupuestosService {
             orientation: 'portrait',
             border: '10mm',
             footer: {
-                        height: "35mm",
-                        contents: {
-                            first: `
-                                <p style="width: 100%; font-size:14px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${data.total} </span> </p>
-                                <p style="width: 100%; font-size: 12px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
-                                <p style="width: 100%; font-size: 12px;"> Los precios pueden modificarse sin previo aviso. </p>
-                                <p style="width: 100%; font-size: 12px;"> ${ presupuesto.observacion } </p>
-                            `,
-                            2: 'Second page',
-                            default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',
-                            last: 'Last Page'
-                        }
+                height: "35mm",
+                contents: {
+                    first: `
+                        <p style="width: 100%; font-size: 9px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${data.total} </span> </p>
+                        <p style="width: 100%; font-size: 8px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
+                        <p style="width: 100%; font-size: 8px;"> Los precios pueden modificarse sin previo aviso. </p>
+                        <p style="width: 100%; font-size: 8px;"> ${ presupuesto.observacion } </p>
+                    `,
+                    2: 'Second page',
+                    default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',
+                    last: 'Last Page'
+                }
             }  
         }
 
