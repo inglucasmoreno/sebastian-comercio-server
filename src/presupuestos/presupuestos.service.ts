@@ -254,7 +254,7 @@ export class PresupuestosService {
                 height: "35mm",
                 contents: {
                     first: `
-                        <p style="width: 100%; font-size: 9px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${precio_total} </span> </p>
+                        <p style="width: 100%; font-size: 9px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${ Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(presupuestoDB.precio_total) } </span> </p>
                         <p style="width: 100%; font-size: 8px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
                         <p style="width: 100%; font-size: 8px;"> Los precios pueden modificarse sin previo aviso. </p>
                         <p style="width: 100%; font-size: 8px;"> ${ presupuestoDB.observacion } </p>
