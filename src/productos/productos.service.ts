@@ -94,6 +94,8 @@ export class ProductosService {
             alerta_stock
 		} = querys;
 
+    console.log(parametro);
+
 		// Pipelines
     const pipeline = [];
     const pipelineTotal = [];
@@ -116,9 +118,6 @@ export class ProductosService {
       pipelineTotal.push({$match: filtroActivo});
     }
     
-    // Paginacion
-    pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
-
     // Informacion de familia del producto
     pipeline.push({
       $lookup: { // Lookup
@@ -178,12 +177,17 @@ export class ProductosService {
 
     pipeline.push({ $unwind: '$updatorUser' });
 
+        
 		// Filtro por parametros
 		if(parametro && parametro !== ''){
 			const regex = new RegExp(parametro, 'i');
+      console.log(regex);
 			pipeline.push({$match: { $or: [ { codigo: regex }, { descripcion: regex }, { 'familia.descripcion': regex } ] }});
 			pipelineTotal.push({$match: { $or: [ { codigo: regex }, { descripcion: regex }, { 'familia.descripcion': regex } ] }});
 		}
+
+    // Paginacion
+    pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
 
 		// Busqueda de productos
 		let [productos, productosTotal, unidades_medida, familias] = await Promise.all([
