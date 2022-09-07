@@ -94,8 +94,6 @@ export class ProductosService {
             alerta_stock
 		} = querys;
 
-    console.log(parametro);
-
 		// Pipelines
     const pipeline = [];
     const pipelineTotal = [];
@@ -180,10 +178,19 @@ export class ProductosService {
         
 		// Filtro por parametros
 		if(parametro && parametro !== ''){
-			const regex = new RegExp(parametro, 'i');
-      console.log(regex);
-			pipeline.push({$match: { $or: [ { codigo: regex }, { descripcion: regex }, { 'familia.descripcion': regex } ] }});
+			
+      const porPartes = parametro.split(' ');
+      let parametroFinal = '';
+
+      for(var i = 0; i < porPartes.length; i++){
+        if(i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
+        else parametroFinal = porPartes[i] + '.*';
+      }
+
+      const regex = new RegExp(parametroFinal,'i');
+      pipeline.push({$match: { $or: [ { codigo: regex }, { descripcion: regex }, { 'familia.descripcion': regex } ] }});
 			pipelineTotal.push({$match: { $or: [ { codigo: regex }, { descripcion: regex }, { 'familia.descripcion': regex } ] }});
+      
 		}
 
     // Paginacion
