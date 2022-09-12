@@ -4,11 +4,15 @@ import { Model, Types } from 'mongoose';
 import { IPresupuestoProductos } from './interface/presupuesto-productos.interface';
 import { PresupuestoProductosDTO } from './dto/presupuesto-productos.dto';
 import { PresupuestoProductosUpdateDTO } from './dto/presupuesto-productos-update.dto';
+import { IPresupuestos } from 'src/presupuestos/interface/presupuestos.interface';
 
 @Injectable()
 export class PresupuestoProductosService {
 
-    constructor(@InjectModel('PresupuestoProductos') private readonly productosModel: Model<IPresupuestoProductos>){};
+    constructor(
+        @InjectModel('PresupuestoProductos') private readonly productosModel: Model<IPresupuestoProductos>,
+        @InjectModel('Presupuestos') private readonly presupuestosModel: Model<IPresupuestos>,   
+    ){};
 
     // Producto por ID
     async getId(id: string): Promise<IPresupuestoProductos> {
@@ -131,24 +135,40 @@ export class PresupuestoProductosService {
     }    
 
     // Crear producto
-    async insert(productosDTO: PresupuestoProductosDTO): Promise<IPresupuestoProductos> {
+    async insert(productosDTO: PresupuestoProductosDTO): Promise<IPresupuestoProductos[]> {
+        
+        // Se agrega un producto
         const nuevoProducto = new this.productosModel(productosDTO);
-        return await nuevoProducto.save();
+        await nuevoProducto.save();
+
+        // Se devuelven todos los productos del presupuesto
+        const productos = await this.productosModel.find({ presupuesto: productosDTO.presupuesto }).sort({ descripcion: 1 });
+
+        return productos;
+
     }  
 
     // Actualizar producto
-    async update(id: string, productoUpdateDTO: PresupuestoProductosUpdateDTO): Promise<IPresupuestoProductos> {
+    async update(id: string, productoUpdateDTO: PresupuestoProductosUpdateDTO): Promise<IPresupuestoProductos[]> {
 
         const productoDB = await this.productosModel.findById(id);
         
         // Verificacion: El producto no existe
         if(!productoDB) throw new NotFoundException('El producto no existe');
 
-        const producto = await this.productosModel.findByIdAndUpdate(id, productoUpdateDTO, {new: true});
-        return producto;
+        await this.productosModel.findByIdAndUpdate(id, productoUpdateDTO, {new: true});
+
+        // Se devuelven todos los productos del presupuesto
+        const productos = await this.productosModel.find({ presupuesto: productoUpdateDTO.presupuesto }).sort({ descripcion: 1 });      
+
+        return productos;
         
     } 
 
-
+    // Eliminar producto
+    async delete(id: string): Promise<IPresupuestoProductos> {
+        const producto = await this.productosModel.findByIdAndRemove(id);
+        return producto;
+    }
 
 }

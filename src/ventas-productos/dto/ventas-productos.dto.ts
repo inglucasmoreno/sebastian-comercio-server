@@ -1,9 +1,9 @@
 import { IsNumber, IsString } from "class-validator";
 
-export class PresupuestoProductosDTO {
+export class VentaProductosDTO {
 
     @IsString()
-    readonly presupuesto: string;
+    readonly venta: string;
     
     @IsString()
     readonly producto: string;
