@@ -160,14 +160,11 @@ export class VentasService {
 
       let {
           nro_factura, 
-          tipo_cliente,
           tipo_venta,  
           cliente,
           cliente_descripcion,
           cliente_identificacion,
           cliente_tipo_identificacion,
-          cliente_direccion,
-          cliente_telefono,
           cliente_correo_electronico,
           cliente_condicion_iva,
           proveedor,
@@ -225,7 +222,6 @@ export class VentasService {
           nro: nroVenta,
           nro_factura,
           tipo: tipo_venta,
-          tipo_cliente,
           cliente,
           proveedor,
           precio_total,
@@ -268,7 +264,6 @@ export class VentasService {
                   first: `
                       <p style="width: 100%; font-size: 9px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${ Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total) } </span> </p>
                       <p style="width: 100%; font-size: 8px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
-                      <p style="width: 100%; font-size: 8px;"> Los precios pueden modificarse sin previo aviso. </p>
                       <p style="width: 100%; font-size: 8px;"> ${ ventaDB.observacion } </p>
                   `,
                   2: 'Second page',
@@ -293,12 +288,12 @@ export class VentasService {
       // Adaptando numero
       let mostrarNumero: string;
       const { nro } = ventaDB;
-      if(nro <= 9)  mostrarNumero = 'V000000' + String(nro);
-      else if(nro <= 99) mostrarNumero = 'V00000' + String(nro);
-      else if(nro <= 999) mostrarNumero = 'V0000' + String(nro);
-      else if(nro <= 9999) mostrarNumero = 'V000' + String(nro);
-      else if(nro <= 99999) mostrarNumero = 'V00' + String(nro);
-      else if(nro <= 999999) mostrarNumero = 'V0' + String(nro);
+      if(nro <= 9)  mostrarNumero = 'VD000000' + String(nro);
+      else if(nro <= 99) mostrarNumero = 'VD00000' + String(nro);
+      else if(nro <= 999) mostrarNumero = 'VD0000' + String(nro);
+      else if(nro <= 9999) mostrarNumero = 'VD000' + String(nro);
+      else if(nro <= 99999) mostrarNumero = 'VD00' + String(nro);
+      else if(nro <= 999999) mostrarNumero = 'VD0' + String(nro);
 
       const data = {
         fecha: format(venta.createdAt, 'dd/MM/yyyy'),
@@ -369,12 +364,12 @@ export class VentasService {
       // Adaptando numero
       let mostrarNumero: string;
       const { nro } = venta;
-      if(nro <= 9)  mostrarNumero = 'V000000' + String(nro);
-      else if(nro <= 99) mostrarNumero = 'V00000' + String(nro);
-      else if(nro <= 999) mostrarNumero = 'V0000' + String(nro);
-      else if(nro <= 9999) mostrarNumero = 'V000' + String(nro);
-      else if(nro <= 99999) mostrarNumero = 'V00' + String(nro);
-      else if(nro <= 999999) mostrarNumero = 'V0' + String(nro);
+      if(nro <= 9)  mostrarNumero = 'VD000000' + String(nro);
+      else if(nro <= 99) mostrarNumero = 'VD00000' + String(nro);
+      else if(nro <= 999) mostrarNumero = 'VD0000' + String(nro);
+      else if(nro <= 9999) mostrarNumero = 'VD000' + String(nro);
+      else if(nro <= 99999) mostrarNumero = 'VD00' + String(nro);
+      else if(nro <= 999999) mostrarNumero = 'VD0' + String(nro);
 
       const data = {
           fecha: format(venta.createdAt, 'dd/MM/yyyy'),
@@ -398,7 +393,6 @@ export class VentasService {
                   first: `
                       <p style="width: 100%; font-size: 9px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${data.total} </span> </p>
                       <p style="width: 100%; font-size: 8px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
-                      <p style="width: 100%; font-size: 8px;"> Los precios pueden modificarse sin previo aviso. </p>
                       <p style="width: 100%; font-size: 8px;"> ${ venta.observacion } </p>
                   `,
                   2: 'Second page',

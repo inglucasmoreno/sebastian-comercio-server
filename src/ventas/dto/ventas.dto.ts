@@ -7,7 +7,6 @@ export class VentasDTO {
     @IsString()
     readonly nro_factura: string;
 
-    @IsString()
     readonly tipo_cliente: string;
 
     @IsString()
