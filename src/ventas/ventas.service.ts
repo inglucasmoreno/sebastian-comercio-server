@@ -298,6 +298,8 @@ export class VentasService {
       const data = {
         fecha: format(venta.createdAt, 'dd/MM/yyyy'),
         numero: mostrarNumero,
+        nro_factura: venta['nro_factura'],
+        proveedor: venta.proveedor['descripcion'],
         descripcion: venta.cliente['descripcion'],
         correo_electronico: venta.cliente['correo_electronico'],
         condicion_iva: venta.cliente['condicion_iva'],
@@ -374,6 +376,8 @@ export class VentasService {
       const data = {
           fecha: format(venta.createdAt, 'dd/MM/yyyy'),
           numero: mostrarNumero,
+          nro_factura: venta['nro_factura'],
+          proveedor: venta.proveedor['descripcion'],
           descripcion: venta.cliente['descripcion'],
           correo_electronico: venta.cliente['correo_electronico'],
           condicion_iva: venta.cliente['condicion_iva'],
