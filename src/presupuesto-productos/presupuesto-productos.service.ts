@@ -165,6 +165,25 @@ export class PresupuestoProductosService {
         
     } 
 
+    // Actualizar productos
+    async updateProductos(dataProductos: any): Promise<any> {
+
+        if(dataProductos.length <= 0) throw new NotFoundException('No hay productos cargados');
+        
+        let precioTotal = 0;
+
+        // Precio total
+        dataProductos.map( data => precioTotal += data.precio_total);
+
+        // Actualizacion de productos
+        dataProductos.map( async data => await this.productosModel.findByIdAndUpdate(data._id, data));
+
+        await this.presupuestosModel.findByIdAndUpdate(dataProductos[0].presupuesto, { precio_total: precioTotal });
+
+        return 'Actualizacion correcta';
+        
+    }     
+
     // Eliminar producto
     async delete(id: string): Promise<IPresupuestoProductos> {
         const producto = await this.productosModel.findByIdAndRemove(id);

@@ -53,6 +53,16 @@ export class PresupuestoProductosController {
         });
     }
 
+    // Actualizar productos
+    @UseGuards(JwtAuthGuard)
+    @Put('/actualizar/productos')
+    async updateProductos(@Res() res, @Body() productos: any) {
+        await this.productosService.updateProductos(productos);
+        res.status(HttpStatus.OK).json({
+            message: 'Productos actualizados correctamente',
+        });
+    }
+
     // Eliminar producto
     @UseGuards(JwtAuthGuard)
     @Delete('/:id')
