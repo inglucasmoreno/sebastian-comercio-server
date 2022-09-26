@@ -10,6 +10,8 @@ import * as XLSX from 'xlsx';
 import { IUnidadMedida } from 'src/unidad-medida/interface/unidad-medida.interface';
 import { IFamiliaProductos } from 'src/familia-productos/interface/familia-productos.interface';
 import { find } from 'rxjs';
+import { ICajas } from 'src/cajas/interface/cajas.interface';
+import { ITiposMovimientos } from 'src/tipos-movimientos/interface/tipos-movimientos.interface';
 
 @Injectable()
 export class InicializacionService {
@@ -21,6 +23,8 @@ export class InicializacionService {
         @InjectModel('Familias') private readonly familiaProductosModel: Model<IFamiliaProductos>,
         @InjectModel('UnidadMedida') private readonly unidadMedidaModel: Model<IUnidadMedida>,
         @InjectModel('Proveedores') private readonly proveedoresModel: Model<IProveedores>,
+        @InjectModel('Cajas') private readonly cajasModel: Model<ICajas>,
+        @InjectModel('TiposMovimientos') private readonly tiposMovimientosModel: Model<ITiposMovimientos>,
     ){}
 
     async initUsuarios(): Promise<any> {
@@ -168,6 +172,87 @@ export class InicializacionService {
             return `Cantidad de registros cargados: ${registrosCargados}`
         }
 
+    }
+
+    // Inicializar saldos de caja
+    async initSaldos(query: any): Promise<string> {
+
+        // 1 - 000000000000000000000000 - Efectivo
+        // 2 - 111111111111111111111111 - Dolares
+        // 3 - 222222222222222222222222 - Cheques
+        // 4 - 333333333333333333333333 - Banco provisorio
+
+        const { usuario } = query;
+
+        const verificacion = await this.cajasModel.findById('000000000000000000000000');
+        if(verificacion) throw new NotFoundException('Los saldos ya se encuentran inicializados');
+
+        const efectivo = new this.cajasModel({ 
+            _id: '000000000000000000000000',
+            descripcion: 'Efectivo', 
+            saldo: 0,
+            creatorUser: usuario,
+            updatorUser: usuario 
+        });
+
+        const dolares = new this.cajasModel({ 
+            _id: '111111111111111111111111',
+            descripcion: 'Dolares', 
+            saldo: 0,
+            creatorUser: usuario,
+            updatorUser: usuario 
+        });
+
+        const cheques = new this.cajasModel({ 
+            _id: '222222222222222222222222',
+            descripcion: 'Cheques', 
+            saldo: 0,
+            creatorUser: usuario,
+            updatorUser: usuario 
+        });
+
+        const bancoProvisorio = new this.cajasModel({ 
+            _id: '333333333333333333333333',
+            descripcion: 'Banco provisorio', 
+            saldo: 0,
+            creatorUser: usuario,
+            updatorUser: usuario 
+        });
+
+        await Promise.all([
+            efectivo.save(),
+            dolares.save(),
+            cheques.save(),
+            bancoProvisorio.save()
+        ])
+
+        return 'Inicializacion completada';
+
+    }
+
+    // Inicializar tipos de movimientos
+    async initTiposMovimientos(query: any): Promise<string> {
+
+        // 1 - 000000000000000000000000 - Ingreso
+
+        const { usuario } = query;
+
+        const verificacion = await this.tiposMovimientosModel.findById('000000000000000000000000');
+        if(verificacion) throw new NotFoundException('Los tipos ya se encuentran inicializados');
+
+        const ingreso = new this.tiposMovimientosModel({ 
+            _id: '000000000000000000000000',
+            descripcion: 'Ingreso', 
+            saldo: 0,
+            creatorUser: usuario,
+            updatorUser: usuario 
+        });
+
+        await Promise.all([
+            ingreso.save(),
+        ])
+
+        return 'Inicializacion completada';
 
     }
 

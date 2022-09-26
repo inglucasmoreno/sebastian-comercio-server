@@ -19,6 +19,8 @@ import { FamiliaProductosModule } from './familia-productos/familia-productos.mo
 import { ProveedoresModule } from './proveedores/proveedores.module';
 import { VentasModule } from './ventas/ventas.module';
 import { VentasProductosModule } from './ventas-productos/ventas-productos.module';
+import { CajasModule } from './cajas/cajas.module';
+import { TiposMovimientosModule } from './tipos-movimientos/tipos-movimientos.module';
 
 @Module({
   imports: [
@@ -54,8 +56,9 @@ import { VentasProductosModule } from './ventas-productos/ventas-productos.modul
     FamiliaProductosModule,
     ProveedoresModule,
     VentasModule,
-    VentasProductosModule,  // Para inicializacion de tablas - Configurable en el controlador/servicio
-    
+    VentasProductosModule,
+    CajasModule,
+    TiposMovimientosModule,
   ],
   
   controllers: [AppController],

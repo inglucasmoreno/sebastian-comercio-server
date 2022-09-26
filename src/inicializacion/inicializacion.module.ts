@@ -8,6 +8,8 @@ import { proveedoresSchema } from 'src/proveedores/schema/proveedores.schema';
 import { productosSchema } from 'src/productos/schema/productos.schema';
 import { familiaProductosSchema } from 'src/familia-productos/schema/familia-productos.schema';
 import { unidadMedidadSchema } from 'src/unidad-medida/schema/unidad-medida.schema';
+import { cajasSchema } from 'src/cajas/schema/cajas.schema';
+import { tiposMovimientosSchema } from 'src/tipos-movimientos/schema/tipos-movimientos.schema';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { unidadMedidadSchema } from 'src/unidad-medida/schema/unidad-medida.sche
     MongooseModule.forFeature([{name: 'Familias', schema: familiaProductosSchema}]),
     MongooseModule.forFeature([{name: 'UnidadMedida', schema: unidadMedidadSchema}]),
     MongooseModule.forFeature([{name: 'Proveedores', schema: proveedoresSchema}]),
+    MongooseModule.forFeature([{name: 'Cajas', schema: cajasSchema}]),
+    MongooseModule.forFeature([{name: 'TiposMovimientos', schema: tiposMovimientosSchema}]),
   ],
   controllers: [InicializacionController],
   providers: [InicializacionService]
