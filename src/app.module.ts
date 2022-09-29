@@ -21,6 +21,7 @@ import { VentasModule } from './ventas/ventas.module';
 import { VentasProductosModule } from './ventas-productos/ventas-productos.module';
 import { CajasModule } from './cajas/cajas.module';
 import { TiposMovimientosModule } from './tipos-movimientos/tipos-movimientos.module';
+import { MovimientosModule } from './movimientos/movimientos.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { TiposMovimientosModule } from './tipos-movimientos/tipos-movimientos.mo
     VentasProductosModule,
     CajasModule,
     TiposMovimientosModule,
+    MovimientosModule,
   ],
   
   controllers: [AppController],
