@@ -9,6 +9,17 @@ export class MovimientosController {
 
   constructor( private movimientosService: MovimientosService ){}
 
+  // Inicializacion de seccion
+  @UseGuards(JwtAuthGuard)
+  @Get('/inicializacion/seccion')
+  async init(@Res() res) {
+      const data = await this.movimientosService.init();
+      res.status(HttpStatus.OK).json({
+          message: 'Inicializacion obtenida correctamente',
+          data
+      });
+  }
+
   // Movimiento por ID
   @UseGuards(JwtAuthGuard)
   @Get('/:id')

@@ -1,6 +1,6 @@
 export class MovimientosUpdateDTO {
   readonly tipo_movimiento: string;
-  readonly concepto: string;
+  readonly observacion: string;
   readonly tipo_origen: string;
   readonly origen: string;
   readonly origen_descripcion: string;

@@ -12,7 +12,7 @@ export const movimientosSchema = new Schema({
 
   // Varios
 
-  concepto: {
+  observacion: {
     type: String,
     default: ''
   },
@@ -36,12 +36,10 @@ export const movimientosSchema = new Schema({
 
   origen_monto_anterior: {
     type: Number,
-    required: true
   },
 
   origen_monto_nuevo: {
     type: Number,
-    required: true
   },
 
   // Destino
@@ -63,12 +61,10 @@ export const movimientosSchema = new Schema({
 
   destino_monto_anterior: {
     type: Number,
-    required: true
   },
 
   destino_monto_nuevo: {
     type: Number,
-    required: true
   },
 
   monto: {
