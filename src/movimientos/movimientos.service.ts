@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectModel, Schema } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { identity } from 'rxjs';
 import { ICajas } from 'src/cajas/interface/cajas.interface';
 import { IClientes } from 'src/clientes/interface/clientes.interface';
 import { IProveedores } from 'src/proveedores/interface/proveedores.interface';
@@ -85,12 +86,60 @@ constructor(
   }
 
   // Listar movimientos
-  async getAll(querys: any): Promise<IMovimientos[]> {
+  async getAll(querys: any): Promise<any> {
         
-    const {columna, direccion} = querys;
+    const {
+      columna,
+      direccion,
+      desde,
+      registerpp, 
+      activo,
+      tipo_movimiento,
+      parametro
+    } = querys;
 
     const pipeline = [];
+    const pipelineTotal = [];
+
     pipeline.push({$match:{}});
+    pipelineTotal.push({$match:{}});
+
+    // Ordenando datos
+    const ordenar: any = {};
+    if(columna){
+        ordenar[String(columna)] = Number(direccion);
+        pipeline.push({$sort: ordenar});
+    }    
+
+    // Filtro - Activo / Inactivo
+    let filtroActivo = {};
+    if(activo && activo !== '') {
+      filtroActivo = { activo: activo === 'true' ? true : false };
+      pipeline.push({$match: filtroActivo});
+      pipelineTotal.push({$match: filtroActivo});
+    }
+
+    // Filtro - Tipo de movimiento
+    if(tipo_movimiento && tipo_movimiento !== '') {
+      const idTipo = new Types.ObjectId(tipo_movimiento);
+      pipeline.push({$match: { tipo_movimiento: idTipo }});
+      pipelineTotal.push({$match: { tipo_movimiento: idTipo }});
+    }
+
+    // Paginacion
+    pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
+
+    // Informacion de usuario creador
+    pipeline.push({
+      $lookup: { // Lookup
+          from: 'tipos_movimientos',
+          localField: 'tipo_movimiento',
+          foreignField: '_id',
+          as: 'tipo_movimiento'
+      }}
+    );
+
+    pipeline.push({ $unwind: '$tipo_movimiento' });
 
     // Informacion de usuario creador
     pipeline.push({
@@ -116,16 +165,22 @@ constructor(
 
     pipeline.push({ $unwind: '$updatorUser' });
 
-    // Ordenando datos
-    const ordenar: any = {};
-    if(columna){
-        ordenar[String(columna)] = Number(direccion);
-        pipeline.push({$sort: ordenar});
-    }      
+    // Filtro - Parametros
+    if(parametro && parametro !== ''){
+      const regex = new RegExp(parametro, 'i');
+      pipeline.push({$match: { $or: [ { origen_descripcion: regex }, { destino_descripcion: regex } ] }});
+      pipelineTotal.push({$match: { $or: [ { origen_descripcion: regex }, { destino_descripcion: regex } ] }});
+    }
 
-    const movimientos = await this.movimientosModel.aggregate(pipeline);
+    const [movimientos, totalItems] = await Promise.all([
+      this.movimientosModel.aggregate(pipeline),
+      this.movimientosModel.aggregate(pipelineTotal),
+    ])
     
-    return movimientos;
+    return {
+      movimientos,
+      totalItems: totalItems.length
+    };
 
   }    
 
