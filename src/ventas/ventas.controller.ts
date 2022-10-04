@@ -62,4 +62,14 @@ export class VentasController {
       });
   } 
 
+  // Reporte en Excel
+  @UseGuards(JwtAuthGuard)
+  @Get('/reporte/excel')
+  async generarExcel(@Res() res) {
+      await this.ventasService.generarExcel();        
+      res.status(HttpStatus.CREATED).json({
+          message: 'Excel generado correctamente',
+      });
+  } 
+
 }

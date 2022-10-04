@@ -5,9 +5,11 @@ import { IClientes } from 'src/clientes/interface/clientes.interface';
 import { IVentaProductos } from 'src/ventas-productos/interface/ventas-productos.interface';
 import { VentasDTO } from './dto/ventas.dto';
 import { IVentas } from './interface/ventas.interface';
+import * as ExcelJs from 'exceljs';
 import * as fs from 'fs';
 import * as pdf from 'pdf-creator-node';
-import { format } from 'date-fns';
+import { add, format } from 'date-fns';
+import * as path from 'path';
 
 @Injectable()
 export class VentasService {
@@ -417,6 +419,60 @@ export class VentasService {
       await pdf.create(document, options);
 
       return '';
+
+  }
+
+  // Reporte excel
+  async generarExcel(): Promise<any> {
+    
+    // Obtener ventas
+    const ventas = await this.getAll({ direccion: -1, columna: 'createdAt' });
+
+    const workbook = new ExcelJs.Workbook();
+    const worksheet = workbook.addWorksheet('Reporte - Ventas directas');
+
+    worksheet.addRow(['Número', 'Fecha', 'Proveedor', 'Cliente', 'Precio total']);
+
+    // Autofiltro
+
+    worksheet.autoFilter = 'A1:E1';
+
+    // Estilo de filas y columnas
+
+    worksheet.getRow(1).height = 20;
+
+    worksheet.getRow(1).eachCell(cell => {
+        cell.font = { bold: true }
+    });
+
+    worksheet.getColumn(1).width = 14; // Codigo
+    worksheet.getColumn(2).width = 15; // Fecha
+    worksheet.getColumn(3).width = 40; // Proveedor
+    worksheet.getColumn(4).width = 40; // Cliente
+    worksheet.getColumn(5).width = 25; // Precio total
+
+    // Agregar elementos
+    ventas.map( venta => {
+        worksheet.addRow([
+            venta.nro, 
+            add(venta.createdAt,{ hours: -3 }), 
+            venta.proveedor['descripcion'], 
+            venta.cliente['descripcion'], 
+            Number(venta.precio_total)]);    
+    });
+
+    // Generacion de reporte
+
+    const nombreReporte = '../../public/excel/ventas-directas.xlsx';
+    workbook.xlsx.writeFile(path.join(__dirname, nombreReporte)).then(async data => {
+        const pathReporte = path.join(__dirname, nombreReporte);
+    });
+
+    // const fechaHoy = new Date();
+
+    // worksheet.addRow(['Fecha'])
+    
+    return true;
 
   }
 
