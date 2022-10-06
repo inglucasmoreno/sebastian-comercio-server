@@ -22,6 +22,10 @@ import { VentasProductosModule } from './ventas-productos/ventas-productos.modul
 import { CajasModule } from './cajas/cajas.module';
 import { TiposMovimientosModule } from './tipos-movimientos/tipos-movimientos.module';
 import { MovimientosModule } from './movimientos/movimientos.module';
+import { CcClientesModule } from './cc-clientes/cc-clientes.module';
+import { CcProveedoresModule } from './cc-proveedores/cc-proveedores.module';
+import { CcClientesMovimientosModule } from './cc-clientes-movimientos/cc-clientes-movimientos.module';
+import { CcProveedoresMovimientosModule } from './cc-proveedores-movimientos/cc-proveedores-movimientos.module';
 
 @Module({
   imports: [
@@ -61,6 +65,10 @@ import { MovimientosModule } from './movimientos/movimientos.module';
     CajasModule,
     TiposMovimientosModule,
     MovimientosModule,
+    CcClientesModule,
+    CcProveedoresModule,
+    CcClientesMovimientosModule,
+    CcProveedoresMovimientosModule,
   ],
   
   controllers: [AppController],
