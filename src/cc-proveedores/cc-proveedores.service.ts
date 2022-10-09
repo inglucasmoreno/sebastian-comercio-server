@@ -127,7 +127,7 @@ export class CcProveedoresService {
 
     // Verificacion: Si hay una cuenta corriente creada para el proveedor
     const cuenta_corriente = await this.cuentaCorrienteModel.findOne({proveedor: cuentaCorrienteDTO.proveedor})
-    if(cuenta_corriente) throw new NotFoundException('Este proveedor ya tiene cuenta corriente creada');
+    if(cuenta_corriente) throw new NotFoundException('Este cliente ya tiene una cuenta corriente');
 
     const nuevaCuenta = new this.cuentaCorrienteModel(cuentaCorrienteDTO);
     return await nuevaCuenta.save();

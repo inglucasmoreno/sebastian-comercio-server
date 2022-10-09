@@ -35,10 +35,10 @@ export class CcClientesMovimientosController {
   @UseGuards(JwtAuthGuard)
   @Post('/')
   async insert(@Res() res, @Body() movimientosDTO: CcClientesMovimientosDTO ) {
-      const movimiento = await this.movimientosService.insert(movimientosDTO);        
+      const { saldo_nuevo } = await this.movimientosService.insert(movimientosDTO);        
       res.status(HttpStatus.CREATED).json({
           message: 'Movimiento creado correctamente',
-          movimiento
+          saldo_nuevo
       });
   }
     

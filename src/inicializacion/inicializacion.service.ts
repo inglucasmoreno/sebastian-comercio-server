@@ -174,8 +174,8 @@ export class InicializacionService {
 
     }
 
-    // Inicializar saldos de caja
-    async initSaldos(query: any): Promise<string> {
+    // Inicializar cajas
+    async initCajas(query: any): Promise<string> {
 
         // 1 - 000000000000000000000000 - Efectivo
         // 2 - 111111111111111111111111 - Dolares

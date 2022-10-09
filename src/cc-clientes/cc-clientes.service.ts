@@ -128,7 +128,7 @@ export class CcClientesService {
 
     // Verificacion: Si hay una cuenta corriente creada para el cliente
     const cuenta_corriente = await this.cuentaCorrienteModel.findOne({cliente: cuentaCorrienteDTO.cliente})
-    if(cuenta_corriente) throw new NotFoundException('Este cliente ya tiene cuenta corriente creada');
+    if(cuenta_corriente) throw new NotFoundException('Este cliente ya tiene una cuenta corriente');
 
     const nuevaCuenta = new this.cuentaCorrienteModel(cuentaCorrienteDTO);
     return await nuevaCuenta.save();

@@ -42,10 +42,10 @@ export class InicializacionController {
 
     }
 
-    // Inicializacion de saldos
-    @Post('/saldos')
+    // Inicializacion de cajas
+    @Post('/cajas')
     async initSaldos(@Res() res, @Query() query: any){
-        await this.inicializacionService.initSaldos(query);
+        await this.inicializacionService.initCajas(query);
         res.status(HttpStatus.OK).json({
             message: 'Inicializacion de usuarios completado correctamente'
         })

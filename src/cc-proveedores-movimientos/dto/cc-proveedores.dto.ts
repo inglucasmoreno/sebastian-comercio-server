@@ -12,12 +12,10 @@ export class CcProveedoresMovimientosDTO {
   readonly proveedor: string;
 
   @IsNumber()
-  readonly saldo: number;
+  readonly monto: number;
 
-  @IsNumber()
   readonly saldo_anterior: number;
   
-  @IsNumber()
   readonly saldo_nuevo: number;
  
   @IsString()

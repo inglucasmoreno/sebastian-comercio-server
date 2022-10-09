@@ -1,42 +1,38 @@
-
 import { Schema } from 'mongoose';
 
-export const CcClientesMovimientosSchema = new Schema({
-
-  tipo: {
+export const chequesSchema = new Schema({
+  
+  nro_cheque: {
     type: String,
     required: true,
+    uppercase: true,
   },
 
-  cc_cliente: {
-    type: Schema.Types.ObjectId,
-    required: true,
-  },
-
-  cliente: {
-    type: Schema.Types.ObjectId,
-    required: true,
-  },
-
-  monto: {
-    type: Number,
-    required: true,
-  },
-
-  saldo_anterior: {
-    type: Number,
-    required: true,
-  },
-
-  saldo_nuevo: {
-    type: Number,
-    required: true,
-  },
-
-  descripcion: {
+  emisor: {
     type: String,
     required: true,
-    uppercase: true
+    uppercase: true,
+  },
+
+  banco: {
+    type: Schema.Types.ObjectId,
+    ref: 'bancos',
+    required: true,
+  },
+
+  importe: {
+    type: Number,
+    required: true
+  },
+
+  fecha_cobro: {
+    type: Date,
+    required: true    
+  },
+
+  estado: {
+    type: String,
+    default: 'Creado'
   },
 
   activo: {
@@ -56,4 +52,4 @@ export const CcClientesMovimientosSchema = new Schema({
     required: true,
   }
 
-},{ timestamps: true, collection: 'cc_clientes_movimientos' })
+},{ timestamps: true, collection: 'cheques' })

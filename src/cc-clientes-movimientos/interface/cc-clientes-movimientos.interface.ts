@@ -4,7 +4,7 @@ export interface ICcClientesMovimientos extends Document {
   readonly tipo: string;
   readonly cc_cliente: string;
   readonly cliente: string;
-  readonly saldo: number;
+  readonly monto: number;
   readonly saldo_anterior: number;
   readonly saldo_nuevo: number;
   readonly descripcion: string;

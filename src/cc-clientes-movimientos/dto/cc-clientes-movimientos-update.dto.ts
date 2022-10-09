@@ -8,7 +8,7 @@ export class CcClientesMovimientosUpdateDTO {
 
   readonly cliente: string;
 
-  readonly saldo: number;
+  readonly monto: number;
 
   readonly saldo_anterior: number;
   

@@ -18,7 +18,7 @@ export const CcProveedoresMovimientosSchema = new Schema({
     required: true,
   },
 
-  saldo: {
+  monto: {
     type: Number,
     required: true,
   },
@@ -36,6 +36,7 @@ export const CcProveedoresMovimientosSchema = new Schema({
   descripcion: {
     type: String,
     required: true,
+    uppercase: true
   },
 
   activo: {

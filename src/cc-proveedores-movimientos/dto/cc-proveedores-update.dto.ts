@@ -8,7 +8,7 @@ export class CcProveedoresMovimientosUpdateDTO {
 
   readonly proveedor: string;
 
-  readonly saldo: number;
+  readonly monto: number;
 
   readonly saldo_anterior: number;
   
