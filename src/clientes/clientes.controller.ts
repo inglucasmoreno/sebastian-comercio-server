@@ -19,6 +19,17 @@ export class ClientesController {
             cliente
         });
     }
+
+    // Cliente por identificacion
+    @UseGuards(JwtAuthGuard)
+    @Get('/identificacion/:identificacion')
+    async getIdentificacion(@Res() res, @Param('identificacion') identificacion) {
+        const cliente = await this.clientesService.getIdentificacion(identificacion);
+        res.status(HttpStatus.OK).json({
+            message: 'Cliente obtenido correctamente',
+            cliente
+        });
+    }
   
     // Listar clientes
     @UseGuards(JwtAuthGuard)

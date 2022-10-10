@@ -66,6 +66,58 @@ export class CcClientesService {
 
   }
 
+  // CC por cliente
+  async getPorCliente(idCliente: string): Promise<ICcClientes> {
+    
+    const pipeline = [];
+
+    // Cuenta corriente por cliente
+    const cliente = new Types.ObjectId(idCliente);
+    pipeline.push({ $match:{ cliente } }); 
+
+    // Informacion de cliente
+    pipeline.push({
+      $lookup: { // Lookup
+          from: 'clientes',
+          localField: 'cliente',
+          foreignField: '_id',
+          as: 'cliente'
+      }}
+    );
+
+    pipeline.push({ $unwind: '$cliente' });
+
+
+    // Informacion de usuario creador
+    pipeline.push({
+      $lookup: { // Lookup
+          from: 'usuarios',
+          localField: 'creatorUser',
+          foreignField: '_id',
+          as: 'creatorUser'
+      }}
+    );
+
+    pipeline.push({ $unwind: '$creatorUser' });
+
+    // Informacion de usuario actualizador
+    pipeline.push({
+      $lookup: { // Lookup
+          from: 'usuarios',
+          localField: 'updatorUser',
+          foreignField: '_id',
+          as: 'updatorUser'
+      }}
+    );
+
+    pipeline.push({ $unwind: '$updatorUser' });
+
+    const cuentaCorriente = await this.cuentaCorrienteModel.aggregate(pipeline);
+    
+    return cuentaCorriente[0];    
+
+  }
+
   // Listar cuentas corrientes
   async getAll(querys: any): Promise<ICcClientes[]> {
         

@@ -53,6 +53,44 @@ export class ClientesService {
 
     }
 
+     // Cliente por Identificacion
+     async getIdentificacion(identificacion: string): Promise<IClientes> {
+
+        const pipeline = [];
+
+        // Cliente por identificacion
+        pipeline.push({ $match:{ identificacion } }); 
+
+        // Informacion de usuario creador
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'usuarios',
+                localField: 'creatorUser',
+                foreignField: '_id',
+                as: 'creatorUser'
+            }}
+        );
+
+        pipeline.push({ $unwind: '$creatorUser' });
+
+        // Informacion de usuario actualizador
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'usuarios',
+                localField: 'updatorUser',
+                foreignField: '_id',
+                as: 'updatorUser'
+            }}
+        );
+
+        pipeline.push({ $unwind: '$updatorUser' });
+
+        const cliente = await this.clientesModel.aggregate(pipeline);
+
+        return cliente[0];    
+
+    }
+
     // Listar clientes
     async getAll(querys: any): Promise<IClientes[]> {
 
