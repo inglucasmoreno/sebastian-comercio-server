@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+  <link rel="stylesheet" href="template.css">
+
+  <style>
+
+      /* CSS de PDF */
+
+      * {
+          box-sizing: border-box;
+          margin: 0px;
+          padding: 0px;
+          font-family: Arial, Helvetica, sans-serif;
+      }
+
+  </style>
+
+  <head>
+      <mate charest="utf-8" />
+      <title> Presupuesto </title>
+  </head>
+
+  <body style="font-family: Arial, Helvetica, sans-serif;">
+
+  <!-- Logo -->
+  <div style="position: absolute; padding-top: 5px;">
+    <img style="width: 80px; margin-left: 28px;" src="http://localhost:3000/pdf/logo.png">
+    <!-- <p style="font-size: 8px; padding: 5px; border-left: 0px; border-right: 0px;"> Bº Ampare M:E C: 07 -  San Luis - Capital</p> -->
+    <p style="font-size: 8px; padding: 5px; padding-top:2px;"> <img style="width: 11px;" src="http://localhost:3000/pdf/whatsapp.png"> <span style="margin-left: 3px"> Tel. +54 9 2664 363225 </span>   </p>           
+  </div>
+
+  <div style="position: absolute; margin-top: 30px; margin-left: 357px; padding: 10px">
+    <p style="font-size: 10px; padding: 5px;"> <span> VENTA NRO {{ numero }} </span> </p>
+    <!-- <p style="font-size: 10px; padding: 5px; text-align: center; font-weight: bold;"> <span>  </span> </p> -->
+    <p style="font-size: 10px; padding: 5px;"> Fecha: {{ fecha }} </p>           
+  </div>
+
+
+  <!-- <p style="position: absolute; font-size: 8px; padding: 5px; margin-top: 120px;"> <span style="font-weight: bold"> Nro de factura: </span> {{ nro_factura }} </p> -->
+  <!-- <p style="position: absolute; font-size: 8px; padding: 5px; margin-top: 135px;"> <span style="font-weight: bold"> Proveedor: </span> {{ proveedor }} </p> -->
+  <div style="position: absolute; margin-top: 160px; border: 1px solid black; width: 100%; padding: 10px;">
+    <div style="font-size: 8px;"> <span style="font-weight: bold;"> Nombre/Razon social: </span> <span style="margin-left: 20px;"> {{ descripcion }} </span>   </div>
+    <div style="font-size: 8px; margin-top: 14px"> <span style="font-weight: bold; margin-left: 53px;"> Domicilio:  </span> <span style="margin-left: 20px;"> {{ direccion }} </span>  </div>
+    <div style="font-size: 8px; margin-top: 14px"> <span style="font-weight: bold; margin-left: 56px;"> Télefono: </span> <span style="margin-left: 20px;"> {{ telefono }} </span>  </div>
+    <div style="font-size: 8px; margin-top: 14px"> <span style="font-weight: bold; margin-left: 18px;"> Condición de IVA: </span> <span style="margin-left: 20px;"> {{ condicion_iva }} </span>  </div>
+  </div>
+
+  <!-- Tabla de productos -->
+  <div style="position: absolute; margin-top: 270px; font-size: 9px; border: 1px solid black; padding: 10px;">
+    <table>
+      <tr>
+        <th style="width: 500px; text-align: left;"> Producto </th>
+        <th style="width: 100px; text-align: left;"> U/Medida</th>
+        <th style="width: 100px; text-align: left;"> Cantidad </th>
+        <th style="width: 100px; text-align: right;"> Unitario </th>
+        <th style="width: 100px; text-align: right;"> Total </th>
+      </tr>
+      {{#each productos}}
+      <tr>
+        <td style="text-align:left;"> {{ descripcion }}</td>
+        <td style="text-align:left;"> {{ unidad_medida }} </td>
+        <td style="text-align:left; padding: 5px"> {{ cantidad }} </td>
+        <td style="text-align:right;"> ${{ precio_unitario }} </td>
+        <td style="text-align:right;"> ${{ precio_total }} </td>
+      </tr>
+      {{/each}} 
+    </table>          
+  </div>
+  </body>
+
+</html>

@@ -1,25 +1,25 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { IVentas } from 'src/ventas/interface/ventas.interface';
-import { VentaProductosUpdateDTO } from './dto/ventas-productos-update.dto';
-import { VentaProductosDTO } from './dto/ventas-productos.dto';
-import { IVentaProductos } from './interface/ventas-productos.interface';
+import { IVentasPropias } from 'src/ventas-propias/interface/ventas-propias.interface';
+import { VentasPropiasProductosUpdateDTO } from './dto/ventas-propias-productos-update.dto';
+import { VentasPropiasProductosDTO } from './dto/ventas-propias-productos.dto';
+import { IVentasPropiasProductos } from './interface/ventas-propias-productos.interface';
 
 @Injectable()
-export class VentasProductosService {
+export class VentasPropiasProductosService {
 
   constructor(
-    @InjectModel('VentaProductos') private readonly productosModel: Model<IVentaProductos>,
-    @InjectModel('Ventas') private readonly ventasModel: Model<IVentas>,   
+    @InjectModel('VentasPropiasProductos') private readonly productosModel: Model<IVentasPropiasProductos>,
+    @InjectModel('VentasPropias') private readonly ventasModel: Model<IVentasPropias>,   
   ){};
 
-    // Producto por ID
-    async getId(id: string): Promise<IVentaProductos> {
+    // Venta propias por ID
+    async getId(id: string): Promise<IVentasPropiasProductos> {
 
         // Se verifica si el producto existe
         const productoDB = await this.productosModel.findById(id);
-        if(!productoDB) throw new NotFoundException('El producto no existe'); 
+        if(!productoDB) throw new NotFoundException('La venta propia no existe no existe'); 
 
         const pipeline = [];
 
@@ -30,14 +30,14 @@ export class VentasProductosService {
         // Informacion de venta
         pipeline.push({
             $lookup: { // Lookup
-                from: 'ventas',
-                localField: 'venta',
+                from: 'ventas_propias',
+                localField: 'venta_propia',
                 foreignField: '_id',
-                as: 'venta'
+                as: 'venta_propia'
             }}
         );
 
-        pipeline.push({ $unwind: '$venta' });
+        pipeline.push({ $unwind: '$venta_propia' });
 
         // Informacion de producto
         pipeline.push({
@@ -82,7 +82,7 @@ export class VentasProductosService {
     }
 
     // Listar productos
-    async getAll(querys: any): Promise<IVentaProductos[]> {
+    async getAll(querys: any): Promise<IVentasPropiasProductos[]> {
 
         const {columna, direccion, venta} = querys;
 
@@ -97,12 +97,12 @@ export class VentasProductosService {
 
         // Informacion de producto
         pipeline.push({
-            $lookup: { // Lookup
-                from: 'productos',
-                localField: 'producto',
-                foreignField: '_id',
-                as: 'producto'
-            }}
+          $lookup: { // Lookup
+              from: 'productos',
+              localField: 'producto',
+              foreignField: '_id',
+              as: 'producto'
+          }}
         );
 
         pipeline.push({ $unwind: '$producto' });
@@ -145,7 +145,7 @@ export class VentasProductosService {
     }    
 
     // Crear producto
-    async insert(productosDTO: VentaProductosDTO): Promise<IVentaProductos[]> {
+    async insert(productosDTO: VentasPropiasProductosDTO): Promise<IVentasPropiasProductos[]> {
         
         // Se agrega un producto
         const nuevoProducto = new this.productosModel(productosDTO);
@@ -159,7 +159,7 @@ export class VentasProductosService {
     }  
 
     // Actualizar producto
-    async update(id: string, productoUpdateDTO: VentaProductosUpdateDTO): Promise<IVentaProductos[]> {
+    async update(id: string, productoUpdateDTO: VentasPropiasProductosUpdateDTO): Promise<IVentasPropiasProductos[]> {
 
         const productoDB = await this.productosModel.findById(id);
         
@@ -196,7 +196,7 @@ export class VentasProductosService {
 
 
     // Eliminar producto
-    async delete(id: string): Promise<IVentaProductos> {
+    async delete(id: string): Promise<IVentasPropiasProductos> {
         const producto = await this.productosModel.findByIdAndRemove(id);
         return producto;
     }

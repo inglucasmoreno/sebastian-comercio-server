@@ -28,6 +28,10 @@ import { CcClientesMovimientosModule } from './cc-clientes-movimientos/cc-client
 import { CcProveedoresMovimientosModule } from './cc-proveedores-movimientos/cc-proveedores-movimientos.module';
 import { BancosModule } from './bancos/bancos.module';
 import { ChequesModule } from './cheques/cheques.module';
+import { VentasPropiasModule } from './ventas-propias/ventas-propias.module';
+import { ReciboCobroModule } from './recibo-cobro/recibo-cobro.module';
+import { VentasPropiasProductosModule } from './ventas-propias-productos/ventas-propias-productos.module';
+import { VentasPropiasChequesModule } from './ventas-propias-cheques/ventas-propias-cheques.module';
 
 @Module({
   imports: [
@@ -73,6 +77,10 @@ import { ChequesModule } from './cheques/cheques.module';
     CcProveedoresMovimientosModule,
     BancosModule,
     ChequesModule,
+    VentasPropiasModule,
+    ReciboCobroModule,
+    VentasPropiasProductosModule,
+    VentasPropiasChequesModule,
   ],
   
   controllers: [AppController],
