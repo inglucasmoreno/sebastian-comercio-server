@@ -7,6 +7,10 @@ export class VentasPropiasUpdateDTO {
 
     readonly tipo_venta: string;
 
+    readonly formas_pago: string;
+
+    readonly cheques: string;
+
     readonly productos: [];
 
     readonly cliente_descripcion: string;
@@ -28,8 +32,6 @@ export class VentasPropiasUpdateDTO {
     readonly observacion: string;
         
     readonly precio_total: number;
-
-    readonly recibo_cobro: string;
     
     readonly activo: boolean;
 

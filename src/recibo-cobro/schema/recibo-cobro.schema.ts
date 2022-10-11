@@ -2,12 +2,6 @@ import { Schema } from 'mongoose';
 
 export const recibosCobrosSchema = new Schema({
   
-  venta_propia: {
-    type: Schema.Types.ObjectId,
-    ref: 'venta_propia',
-    required: true,
-  },
-
   formas_pago: {
     type: Array,
     required: true

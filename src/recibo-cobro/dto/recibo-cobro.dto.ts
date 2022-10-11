@@ -1,9 +1,6 @@
 import { IsArray, IsNumber, IsString } from "class-validator";
 
 export class RecibosCobrosDTO {
-
-  @IsString()
-  readonly venta_propia: string;
   
   @IsArray()
   readonly formas_pago: Array<any>;

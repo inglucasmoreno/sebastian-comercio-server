@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from "class-validator";
+import { IsArray, IsNumber, IsString } from "class-validator";
 
 export class VentasPropiasDTO {
 
@@ -8,6 +8,12 @@ export class VentasPropiasDTO {
 
     @IsString()
     readonly tipo_venta: string;
+
+    @IsArray()
+    readonly formas_pago: string;
+
+    @IsArray()
+    readonly cheques: string;
 
     readonly productos: [];
 
@@ -32,9 +38,6 @@ export class VentasPropiasDTO {
         
     @IsNumber()
     readonly precio_total: number;
-
-    @IsString()
-    readonly recibo_cobro: string;
     
     readonly activo: boolean;
 

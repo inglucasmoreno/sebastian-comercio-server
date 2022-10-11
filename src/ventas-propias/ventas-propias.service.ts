@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as pdf from 'pdf-creator-node';
 import { add, format } from 'date-fns';
 import * as path from 'path';
+import { IRecibosCobros } from 'src/recibo-cobro/interface/recibo-cobro-interface';
 
 @Injectable()
 export class VentasPropiasService {
@@ -20,6 +21,7 @@ export class VentasPropiasService {
     @InjectModel('VentasPropias') private readonly ventasModel: Model<IVentasPropias>,
     @InjectModel('Clientes') private readonly clientesModel: Model<IClientes>,
     @InjectModel('VentasPropiasProductos') private readonly ventaProductosModel: Model<IVentasPropiasProductos>,
+    @InjectModel('RecibosCobros') private readonly recibosCobrosModel: Model<IRecibosCobros>,
   ){};
 
   // Venta propia por ID
@@ -140,6 +142,8 @@ export class VentasPropiasService {
       let {
           tipo_venta,  
           cliente,
+          formas_pago,
+          cheques,
           cliente_descripcion,
           cliente_identificacion,
           cliente_tipo_identificacion,
@@ -193,31 +197,47 @@ export class VentasPropiasService {
 
       ventas.length === 0 ? nroVenta = 1 : nroVenta = Number(ventas[0].nro + 1); 
 
-      // GENERACION DE VENTA
+      // GENERACION DE RECIBO DE COBRO 
 
-      const dataVenta = {
-          nro: nroVenta,
-          tipo: tipo_venta,
-          cliente,
+      // Cracion de recibo de cobro
+      const dataRecibo = {
+          formas_pago,
+          cheques,
           precio_total,
-          observacion,
-          // descripcion,
-          // tipo_identificacion,
-          // identificacion,
-          // direccion,
-          // telefono,
-          // correo_electronico,
-          // condicion_iva,
           creatorUser,
-          updatorUser     
-      };
+          updatorUser
+      }
+
+      const reciboCobro = new this.recibosCobrosModel(dataRecibo);
+      const reciboDB = await reciboCobro.save();
+
+      // GENERACION DE VENTA
       
+      const dataVenta = {
+        nro: nroVenta,
+        tipo: tipo_venta,
+        cliente,
+        precio_total,
+        observacion,
+        recibo_cobro: reciboDB._id,
+        // descripcion,
+        // tipo_identificacion,
+        // identificacion,
+        // direccion,
+        // telefono,
+        // correo_electronico,
+        // condicion_iva,
+        creatorUser,
+        updatorUser     
+    };
+
+      // Creacion de venta
       const nuevaVenta = new this.ventasModel(dataVenta);
       const ventaDB = await nuevaVenta.save();
       
       // CARGA DE PRODUCTOS
       let productosVenta: any = productos;
-      productosVenta.map( producto => producto.venta = String(ventaDB._id) )
+      productosVenta.map( producto => producto.venta_propia = String(ventaDB._id) )
 
       await this.ventaProductosModel.insertMany(productosVenta);
       
