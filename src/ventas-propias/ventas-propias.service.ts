@@ -436,7 +436,6 @@ export class VentasPropiasService {
 
     worksheet.getColumn(1).width = 14; // Codigo
     worksheet.getColumn(2).width = 15; // Fecha
-    worksheet.getColumn(3).width = 40; // Proveedor
     worksheet.getColumn(4).width = 40; // Cliente
     worksheet.getColumn(5).width = 25; // Precio total
 

@@ -92,7 +92,7 @@ export class VentasPropiasProductosService {
         // Listar por venta
         if(venta && venta !== ''){
             const idVenta = new Types.ObjectId(venta);
-            pipeline.push({ $match:{ venta: idVenta } })        
+            pipeline.push({ $match:{ venta_propia: idVenta } })        
         }
 
         // Informacion de producto
