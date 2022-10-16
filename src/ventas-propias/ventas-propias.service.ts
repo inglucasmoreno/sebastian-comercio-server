@@ -11,6 +11,7 @@ import * as pdf from 'pdf-creator-node';
 import { add, format } from 'date-fns';
 import * as path from 'path';
 import { IRecibosCobros } from 'src/recibo-cobro/interface/recibo-cobro-interface';
+import { ICcClientes } from 'src/cc-clientes/interface/cc-clientes.interface';
 
 @Injectable()
 export class VentasPropiasService {
@@ -20,6 +21,7 @@ export class VentasPropiasService {
   constructor(
     @InjectModel('VentasPropias') private readonly ventasModel: Model<IVentasPropias>,
     @InjectModel('Clientes') private readonly clientesModel: Model<IClientes>,
+    @InjectModel('CcClientes') private readonly ccClientesModel: Model<ICcClientes>,
     @InjectModel('VentasPropiasProductos') private readonly ventaProductosModel: Model<IVentasPropiasProductos>,
     @InjectModel('RecibosCobros') private readonly recibosCobrosModel: Model<IRecibosCobros>,
   ){};
@@ -144,6 +146,8 @@ export class VentasPropiasService {
           cliente,
           formas_pago,
           cheques,
+          cancelada,
+          deuda_monto,
           cliente_descripcion,
           cliente_identificacion,
           cliente_tipo_identificacion,
@@ -197,20 +201,6 @@ export class VentasPropiasService {
 
       ventas.length === 0 ? nroVenta = 1 : nroVenta = Number(ventas[0].nro + 1); 
 
-      // GENERACION DE RECIBO DE COBRO 
-
-      // Cracion de recibo de cobro
-      const dataRecibo = {
-          formas_pago,
-          cheques,
-          precio_total,
-          creatorUser,
-          updatorUser
-      }
-
-      const reciboCobro = new this.recibosCobrosModel(dataRecibo);
-      const reciboDB = await reciboCobro.save();
-
       // GENERACION DE VENTA
       
       const dataVenta = {
@@ -219,7 +209,10 @@ export class VentasPropiasService {
         cliente,
         precio_total,
         observacion,
-        recibo_cobro: reciboDB._id,
+        formas_pago,
+        cheques,
+        cancelada,
+        deuda_monto,
         // descripcion,
         // tipo_identificacion,
         // identificacion,
@@ -231,66 +224,92 @@ export class VentasPropiasService {
         updatorUser     
     };
 
-      // Creacion de venta
-      const nuevaVenta = new this.ventasModel(dataVenta);
-      const ventaDB = await nuevaVenta.save();
-      
-      // CARGA DE PRODUCTOS
-      let productosVenta: any = productos;
-      productosVenta.map( producto => producto.venta_propia = String(ventaDB._id) )
 
-      await this.ventaProductosModel.insertMany(productosVenta);
-      
-      // Generar PDF
+    // IMPACTOS - Cuenta corriente
 
-      const venta = await this.getId(ventaDB._id);
+    // Decremento
+    
+    let decrementoCC = false;
+    let montoDecremento = 0;
 
-      let html: any;
+    formas_pago.map( (forma: any) => {
+        if(forma.descripcion === 'CUENTA CORRIENTE'){
+            decrementoCC =true;
+            montoDecremento = forma.monto;        
+        }
+    });
 
-      html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/venta-propia.html', 'utf-8');
+    if(decrementoCC){
+        const cuentaCorrienteDB: any = await this.ccClientesModel.findOne({ cliente });
+        console.log(cuentaCorrienteDB);
+        if(cuentaCorrienteDB) await this.ccClientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: cuentaCorrienteDB.saldo - montoDecremento});
+    }
 
-      var options = {
-          format: 'A4',
-          orientation: 'portrait',
-          border: '10mm',
-          footer: {
-              height: "35mm",
-              contents: {
-                  first: `
-                      <p style="width: 100%; font-size: 9px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${ Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total) } </span> </p>
-                      <p style="width: 100%; font-size: 8px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
-                      <p style="width: 100%; font-size: 8px;"> ${ ventaDB.observacion } </p>
-                  `,
-                  2: 'Second page',
-                  default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',
-                  last: 'Last Page'
-              }
-          }  
-      }
+    // Increment
 
-      let productosPDF: any[] = [];
-      const productosMap: any = productos;
+    let incrementoCC = false;
+    let montoIncremento = 0;
 
-      // Adaptando productos
-      productosMap.map( producto => productosPDF.push({
-          descripcion: producto.descripcion,
-          cantidad: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.cantidad),
-          unidad_medida: producto.unidad_medida,
-          precio_unitario: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_unitario),
-          precio_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_total)
-      }));
+    // CREACION DE VENTA
+    const nuevaVenta = new this.ventasModel(dataVenta);
+    const ventaDB = await nuevaVenta.save();
+    
+    // CARGA DE PRODUCTOS
+    let productosVenta: any = productos;
+    productosVenta.map( producto => producto.venta_propia = String(ventaDB._id) )
 
-      // Adaptando numero
-      let mostrarNumero: string;
-      const { nro } = ventaDB;
-      if(nro <= 9)  mostrarNumero = 'VP000000' + String(nro);
-      else if(nro <= 99) mostrarNumero = 'VP00000' + String(nro);
-      else if(nro <= 999) mostrarNumero = 'VP0000' + String(nro);
-      else if(nro <= 9999) mostrarNumero = 'VP000' + String(nro);
-      else if(nro <= 99999) mostrarNumero = 'VP00' + String(nro);
-      else if(nro <= 999999) mostrarNumero = 'VP0' + String(nro);
+    await this.ventaProductosModel.insertMany(productosVenta);
+    
+    // GENERACION DE PDF
 
-      const data = {
+    const venta = await this.getId(ventaDB._id);
+
+    let html: any;
+
+    html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/venta-propia.html', 'utf-8');
+
+    var options = {
+        format: 'A4',
+        orientation: 'portrait',
+        border: '10mm',
+        footer: {
+            height: "35mm",
+            contents: {
+                first: `
+                    <p style="width: 100%; font-size: 9px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${ Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaDB.precio_total) } </span> </p>
+                    <p style="width: 100%; font-size: 8px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
+                    <p style="width: 100%; font-size: 8px;"> ${ ventaDB.observacion } </p>
+                `,
+                2: 'Second page',
+                default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',
+                last: 'Last Page'
+            }
+        }  
+    }
+
+    let productosPDF: any[] = [];
+    const productosMap: any = productos;
+
+    // Adaptando productos
+    productosMap.map( producto => productosPDF.push({
+        descripcion: producto.descripcion,
+        cantidad: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.cantidad),
+        unidad_medida: producto.unidad_medida,
+        precio_unitario: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_unitario),
+        precio_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_total)
+    }));
+
+    // Adaptando numero
+    let mostrarNumero: string;
+    const { nro } = ventaDB;
+    if(nro <= 9)  mostrarNumero = 'VP000000' + String(nro);
+    else if(nro <= 99) mostrarNumero = 'VP00000' + String(nro);
+    else if(nro <= 999) mostrarNumero = 'VP0000' + String(nro);
+    else if(nro <= 9999) mostrarNumero = 'VP000' + String(nro);
+    else if(nro <= 99999) mostrarNumero = 'VP00' + String(nro);
+    else if(nro <= 999999) mostrarNumero = 'VP0' + String(nro);
+
+    const data = {
         fecha: format(venta.createdAt, 'dd/MM/yyyy'),
         numero: mostrarNumero,
         descripcion: venta.cliente['descripcion'],
@@ -300,19 +319,19 @@ export class VentasPropiasService {
         telefono: venta.cliente['telefono'],
         productos: productosPDF,
         total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(venta.precio_total)
-      };
+    };
 
-      // Configuraciones de documento
-      var document = {
-          html: html,
-          data,
-          path: (process.env.PUBLIC_DIR || './public') + '/pdf/venta-propia.pdf'
-      }
+    // Configuraciones de documento
+    var document = {
+        html: html,
+        data,
+        path: (process.env.PUBLIC_DIR || './public') + '/pdf/venta-propia.pdf'
+    }
 
-      // Generacion de PDF
-      await pdf.create(document, options);
+    // Generacion de PDF
+    await pdf.create(document, options);
 
-      return 'Venta creada correctamente';
+    return 'Venta creada correctamente';
 
   }  
 

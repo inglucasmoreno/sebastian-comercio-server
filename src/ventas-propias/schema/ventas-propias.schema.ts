@@ -18,7 +18,22 @@ export const ventasPropiasSchema = new Schema({
     required: true,
   },
 
+  formas_pago: {
+    type: Array,
+    required: true,
+  },
+
+  cheques: {
+    type: Array,
+    required: true,
+  },
+
   precio_total: {
+    type: Number,
+    required: true
+  },
+
+  deuda_monto: {
     type: Number,
     required: true
   },
@@ -28,9 +43,8 @@ export const ventasPropiasSchema = new Schema({
     default: ''
   },
 
-  recibo_cobro: {
-    type: Schema.Types.ObjectId,
-    ref: 'recibos_cobros',
+  cancelada: {
+    type: Boolean,
     required: true
   },
 

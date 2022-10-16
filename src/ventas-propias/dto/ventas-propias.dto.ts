@@ -10,7 +10,7 @@ export class VentasPropiasDTO {
     readonly tipo_venta: string;
 
     @IsArray()
-    readonly formas_pago: string;
+    readonly formas_pago: [];
 
     @IsArray()
     readonly cheques: string;
@@ -38,7 +38,12 @@ export class VentasPropiasDTO {
         
     @IsNumber()
     readonly precio_total: number;
+
+    @IsNumber()
+    readonly deuda_monto: number;
     
+    readonly cancelada: boolean;
+
     readonly activo: boolean;
 
     readonly creatorUser: string;

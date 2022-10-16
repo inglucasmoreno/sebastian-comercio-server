@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CcClientesSchema } from 'src/cc-clientes/schema/cc-clientes.schema';
 import { clientesSchema } from 'src/clientes/schema/clientes.schema';
 import { recibosCobrosSchema } from 'src/recibo-cobro/schema/recibo-cobro.schema';
 import { ventasPropiasProductosSchema } from 'src/ventas-propias-productos/schema/ventas-propias-productos.schema';
@@ -12,6 +13,7 @@ import { VentasPropiasService } from './ventas-propias.service';
 		MongooseModule.forFeature([
 			{ name: 'VentasPropias', schema: ventasPropiasSchema },
 			{ name: 'Clientes', schema: clientesSchema },
+			{ name: 'CcClientes', schema: CcClientesSchema },
 			{ name: 'VentasPropiasProductos', schema: ventasPropiasProductosSchema },
 			{ name: 'RecibosCobros', schema: recibosCobrosSchema },
 		])

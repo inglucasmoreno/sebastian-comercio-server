@@ -138,17 +138,31 @@ export class ClientesService {
 
     // Crear cliente
     async insert(clientesDTO: ClientesDTO): Promise<IClientes> {
+
+        // El cliente ya se encuentra cargado
+        const clienteDB = await this.clientesModel.findOne({ identificacion: clientesDTO.identificacion });
+        if(clienteDB) throw new NotFoundException('El cliente ya se encuentra cargado');
+
         const nuevoCliente = new this.clientesModel(clientesDTO);
         return await nuevoCliente.save();
+
     }  
 
     // Actualizar cliente
     async update(id: string, clientesUpdateDTO: ClientesUpdateDTO): Promise<IClientes> {
 
+        const { identificacion } = clientesUpdateDTO;
+
         const clienteDB = await this.clientesModel.findById(id);
         
         // Verificacion: El cliente no existe
         if(!clienteDB) throw new NotFoundException('El cliente no existe');
+
+        // Verificamos que la identificacion no este repetido
+        if(identificacion && clienteDB.identificacion !== identificacion){
+            const clienteRepetido = await this.clientesModel.findOne({ identificacion });
+            if(clienteRepetido) throw new NotFoundException('La identificación ya se encuentra cargada');
+        }
 
         const cliente = await this.clientesModel.findByIdAndUpdate(id, clientesUpdateDTO, {new: true});
         return cliente;

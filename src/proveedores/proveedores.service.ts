@@ -100,6 +100,11 @@ export class ProveedoresService {
 
     // Crear proveedor
     async insert(proveedoresDTO: ProveedoresDTO): Promise<IProveedores> {
+
+        // El proveedor ya se encuentra cargado
+        const proveedorDB = await this.proveedoresModel.findOne({ identificacion: proveedoresDTO.identificacion });
+        if(proveedorDB) throw new NotFoundException('El proveedor ya se encuentra cargado');
+
         const nuevoProveedor = new this.proveedoresModel(proveedoresDTO);
         return await nuevoProveedor.save();
     }  
@@ -107,10 +112,18 @@ export class ProveedoresService {
     // Actualizar proveedor
     async update(id: string, proveedoresUpdateDTO: ProveedoresUpdateDTO): Promise<IProveedores> {
 
+        const { identificacion } = proveedoresUpdateDTO;
+
         const proveedorDB = await this.proveedoresModel.findById(id);
         
         // Verificacion: El proveedor no existe
         if(!proveedorDB) throw new NotFoundException('El proveedor no existe');
+
+        // Verificamos que la identificacion no este repetido
+        if(identificacion && proveedorDB.identificacion !== identificacion){
+            const proveedorRepetido = await this.proveedoresModel.findOne({ identificacion });
+            if(proveedorRepetido) throw new NotFoundException('La identificación ya se encuentra cargada');
+        }
 
         const proveedor = await this.proveedoresModel.findByIdAndUpdate(id, proveedoresUpdateDTO, {new: true});
         return proveedor;
