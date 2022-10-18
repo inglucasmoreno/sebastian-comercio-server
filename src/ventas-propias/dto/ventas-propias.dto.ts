@@ -13,7 +13,7 @@ export class VentasPropiasDTO {
     readonly formas_pago: [];
 
     @IsArray()
-    readonly cheques: string;
+    readonly cheques: [];
 
     readonly productos: [];
 

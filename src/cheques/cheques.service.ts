@@ -156,12 +156,30 @@ constructor(
   // Actualizar cheque
   async update(id: string, chequesUpdateDTO: ChequesUpdateDTO): Promise<ICheques> {
 
+    const {
+      nro_cheque,
+      emisor,
+      importe,
+      fecha_cobro,
+      banco,
+      updatorUser
+    } = chequesUpdateDTO;
+
     const chequeDB = await this.chequesModel.findById(id);
     
     // Verificacion: El cheque no existe
     if(!chequeDB) throw new NotFoundException('El cheque no existe');
   
-    const cheque = await this.chequesModel.findByIdAndUpdate(id, chequesUpdateDTO, {new: true});
+    const data = {
+      nro_cheque,
+      emisor,
+      importe,
+      fecha_cobro: add(new Date(fecha_cobro), { hours: 3 }), // Adaptando fecha de cobro - Formato de base de datos
+      banco,
+      updatorUser
+    }
+
+    const cheque = await this.chequesModel.findByIdAndUpdate(id, data, {new: true});
     return cheque;
     
   }  

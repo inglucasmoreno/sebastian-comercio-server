@@ -4,11 +4,13 @@ export const ventasPropiasChequesSchema = new Schema({
   
   venta_propia: {
     type: Schema.Types.ObjectId,
+    ref: 'ventas_propias',
     required: true
   },
 
   cheque: {
     type: Schema.Types.ObjectId,
+    ref: 'cheques',
     required: true
   },
 

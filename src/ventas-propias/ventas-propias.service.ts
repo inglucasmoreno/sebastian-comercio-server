@@ -12,6 +12,9 @@ import { add, format } from 'date-fns';
 import * as path from 'path';
 import { IRecibosCobros } from 'src/recibo-cobro/interface/recibo-cobro-interface';
 import { ICcClientes } from 'src/cc-clientes/interface/cc-clientes.interface';
+import { ICheques } from 'src/cheques/interface/cheques.interface';
+import { IVentasPropiasCheques } from 'src/ventas-propias-cheques/interface/ventas-propias-cheques.interface';
+import { ICcClientesMovimientos } from 'src/cc-clientes-movimientos/interface/cc-clientes-movimientos.interface';
 
 @Injectable()
 export class VentasPropiasService {
@@ -20,8 +23,11 @@ export class VentasPropiasService {
 
   constructor(
     @InjectModel('VentasPropias') private readonly ventasModel: Model<IVentasPropias>,
+    @InjectModel('Cheques') private readonly chequesModel: Model<ICheques>,
     @InjectModel('Clientes') private readonly clientesModel: Model<IClientes>,
+    @InjectModel('VentasPropiasCheques') private readonly ventasPropiasChequesModel: Model<IVentasPropiasCheques>,
     @InjectModel('CcClientes') private readonly ccClientesModel: Model<ICcClientes>,
+    @InjectModel('CcClientesMovimientos') private readonly ccClientesMovimientosModel: Model<ICcClientesMovimientos>,
     @InjectModel('VentasPropiasProductos') private readonly ventaProductosModel: Model<IVentasPropiasProductos>,
     @InjectModel('RecibosCobros') private readonly recibosCobrosModel: Model<IRecibosCobros>,
   ){};
@@ -203,6 +209,7 @@ export class VentasPropiasService {
 
       // GENERACION DE VENTA
       
+      // Datos de venta
       const dataVenta = {
         nro: nroVenta,
         tipo: tipo_venta,
@@ -210,7 +217,6 @@ export class VentasPropiasService {
         precio_total,
         observacion,
         formas_pago,
-        cheques,
         cancelada,
         deuda_monto,
         // descripcion,
@@ -224,36 +230,123 @@ export class VentasPropiasService {
         updatorUser     
     };
 
-
     // IMPACTOS - Cuenta corriente
 
-    // Decremento
-    
     let decrementoCC = false;
     let montoDecremento = 0;
 
+    let totalPagado = 0;
+
+    // Se recorren las formas de pago
     formas_pago.map( (forma: any) => {
+
+        // Deteccion: Pago con cuenta corriente
         if(forma.descripcion === 'CUENTA CORRIENTE'){
             decrementoCC =true;
-            montoDecremento = forma.monto;        
+            montoDecremento = forma.monto;   
         }
+
+        // Calculo de pago total
+        totalPagado += forma.monto;
+
     });
 
+    // Se recorren los cheques
+    cheques.map( (cheque: any) => {
+
+        // Calcular el pago total
+        totalPagado += cheque.importe;
+    
+    });
+
+    // (-) Decremento en cuenta corriente de cliente
     if(decrementoCC){
         const cuentaCorrienteDB: any = await this.ccClientesModel.findOne({ cliente });
-        console.log(cuentaCorrienteDB);
-        if(cuentaCorrienteDB) await this.ccClientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: cuentaCorrienteDB.saldo - montoDecremento});
+        if(cuentaCorrienteDB){
+            await this.ccClientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: cuentaCorrienteDB.saldo - montoDecremento});
+            
+            // Creacion de movimiento
+            const dataMovimiento = {
+                descripcion: 'VENTA - PAGO',
+                tipo: 'Haber',
+                cc_cliente: String(cuentaCorrienteDB._id),
+                cliente,
+                monto: montoDecremento,
+                saldo_anterior: cuentaCorrienteDB.saldo,
+                saldo_nuevo: cuentaCorrienteDB.saldo - montoDecremento,
+                creatorUser,
+                updatorUser
+            }          
+            
+            const nuevoMovimiento = new this.ccClientesMovimientosModel(dataMovimiento);
+            await nuevoMovimiento.save();
+        
+        } 
+        
     }
 
-    // Increment
+    // (+) Incremento en cuenta corriente de cliente
+    if(totalPagado > precio_total){
+        const cuentaCorrienteDB: any = await this.ccClientesModel.findOne({ cliente });
+        if(cuentaCorrienteDB){
 
-    let incrementoCC = false;
-    let montoIncremento = 0;
+            const montoIncremento = totalPagado - precio_total;
+
+            await this.ccClientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: cuentaCorrienteDB.saldo + montoIncremento});
+            
+            // Creacion de movimiento
+            const dataMovimiento = {
+                descripcion: 'VENTA - SALDO A FAVOR',
+                tipo: 'Debe',
+                cc_cliente: String(cuentaCorrienteDB._id),
+                cliente,
+                monto: montoIncremento,
+                saldo_anterior: cuentaCorrienteDB.saldo,
+                saldo_nuevo: cuentaCorrienteDB.saldo + montoIncremento,
+                creatorUser,
+                updatorUser
+            }          
+            
+            const nuevoMovimiento = new this.ccClientesMovimientosModel(dataMovimiento);
+            await nuevoMovimiento.save();
+        } 
+        
+    }
+
+    // Movimiento - Cuenta corriente
+    const dataMovimiento = {
+
+    }
+
 
     // CREACION DE VENTA
     const nuevaVenta = new this.ventasModel(dataVenta);
     const ventaDB = await nuevaVenta.save();
     
+    // GENERACION DE CHEQUES
+
+    // Adaptando fechas
+    cheques.map( (cheque: any) => {
+        cheque.fecha_cobro = add(new Date(cheque.fecha_cobro), { hours: 3 });
+    });
+
+    // Generando cheques
+    const chequesDB = await this.chequesModel.insertMany(cheques);
+
+    // GENERACION DE RELACION -> VENTA - CHEQUE
+    const relaciones = []; 
+
+    chequesDB.map( (cheque: any) => {
+        relaciones.unshift({
+            cheque: String(cheque._id),
+            venta_propia: String(ventaDB._id),
+            creatorUser,
+            updatorUser
+        })
+    });
+    
+    await this.ventasPropiasChequesModel.insertMany(relaciones);
+
     // CARGA DE PRODUCTOS
     let productosVenta: any = productos;
     productosVenta.map( producto => producto.venta_propia = String(ventaDB._id) )

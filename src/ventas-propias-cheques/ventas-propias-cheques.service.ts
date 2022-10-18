@@ -81,10 +81,15 @@ constructor(@InjectModel('VentasPropiasCheques') private readonly relacionesMode
   // Listar relaciones
   async getAll(querys: any): Promise<IVentasPropiasCheques[]> {
         
-    const {columna, direccion} = querys;
+    const {columna, direccion, venta_propia} = querys;
 
     const pipeline = [];
     pipeline.push({$match:{}});
+
+    if(venta_propia && venta_propia.trim() !== ''){
+      const idVenta = new Types.ObjectId(venta_propia);
+      pipeline.push({ $match:{ venta_propia: idVenta} }) 
+    }
 
     // Informacion de venta propia
     pipeline.push({
@@ -109,6 +114,18 @@ constructor(@InjectModel('VentasPropiasCheques') private readonly relacionesMode
     );
 
     pipeline.push({ $unwind: '$cheque' });
+
+    // Informacion de banco
+    pipeline.push({
+      $lookup: { // Lookup
+          from: 'bancos',
+          localField: 'cheque.banco',
+          foreignField: '_id',
+          as: 'cheque.banco'
+      }}
+    );
+
+    pipeline.push({ $unwind: '$cheque.banco' });
 
     // Informacion de usuario creador
     pipeline.push({

@@ -9,7 +9,7 @@ export class VentasPropiasUpdateDTO {
 
     readonly formas_pago: string;
 
-    readonly cheques: string;
+    readonly cheques: [];
 
     readonly productos: [];
 

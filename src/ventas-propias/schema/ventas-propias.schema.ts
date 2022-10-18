@@ -23,11 +23,6 @@ export const ventasPropiasSchema = new Schema({
     required: true,
   },
 
-  cheques: {
-    type: Array,
-    required: true,
-  },
-
   precio_total: {
     type: Number,
     required: true
