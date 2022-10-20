@@ -32,6 +32,7 @@ import { VentasPropiasModule } from './ventas-propias/ventas-propias.module';
 import { ReciboCobroModule } from './recibo-cobro/recibo-cobro.module';
 import { VentasPropiasProductosModule } from './ventas-propias-productos/ventas-propias-productos.module';
 import { VentasPropiasChequesModule } from './ventas-propias-cheques/ventas-propias-cheques.module';
+import { CajasMovimientosModule } from './cajas-movimientos/cajas-movimientos.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { VentasPropiasChequesModule } from './ventas-propias-cheques/ventas-prop
     ReciboCobroModule,
     VentasPropiasProductosModule,
     VentasPropiasChequesModule,
+    CajasMovimientosModule,
   ],
   
   controllers: [AppController],

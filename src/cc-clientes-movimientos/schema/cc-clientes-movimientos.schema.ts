@@ -39,6 +39,11 @@ export const CcClientesMovimientosSchema = new Schema({
     uppercase: true
   },
 
+  venta_propia: {
+    type: String,
+    default: ''
+  },
+
   activo: {
     type: Boolean,
     default: true

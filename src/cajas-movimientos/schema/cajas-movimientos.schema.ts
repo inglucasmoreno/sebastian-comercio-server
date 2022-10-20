@@ -1,51 +1,42 @@
+
 import { Schema } from 'mongoose';
 
-export const ventasPropiasSchema = new Schema({
-  
-  nro: {
-    type: Number,
-    required: true
-  }, 
+export const CajasMovimientosSchema = new Schema({
 
   tipo: {
     type: String,
-    default: 'Propia'
+    required: true,
   },
 
-  cliente: {
+  caja: {
     type: Schema.Types.ObjectId,
-    ref: 'clientes',
     required: true,
   },
 
-  formas_pago: {
-    type: Array,
+  monto: {
+    type: Number,
     required: true,
   },
 
-  precio_total: {
+  saldo_anterior: {
     type: Number,
-    required: true
+    required: true,
   },
 
-  pago_monto: {
+  saldo_nuevo: {
     type: Number,
-    required: true
+    required: true,
   },
 
-  deuda_monto: {
-    type: Number,
-    required: true
+  descripcion: {
+    type: String,
+    required: true,
+    uppercase: true
   },
 
-  observacion: {
+  venta_propia: {
     type: String,
     default: ''
-  },
-
-  cancelada: {
-    type: Boolean,
-    required: true
   },
 
   activo: {
@@ -65,4 +56,4 @@ export const ventasPropiasSchema = new Schema({
     required: true,
   }
 
-},{ timestamps: true, collection: 'ventas_propias' })
+},{ timestamps: true, collection: 'cajas_movimientos' })

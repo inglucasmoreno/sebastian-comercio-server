@@ -1,32 +1,14 @@
-import { IsNumber, IsString } from "class-validator";
+import { Document } from 'mongoose';
 
-export class CcClientesMovimientosDTO {
-
-  @IsString()
+export interface ICajasMovimientos extends Document {
   readonly tipo: string;
-
-  @IsString()
-  readonly cc_cliente: string;
-
-  @IsString()
-  readonly cliente: string;
-
-  @IsNumber()
+  readonly caja: string;
   readonly monto: number;
-
   readonly saldo_anterior: number;
-  
   readonly saldo_nuevo: number;
- 
-  @IsString()
   readonly descripcion: string;
-
   readonly venta_propia: string;
-
   readonly activo: boolean;
-  
   readonly creatorUser: string;
-  
   readonly updatorUser: string;
-
 }

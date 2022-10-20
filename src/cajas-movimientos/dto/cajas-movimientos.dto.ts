@@ -1,15 +1,12 @@
 import { IsNumber, IsString } from "class-validator";
 
-export class CcClientesMovimientosDTO {
+export class CajasMovimientosDTO {
 
   @IsString()
   readonly tipo: string;
 
   @IsString()
-  readonly cc_cliente: string;
-
-  @IsString()
-  readonly cliente: string;
+  readonly caja: string;
 
   @IsNumber()
   readonly monto: number;

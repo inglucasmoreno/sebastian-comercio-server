@@ -15,6 +15,8 @@ import { ICcClientes } from 'src/cc-clientes/interface/cc-clientes.interface';
 import { ICheques } from 'src/cheques/interface/cheques.interface';
 import { IVentasPropiasCheques } from 'src/ventas-propias-cheques/interface/ventas-propias-cheques.interface';
 import { ICcClientesMovimientos } from 'src/cc-clientes-movimientos/interface/cc-clientes-movimientos.interface';
+import { ICajas } from 'src/cajas/interface/cajas.interface';
+import { ICajasMovimientos } from 'src/cajas-movimientos/interface/cajas-movimientos.interface';
 
 @Injectable()
 export class VentasPropiasService {
@@ -28,6 +30,8 @@ export class VentasPropiasService {
     @InjectModel('VentasPropiasCheques') private readonly ventasPropiasChequesModel: Model<IVentasPropiasCheques>,
     @InjectModel('CcClientes') private readonly ccClientesModel: Model<ICcClientes>,
     @InjectModel('CcClientesMovimientos') private readonly ccClientesMovimientosModel: Model<ICcClientesMovimientos>,
+    @InjectModel('Cajas') private readonly cajasModel: Model<ICajas>,
+    @InjectModel('CajasMovimientos') private readonly cajasMovimientosModel: Model<ICajasMovimientos>,
     @InjectModel('VentasPropiasProductos') private readonly ventaProductosModel: Model<IVentasPropiasProductos>,
     @InjectModel('RecibosCobros') private readonly recibosCobrosModel: Model<IRecibosCobros>,
   ){};
@@ -236,6 +240,7 @@ export class VentasPropiasService {
     let montoDecremento = 0;
 
     let totalPagado = 0;
+    let totalEnCheques = 0;
 
     // Se recorren las formas de pago
     formas_pago.map( (forma: any) => {
@@ -256,8 +261,26 @@ export class VentasPropiasService {
 
         // Calcular el pago total
         totalPagado += cheque.importe;
+
+        // Calcular el monto total en cheques
+        totalEnCheques += cheque.importe;
     
     });
+
+    // CREACION DE VENTA
+    const nuevaVenta = new this.ventasModel({...dataVenta, pago_monto: totalPagado});
+    const ventaDB = await nuevaVenta.save();
+
+    // Adaptando numero
+    let codigoVenta: string;
+    if(ventaDB.nro <= 9)  codigoVenta = 'VP000000' + String(ventaDB.nro);
+    else if(ventaDB.nro <= 99) codigoVenta = 'VP00000' + String(ventaDB.nro);
+    else if(ventaDB.nro <= 999) codigoVenta = 'VP0000' + String(ventaDB.nro);
+    else if(ventaDB.nro <= 9999) codigoVenta = 'VP000' + String(ventaDB.nro);
+    else if(ventaDB.nro <= 99999) codigoVenta = 'VP00' + String(ventaDB.nro);
+    else if(ventaDB.nro <= 999999) codigoVenta = 'VP0' + String(ventaDB.nro);
+
+    // IMPACTO - MOVIMIENTOS CUENTA CORRIENTE DE CLIENTE
 
     // (-) Decremento en cuenta corriente de cliente
     if(decrementoCC){
@@ -267,10 +290,11 @@ export class VentasPropiasService {
             
             // Creacion de movimiento
             const dataMovimiento = {
-                descripcion: 'VENTA - PAGO',
+                descripcion: `VENTA ${codigoVenta} - PAGO`,
                 tipo: 'Haber',
                 cc_cliente: String(cuentaCorrienteDB._id),
                 cliente,
+                venta_propia: String(ventaDB._id),
                 monto: montoDecremento,
                 saldo_anterior: cuentaCorrienteDB.saldo,
                 saldo_nuevo: cuentaCorrienteDB.saldo - montoDecremento,
@@ -296,10 +320,11 @@ export class VentasPropiasService {
             
             // Creacion de movimiento
             const dataMovimiento = {
-                descripcion: 'VENTA - SALDO A FAVOR',
+                descripcion: `VENTA ${codigoVenta} - SALDO A FAVOR`,
                 tipo: 'Debe',
                 cc_cliente: String(cuentaCorrienteDB._id),
                 cliente,
+                venta_propia: String(ventaDB._id),
                 monto: montoIncremento,
                 saldo_anterior: cuentaCorrienteDB.saldo,
                 saldo_nuevo: cuentaCorrienteDB.saldo + montoIncremento,
@@ -313,16 +338,62 @@ export class VentasPropiasService {
         
     }
 
-    // Movimiento - Cuenta corriente
-    const dataMovimiento = {
+    // IMPACTO - EN CAJAS
+    formas_pago.map( async (forma_pago: any) => {
+        
+        if(forma_pago._id !== 'cuenta_corriente'){
 
-    }
+            // Impaco en movimiento de cajas
 
+            const cajaDB = await this.cajasModel.findById(forma_pago._id);
 
-    // CREACION DE VENTA
-    const nuevaVenta = new this.ventasModel(dataVenta);
-    const ventaDB = await nuevaVenta.save();
+            const data = {
+                descripcion: `VENTA ${codigoVenta}`,
+                tipo: 'Debe',
+                caja: forma_pago._id,
+                venta_propia: String(ventaDB._id),
+                monto: forma_pago.monto,
+                saldo_anterior: cajaDB.saldo,
+                saldo_nuevo: cajaDB.saldo + forma_pago.monto,
+                creatorUser,
+                updatorUser
+            };
+
+            const nuevoMovimiento = new this.cajasMovimientosModel(data);
+            await nuevoMovimiento.save();
+
+            // Impacto en saldo de caja
+            await this.cajasModel.findByIdAndUpdate(forma_pago._id,{ $inc: { saldo: forma_pago.monto } });
     
+        }
+    
+    });
+
+    // IMPACTO - EN SALDOS DE CHEQUES    
+    if(totalEnCheques > 0) {
+        
+        const cajaCheques = await this.cajasModel.findById('222222222222222222222222');
+
+        // Impacto en movimientos de cajas
+        const data = {
+            descripcion: `VENTA ${codigoVenta}`,
+            tipo: 'Debe',
+            caja: '222222222222222222222222',
+            venta_propia: String(ventaDB._id),
+            monto: totalEnCheques,
+            saldo_anterior: cajaCheques.saldo,
+            saldo_nuevo: cajaCheques.saldo + totalEnCheques,
+            creatorUser,
+            updatorUser
+        };        
+
+        const nuevoMovimiento = new this.cajasMovimientosModel(data);
+        await nuevoMovimiento.save();
+
+        // Impacto en saldo de cheques
+        await this.cajasModel.findByIdAndUpdate('222222222222222222222222', { $inc: { saldo: totalEnCheques } });
+    }    
+
     // GENERACION DE CHEQUES
 
     // Adaptando fechas

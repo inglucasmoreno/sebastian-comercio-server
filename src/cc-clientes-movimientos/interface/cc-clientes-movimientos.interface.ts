@@ -8,6 +8,7 @@ export interface ICcClientesMovimientos extends Document {
   readonly saldo_anterior: number;
   readonly saldo_nuevo: number;
   readonly descripcion: string;
+  readonly venta_propia: string;
   readonly activo: boolean;
   readonly creatorUser: string;
   readonly updatorUser: string;

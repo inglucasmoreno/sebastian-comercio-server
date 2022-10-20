@@ -33,6 +33,8 @@ export class VentasPropiasUpdateDTO {
         
     readonly precio_total: number;
     
+    readonly pago_monto: number;
+
     readonly deuda_monto: number;
 
     readonly cancelada: boolean;
