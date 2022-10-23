@@ -39,6 +39,11 @@ export const CajasMovimientosSchema = new Schema({
     default: ''
   },
 
+  observacion: {
+    type: String,
+    default: ''
+  },
+
   activo: {
     type: Boolean,
     default: true

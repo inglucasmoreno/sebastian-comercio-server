@@ -15,6 +15,17 @@ constructor(
   @InjectModel('Cajas') private readonly cajasModel: Model<ICajas>
   ){};
 
+  // Funcion para redondeo
+  redondear(numero:number, decimales:number):number {
+  
+    if (typeof numero != 'number' || typeof decimales != 'number') return null;
+
+    let signo = numero >= 0 ? 1 : -1;
+
+    return Number((Math.round((numero * Math.pow(10, decimales)) + (signo * 0.0001)) / Math.pow(10, decimales)).toFixed(decimales));
+  
+  }
+
   // Cheques por ID
   async getId(id: string): Promise<ICheques> {
     
@@ -132,7 +143,7 @@ constructor(
 
     const data = {
       nro_cheque,
-      importe,
+      importe: this.redondear(importe, 2),
       emisor,
       banco,
       fecha_cobro: add(new Date(fecha_cobro),{ hours: 3 }), // Fecha +3 horas
@@ -146,7 +157,7 @@ constructor(
 
     // Impacto en Caja - Cheques
     const cajaChequeDB = await this.cajasModel.findById('222222222222222222222222');
-    const nuevoSaldo = cajaChequeDB.saldo + importe;
+    const nuevoSaldo = this.redondear(cajaChequeDB.saldo + importe, 2);
     await this.cajasModel.findByIdAndUpdate(cajaChequeDB._id, { saldo: nuevoSaldo });
 
     return chequeRes;
@@ -173,7 +184,7 @@ constructor(
     const data = {
       nro_cheque,
       emisor,
-      importe,
+      importe: this.redondear(importe, 2),
       fecha_cobro: add(new Date(fecha_cobro), { hours: 3 }), // Adaptando fecha de cobro - Formato de base de datos
       banco,
       updatorUser

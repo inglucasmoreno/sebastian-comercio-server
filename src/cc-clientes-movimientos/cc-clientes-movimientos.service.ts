@@ -14,6 +14,17 @@ export class CcClientesMovimientosService {
     @InjectModel('CcClientes') private readonly cuentaCorrienteModel: Model<ICcClientes>
   ){};
 
+  // Funcion para redondeo
+  redondear(numero:number, decimales:number):number {
+  
+    if (typeof numero != 'number' || typeof decimales != 'number') return null;
+
+    let signo = numero >= 0 ? 1 : -1;
+
+    return Number((Math.round((numero * Math.pow(10, decimales)) + (signo * 0.0001)) / Math.pow(10, decimales)).toFixed(decimales));
+  
+  }
+
   // Movimientos por ID
   async getId(id: string): Promise<ICcClientesMovimientos> {
     
@@ -168,10 +179,16 @@ export class CcClientesMovimientosService {
     const saldo_anterior = cuentaCorriente.saldo;
     const saldo_nuevo = tipo === 'Haber' ? saldo_anterior - monto : saldo_anterior + monto;
 
-    const data = {...movimientosDTO, saldo_anterior, saldo_nuevo};
+    const data = {
+      ...movimientosDTO, 
+      saldo_anterior: this.redondear(saldo_anterior, 2), 
+      saldo_nuevo: this.redondear(saldo_nuevo, 2)
+    };
 
     // Actualizacion de saldo - Cuenta corriente
-    await this.cuentaCorrienteModel.findByIdAndUpdate(cc_cliente, { saldo: saldo_nuevo });
+    await this.cuentaCorrienteModel.findByIdAndUpdate(cc_cliente, { 
+      saldo: this.redondear(saldo_nuevo, 2) 
+    });
 
     // Generacion de nuevo movimiento
     const nuevoMovimiento = new this.movimientosModel(data);

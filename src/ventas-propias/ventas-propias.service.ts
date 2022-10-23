@@ -36,6 +36,17 @@ export class VentasPropiasService {
     @InjectModel('RecibosCobros') private readonly recibosCobrosModel: Model<IRecibosCobros>,
   ){};
 
+  // Funcion para redondeo
+  redondear(numero:number, decimales:number):number {
+  
+    if (typeof numero != 'number' || typeof decimales != 'number') return null;
+
+    let signo = numero >= 0 ? 1 : -1;
+
+    return Number((Math.round((numero * Math.pow(10, decimales)) + (signo * 0.0001)) / Math.pow(10, decimales)).toFixed(decimales));
+  
+  }
+
   // Venta propia por ID
   async getId(id: string): Promise<IVentasPropias> {
 
@@ -218,11 +229,11 @@ export class VentasPropiasService {
         nro: nroVenta,
         tipo: tipo_venta,
         cliente,
-        precio_total,
+        precio_total: this.redondear(precio_total, 2),
         observacion,
         formas_pago,
         cancelada,
-        deuda_monto,
+        deuda_monto: this.redondear(precio_total, 2),
         // descripcion,
         // tipo_identificacion,
         // identificacion,
@@ -295,9 +306,9 @@ export class VentasPropiasService {
                 cc_cliente: String(cuentaCorrienteDB._id),
                 cliente,
                 venta_propia: String(ventaDB._id),
-                monto: montoDecremento,
-                saldo_anterior: cuentaCorrienteDB.saldo,
-                saldo_nuevo: cuentaCorrienteDB.saldo - montoDecremento,
+                monto: this.redondear(montoDecremento, 2),
+                saldo_anterior: this.redondear(cuentaCorrienteDB.saldo, 2),
+                saldo_nuevo: this.redondear(cuentaCorrienteDB.saldo - montoDecremento, 2),
                 creatorUser,
                 updatorUser
             }          
@@ -325,9 +336,9 @@ export class VentasPropiasService {
                 cc_cliente: String(cuentaCorrienteDB._id),
                 cliente,
                 venta_propia: String(ventaDB._id),
-                monto: montoIncremento,
-                saldo_anterior: cuentaCorrienteDB.saldo,
-                saldo_nuevo: cuentaCorrienteDB.saldo + montoIncremento,
+                monto: this.redondear(montoIncremento, 2),
+                saldo_anterior: this.redondear(cuentaCorrienteDB.saldo, 2),
+                saldo_nuevo: this.redondear(cuentaCorrienteDB.saldo + montoIncremento, 2),
                 creatorUser,
                 updatorUser
             }          
@@ -352,9 +363,9 @@ export class VentasPropiasService {
                 tipo: 'Debe',
                 caja: forma_pago._id,
                 venta_propia: String(ventaDB._id),
-                monto: forma_pago.monto,
-                saldo_anterior: cajaDB.saldo,
-                saldo_nuevo: cajaDB.saldo + forma_pago.monto,
+                monto: this.redondear(forma_pago.monto, 2),
+                saldo_anterior: this.redondear(cajaDB.saldo, 2),
+                saldo_nuevo: this.redondear(cajaDB.saldo + forma_pago.monto, 2),
                 creatorUser,
                 updatorUser
             };
@@ -380,9 +391,9 @@ export class VentasPropiasService {
             tipo: 'Debe',
             caja: '222222222222222222222222',
             venta_propia: String(ventaDB._id),
-            monto: totalEnCheques,
-            saldo_anterior: cajaCheques.saldo,
-            saldo_nuevo: cajaCheques.saldo + totalEnCheques,
+            monto: this.redondear(totalEnCheques, 2),
+            saldo_anterior: this.redondear(cajaCheques.saldo, 2),
+            saldo_nuevo: this.redondear(cajaCheques.saldo + totalEnCheques, 2),
             creatorUser,
             updatorUser
         };        

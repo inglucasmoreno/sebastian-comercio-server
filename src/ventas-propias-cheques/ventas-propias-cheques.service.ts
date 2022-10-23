@@ -10,7 +10,7 @@ export class VentasPropiasChequesService {
 
 constructor(@InjectModel('VentasPropiasCheques') private readonly relacionesModel: Model<IVentasPropiasCheques>,
             @InjectModel('Productos') private readonly productosModel: Model<IProductos>){};
-
+            
   // Ventas propias - Cheques por ID
   async getId(id: string): Promise<IVentasPropiasCheques> {
     

@@ -7,50 +7,61 @@ import { CajasDTO } from './dto/cajas.dto';
 @Controller('cajas')
 export class CajasController {
 
-  constructor( private cajasService: CajasService ){}
+    constructor( private cajasService: CajasService ){}
 
-  // Cajas por ID
-  @UseGuards(JwtAuthGuard)
-  @Get('/:id')
-  async getId(@Res() res, @Param('id') cajaID) {
-      const caja = await this.cajasService.getId(cajaID);
-      res.status(HttpStatus.OK).json({
-          message: 'Caja obtenida correctamente',
-          caja
-      });
+    // Cajas por ID
+    @UseGuards(JwtAuthGuard)
+    @Get('/:id')
+    async getId(@Res() res, @Param('id') cajaID) {
+        const caja = await this.cajasService.getId(cajaID);
+        res.status(HttpStatus.OK).json({
+            message: 'Caja obtenida correctamente',
+            caja
+        });
+    }
+
+    // Listar cajas
+    @UseGuards(JwtAuthGuard)
+    @Get('/')
+    async getAll(@Res() res, @Query() querys) {
+        const cajas = await this.cajasService.getAll(querys);
+        res.status(HttpStatus.OK).json({
+            message: 'Listado de cajas correcto',
+            cajas
+        });
+    }
+
+    // Crear caja
+    @UseGuards(JwtAuthGuard)
+    @Post('/')
+    async insert(@Res() res, @Body() cajasDTO: CajasDTO ) {
+        const caja = await this.cajasService.insert(cajasDTO);        
+        res.status(HttpStatus.CREATED).json({
+            message: 'Caja creada correctamente',
+            caja
+        });
   }
 
-  // Listar cajas
-  @UseGuards(JwtAuthGuard)
-  @Get('/')
-  async getAll(@Res() res, @Query() querys) {
-      const cajas = await this.cajasService.getAll(querys);
-      res.status(HttpStatus.OK).json({
-          message: 'Listado de cajas correcto',
-          cajas
-      });
-  }
-
-  // Crear caja
-  @UseGuards(JwtAuthGuard)
-  @Post('/')
-  async insert(@Res() res, @Body() cajasDTO: CajasDTO ) {
-      const caja = await this.cajasService.insert(cajasDTO);        
-      res.status(HttpStatus.CREATED).json({
-          message: 'Caja creada correctamente',
-          caja
-      });
-  }
+    // Crear caja
+    @UseGuards(JwtAuthGuard)
+    @Post('/movimiento-interno')
+    async movimientoInterno(@Res() res, @Body() movimientoData: any ) {
+        const movimiento = await this.cajasService.movimientoInterno(movimientoData);        
+        res.status(HttpStatus.CREATED).json({
+            message: 'Movimiento creado correctamente',
+            movimiento
+        });
+    }
     
-  // Actualizar caja
-  @UseGuards(JwtAuthGuard)
-  @Put('/:id')
-  async update(@Res() res, @Body() cajasUpdateDTO: CajasUpdateDTO, @Param('id') cajaID ) {
-      const caja = await this.cajasService.update(cajaID, cajasUpdateDTO);
-      res.status(HttpStatus.OK).json({
-          message: 'Caja actualizada correctamente',
-          caja
-      });
-  }
+    // Actualizar caja
+    @UseGuards(JwtAuthGuard)
+    @Put('/:id')
+    async update(@Res() res, @Body() cajasUpdateDTO: CajasUpdateDTO, @Param('id') cajaID ) {
+        const caja = await this.cajasService.update(cajaID, cajasUpdateDTO);
+        res.status(HttpStatus.OK).json({
+            message: 'Caja actualizada correctamente',
+            caja
+        });
+    }
 
 }
