@@ -1,9 +1,10 @@
 import { Document } from 'mongoose';
 
-export interface IRecibosCobros extends Document {
+export interface IRecibosCobro extends Document {
+  readonly nro: Number;
+  readonly cliente: String;
   readonly formas_pago: Array<any>;
-  readonly cheques: Array<any>;
-  readonly precio_total: Number;
+  readonly cobro_total: Number;
   readonly activo: boolean;
   readonly creatorUser: string;
   readonly updatorUser: string;

@@ -1,18 +1,18 @@
 import { Schema } from 'mongoose';
 
-export const recibosCobrosSchema = new Schema({
-  
+export const recibosCobroSchema = new Schema({
+
+  nro: {
+    type: Number,
+    required: true
+  },
+
   formas_pago: {
     type: Array,
     required: true
   },
 
-  cheque: {
-    type: Array,
-    required: true
-  },
-
-  precio_total: {
+  cobro_total: {
     type: Number,
     required: true
   },

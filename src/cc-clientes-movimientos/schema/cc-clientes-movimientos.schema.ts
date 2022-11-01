@@ -44,6 +44,11 @@ export const CcClientesMovimientosSchema = new Schema({
     default: ''
   },
 
+  recibo_cobro: {
+    type: String,
+    default: ''
+  },
+
   activo: {
     type: Boolean,
     default: true

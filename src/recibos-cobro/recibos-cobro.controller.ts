@@ -1,19 +1,19 @@
 import { Body, Controller, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RecibosCobrosUpdateDTO } from './dto/recibo-cobro-update';
-import { RecibosCobrosDTO } from './dto/recibo-cobro.dto';
-import { ReciboCobroService } from './recibo-cobro.service';
+import { RecibosCobroUpdateDTO } from './dto/recibos-cobro-update.dto';
+import { RecibosCobroDTO } from './dto/recibos-cobro.dto';
+import { RecibosCobroService } from './recibos-cobro.service';
 
-@Controller('recibo-cobro')
-export class ReciboCobroController {
+@Controller('recibos-cobro')
+export class RecibosCobroController {
 
-  constructor( private recibosCobrosService: ReciboCobroService ){}
+  constructor( private recibosCobroService: RecibosCobroService ){}
 
   // Recibo por ID
   @UseGuards(JwtAuthGuard)
   @Get('/:id')
   async getId(@Res() res, @Param('id') reciboID) {
-      const recibo = await this.recibosCobrosService.getId(reciboID);
+      const recibo = await this.recibosCobroService.getId(reciboID);
       res.status(HttpStatus.OK).json({
           message: 'Recibo obtenido correctamente',
           recibo
@@ -24,7 +24,7 @@ export class ReciboCobroController {
   @UseGuards(JwtAuthGuard)
   @Get('/')
   async getAll(@Res() res, @Query() querys) {
-      const recibos = await this.recibosCobrosService.getAll(querys);
+      const recibos = await this.recibosCobroService.getAll(querys);
       res.status(HttpStatus.OK).json({
           message: 'Listado de recibos correcto',
           recibos
@@ -34,21 +34,20 @@ export class ReciboCobroController {
   // Crear recibo
   @UseGuards(JwtAuthGuard)
   @Post('/')
-  async insert(@Res() res, @Body() recibosCobrosDTO: RecibosCobrosDTO ) {
-      const recibo = await this.recibosCobrosService.insert(recibosCobrosDTO);        
+  async insert(@Res() res, @Body() recibosCobroDTO: RecibosCobroDTO ) {
+      await this.recibosCobroService.insert(recibosCobroDTO);        
       res.status(HttpStatus.CREATED).json({
           message: 'Recibo creado correctamente',
-          recibo
       });
   }
     
   // Actualizar recibo
   @UseGuards(JwtAuthGuard)
   @Put('/:id')
-  async update(@Res() res, @Body() recibosCobrosUpdateDTO: RecibosCobrosUpdateDTO, @Param('id') reciboID ) {
-      const recibo = await this.recibosCobrosService.update(reciboID, recibosCobrosUpdateDTO);
+  async update(@Res() res, @Body() recibosCobroUpdateDTO: RecibosCobroUpdateDTO, @Param('id') reciboID ) {
+      const recibo = await this.recibosCobroService.update(reciboID, recibosCobroUpdateDTO);
       res.status(HttpStatus.OK).json({
-          message: 'Recibo actualizada correctamente',
+          message: 'Recibo actualizado correctamente',
           recibo
       });
   }

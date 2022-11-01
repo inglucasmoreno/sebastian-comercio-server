@@ -23,6 +23,8 @@ export class CcClientesMovimientosDTO {
 
   readonly venta_propia: string;
 
+  readonly recibo_cobro: string;
+
   readonly activo: boolean;
   
   readonly creatorUser: string;
