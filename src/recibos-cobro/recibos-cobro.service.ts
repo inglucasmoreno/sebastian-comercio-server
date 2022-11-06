@@ -41,15 +41,15 @@ export class RecibosCobroService {
     // Informacion de clientes
     pipeline.push({
       $lookup: { // Lookup
-        from: 'cliente',
-        localField: 'clientes',
+        from: 'clientes',
+        localField: 'cliente',
         foreignField: '_id',
-        as: 'clientes'
+        as: 'cliente'
       }
     }
     );
 
-    pipeline.push({ $unwind: '$clientes' });
+    pipeline.push({ $unwind: '$cliente' });
 
     // Informacion de usuario creador
     pipeline.push({
@@ -94,15 +94,15 @@ export class RecibosCobroService {
     // Informacion de clientes
     pipeline.push({
       $lookup: { // Lookup
-        from: 'cliente',
-        localField: 'clientes',
+        from: 'clientes',
+        localField: 'cliente',
         foreignField: '_id',
-        as: 'clientes'
+        as: 'cliente'
       }
     }
     );
 
-    pipeline.push({ $unwind: '$clientes' });
+    pipeline.push({ $unwind: '$cliente' });
 
     // Informacion de usuario creador
     pipeline.push({
@@ -191,7 +191,7 @@ export class RecibosCobroService {
 
     //** RELACION RECIBOS - VENTAS
 
-    // RECORRIDO -> VENTAS
+    // RECIBO -> VENTAS
     carro_pago.map(async elemento => {
 
       const dataReciboVenta = {

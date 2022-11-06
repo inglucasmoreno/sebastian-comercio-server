@@ -15,6 +15,10 @@ export class CajasMovimientosUpdateDTO {
 
   readonly venta_propia: string;
 
+  readonly recibo_cobro: string;
+
+  readonly cheque: string;
+
   readonly activo: boolean;
   
   readonly creatorUser: string;

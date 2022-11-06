@@ -178,7 +178,6 @@ export class InicializacionService {
     async initCajas(query: any): Promise<string> {
 
         // 1 - 000000000000000000000000 - Efectivo
-        // 2 - 111111111111111111111111 - Dolares
         // 3 - 222222222222222222222222 - Cheques
         // 4 - 333333333333333333333333 - Banco provisorio
 
@@ -195,13 +194,13 @@ export class InicializacionService {
             updatorUser: usuario 
         });
 
-        const dolares = new this.cajasModel({ 
-            _id: '111111111111111111111111',
-            descripcion: 'Dolares', 
-            saldo: 0,
-            creatorUser: usuario,
-            updatorUser: usuario 
-        });
+        // const dolares = new this.cajasModel({ 
+        //     _id: '111111111111111111111111',
+        //     descripcion: 'Dolares', 
+        //     saldo: 0,
+        //     creatorUser: usuario,
+        //     updatorUser: usuario 
+        // });
 
         const cheques = new this.cajasModel({ 
             _id: '222222222222222222222222',
@@ -221,7 +220,7 @@ export class InicializacionService {
 
         await Promise.all([
             efectivo.save(),
-            dolares.save(),
+            // dolares.save(),
             cheques.save(),
             bancoProvisorio.save()
         ])

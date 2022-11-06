@@ -318,7 +318,7 @@ export class VentasPropiasService {
 
                 // Creacion de movimiento
                 const dataMovimiento = {
-                    descripcion: `VENTA ${codigoVenta} - PAGO`,
+                    descripcion: `VENTA ${codigoVenta}`,
                     tipo: 'Haber',
                     cc_cliente: String(cuentaCorrienteDB._id),
                     cliente,
@@ -348,7 +348,7 @@ export class VentasPropiasService {
 
                 // Creacion de movimiento
                 const dataMovimiento = {
-                    descripcion: `VENTA ${codigoVenta} - SALDO A FAVOR`,
+                    descripcion: `VENTA ${codigoVenta}`,
                     tipo: 'Debe',
                     cc_cliente: String(cuentaCorrienteDB._id),
                     cliente,

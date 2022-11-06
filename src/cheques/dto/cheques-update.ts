@@ -7,6 +7,8 @@ export class ChequesUpdateDTO {
 
   readonly banco: string;
 
+  readonly caja: string;
+
   readonly importe: number;
 
   readonly fecha_cobro: Date;

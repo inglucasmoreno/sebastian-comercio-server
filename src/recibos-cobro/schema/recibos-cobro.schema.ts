@@ -7,6 +7,12 @@ export const recibosCobroSchema = new Schema({
     required: true
   },
 
+  cliente: {
+    type: Schema.Types.ObjectId,
+    ref: 'clientes',
+    required: true,
+  },
+
   formas_pago: {
     type: Array,
     required: true

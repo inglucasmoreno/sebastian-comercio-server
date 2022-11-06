@@ -83,15 +83,20 @@ export class RecibosCobroChequeService {
   // Listar relaciones
   async getAll(querys: any): Promise<IRecibosCobroCheque[]> {
 
-    const { columna, direccion } = querys;
+    const { columna, direccion, recibo_cobro } = querys;
 
     const pipeline = [];
     pipeline.push({ $match: {} });
 
+    if (recibo_cobro && recibo_cobro.trim() !== '') {
+      const idReciboCobro = new Types.ObjectId(recibo_cobro);
+      pipeline.push({ $match: { recibo_cobro: idReciboCobro } })
+    }
+
     // Informacion de recibo de cobro
     pipeline.push({
       $lookup: { // Lookup
-        from: 'recibos_cobro',
+        from: 'recibos_cobros',
         localField: 'recibo_cobro',
         foreignField: '_id',
         as: 'recibo_cobro'
@@ -111,8 +116,20 @@ export class RecibosCobroChequeService {
       }
     }
     );
-
+    
     pipeline.push({ $unwind: '$cheque' });
+
+    // Informacion de banco
+    pipeline.push({
+      $lookup: { // Lookup
+          from: 'bancos',
+          localField: 'cheque.banco',
+          foreignField: '_id',
+          as: 'cheque.banco'
+      }}
+    );
+
+    pipeline.push({ $unwind: '$cheque.banco' });
 
     // Informacion de usuario creador
     pipeline.push({
