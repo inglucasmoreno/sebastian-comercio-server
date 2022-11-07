@@ -8,6 +8,7 @@ import { ICcClientes } from 'src/cc-clientes/interface/cc-clientes.interface';
 import { ICheques } from 'src/cheques/interface/cheques.interface';
 import { IRecibosCobroCheque } from 'src/recibos-cobro-cheque/interface/recibos-cheque.interface';
 import { IRecibosCobroVenta } from 'src/recibos-cobro-venta/interface/recibos-cobro-venta.interface';
+import { IVentasPropias } from 'src/ventas-propias/interface/ventas-propias.interface';
 import { RecibosCobroDTO } from './dto/recibos-cobro.dto';
 import { IRecibosCobro } from './interface/recibos-cobro.interface';
 
@@ -23,6 +24,7 @@ export class RecibosCobroService {
     @InjectModel('Cajas') private readonly cajasModel: Model<ICajas>,
     @InjectModel('CcClientesMovimientos') private readonly ccClientesMovimientosModel: Model<ICcClientesMovimientos>,
     @InjectModel('CajasMovimientos') private readonly cajasMovimientosModel: Model<ICajasMovimientos>,
+    @InjectModel('VentasPropias') private readonly ventasModel: Model<IVentasPropias>,
   ) { };
 
   // Recibo de cobro por ID
@@ -86,7 +88,7 @@ export class RecibosCobroService {
   // Listar recibos de cobro
   async getAll(querys: any): Promise<IRecibosCobro[]> {
 
-    const { columna, direccion } = querys;
+    const { columna, direccion} = querys;
 
     const pipeline = [];
     pipeline.push({ $match: {} });
@@ -208,6 +210,12 @@ export class RecibosCobroService {
       const nuevaRelacion = new this.recibosCobroVentaModel(dataReciboVenta);
       await nuevaRelacion.save();
 
+      // Actualizacion de venta
+      await this.ventasModel.findByIdAndUpdate(elemento.venta, {
+        cancelada: elemento.cancelada,
+        deuda_monto: this.redondear(elemento.monto_deuda, 2)
+      });
+    
     })
 
 

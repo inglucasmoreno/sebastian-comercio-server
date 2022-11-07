@@ -7,6 +7,7 @@ import { CcClientesSchema } from 'src/cc-clientes/schema/cc-clientes.schema';
 import { chequesSchema } from 'src/cheques/schema/cheques.schema';
 import { recibosCobroChequeSchema } from 'src/recibos-cobro-cheque/schema/recibos-cobro.schema';
 import { recibosCobroVentaSchema } from 'src/recibos-cobro-venta/schema/recibos-cobro-venta.schema';
+import { ventasPropiasSchema } from 'src/ventas-propias/schema/ventas-propias.schema';
 import { RecibosCobroController } from './recibos-cobro.controller';
 import { RecibosCobroService } from './recibos-cobro.service';
 import { recibosCobroSchema } from './schema/recibos-cobro.schema';
@@ -22,6 +23,7 @@ import { recibosCobroSchema } from './schema/recibos-cobro.schema';
 			{ name: 'Cajas', schema: cajasSchema },
 			{ name: 'CcClientesMovimientos', schema: CcClientesMovimientosSchema },
 			{ name: 'CajasMovimientos', schema: CajasMovimientosSchema },
+			{ name: 'VentasPropias', schema: ventasPropiasSchema },
 		])
 	],
   controllers: [RecibosCobroController],

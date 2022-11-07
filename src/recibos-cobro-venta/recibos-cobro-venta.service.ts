@@ -83,14 +83,21 @@ export class RecibosCobroVentaService {
   // Listar relaciones
   async getAll(querys: any): Promise<IRecibosCobroVenta[]> {
 
-    const { columna, direccion, recibo_cobro } = querys;
+    const { columna, direccion, recibo_cobro, venta_propia } = querys;
 
     const pipeline = [];
     pipeline.push({ $match: {} });
 
-    if (recibo_cobro && recibo_cobro.trim() !== '') {
+    // Filtro por recibo de cobro
+    if(recibo_cobro && recibo_cobro.trim() !== '') {
       const idReciboCobro = new Types.ObjectId(recibo_cobro);
       pipeline.push({ $match: { recibo_cobro: idReciboCobro } })
+    }
+
+    // Filtro por venta propia
+    if(venta_propia && venta_propia.trim() !== '') {
+      const idVentaPropia = new Types.ObjectId(venta_propia);
+      pipeline.push({ $match: { venta_propia: idVentaPropia } })
     }
 
     // Informacion de recibo de cobro
