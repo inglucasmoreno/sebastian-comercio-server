@@ -115,7 +115,7 @@ export class ProductosService {
       pipeline.push({$match: filtroActivo});
       pipelineTotal.push({$match: filtroActivo});
     }
-    
+
     // Informacion de familia del producto
     pipeline.push({
       $lookup: { // Lookup
@@ -174,8 +174,7 @@ export class ProductosService {
     );
 
     pipeline.push({ $unwind: '$updatorUser' });
-
-        
+ 
 		// Filtro por parametros
 		if(parametro && parametro !== ''){
 			

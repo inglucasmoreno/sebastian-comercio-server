@@ -96,10 +96,17 @@ export class CcClientesMovimientosService {
   // Listar movimientos
   async getAll(querys: any): Promise<ICcClientesMovimientos[]> {
         
-    const {columna, direccion, cc_cliente} = querys;
+    const {
+      columna, 
+      direccion,
+      cc_cliente
+    } = querys;
 
     const pipeline = [];
+    const pipelineTotal = [];
+
     pipeline.push({$match:{}});
+    pipelineTotal.push({$match:{}});
 
     // Filtro por cuenta corriente
     if(cc_cliente && cc_cliente.trim() !== ''){

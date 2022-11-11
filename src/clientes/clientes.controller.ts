@@ -35,10 +35,11 @@ export class ClientesController {
     @UseGuards(JwtAuthGuard)
     @Get('/')
     async getAll(@Res() res, @Query() querys) {
-        const clientes = await this.clientesService.getAll(querys);
+        const { clientes, totalItems } = await this.clientesService.getAll(querys);
         res.status(HttpStatus.OK).json({
             message: 'Listado de clientes correcto',
-            clientes
+            clientes,
+            totalItems
         });
     }
   

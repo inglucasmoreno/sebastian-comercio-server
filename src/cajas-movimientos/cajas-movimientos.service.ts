@@ -82,18 +82,46 @@ export class CajasMovimientosService {
   }
 
   // Listar movimientos
-  async getAll(querys: any): Promise<ICajasMovimientos[]> {
+  async getAll(querys: any): Promise<any> {
         
-    const {columna, direccion, caja} = querys;
+    const {
+      columna, 
+      direccion, 
+      desde,
+      registerpp,
+      parametro,
+      caja
+    } = querys;
 
     const pipeline = [];
+    const pipelineTotal = [];
+
     pipeline.push({$match:{}});
+    pipelineTotal.push({$match:{}});
 
     // Filtro por caja
     if(caja && caja.trim() !== ''){
       const idCaja = new Types.ObjectId(caja);
       pipeline.push({ $match:{ caja: idCaja } }); 
+      pipelineTotal.push({ $match:{ caja: idCaja } }); 
     }
+
+		// Filtro por parametros
+		if(parametro && parametro !== ''){
+			
+      const porPartes = parametro.split(' ');
+      let parametroFinal = '';
+
+      for(var i = 0; i < porPartes.length; i++){
+        if(i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
+        else parametroFinal = porPartes[i] + '.*';
+      }
+
+      const regex = new RegExp(parametroFinal,'i');
+      pipeline.push({$match: { $or: [ { descripcion: regex } ] }});
+			pipelineTotal.push({$match: { $or: [ { descripcion: regex } ] }});
+      
+		}
 
     // Informacion de caja
     pipeline.push({
@@ -138,9 +166,17 @@ export class CajasMovimientosService {
         pipeline.push({$sort: ordenar});
     }      
 
-    const movimientos = await this.movimientosModel.aggregate(pipeline);
-    
-    return movimientos;
+    pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
+
+    const [movimientos, movimientosTotal] = await Promise.all([
+      this.movimientosModel.aggregate(pipeline),
+      this.movimientosModel.aggregate(pipelineTotal)
+    ]);
+
+    return {
+      movimientos,
+      totalItems: movimientosTotal.length,
+    };
 
   }    
 

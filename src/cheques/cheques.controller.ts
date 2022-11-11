@@ -24,10 +24,12 @@ export class ChequesController {
     @UseGuards(JwtAuthGuard)
     @Get('/')
     async getAll(@Res() res, @Query() querys) {
-        const cheques = await this.chequesService.getAll(querys);
+        const {cheques, totalItems, montoTotal} = await this.chequesService.getAll(querys);
         res.status(HttpStatus.OK).json({
             message: 'Listado de cheques correcto',
-            cheques
+            cheques,
+            montoTotal,
+            totalItems
         });
     }
 

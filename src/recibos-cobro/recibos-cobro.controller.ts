@@ -24,10 +24,11 @@ export class RecibosCobroController {
   @UseGuards(JwtAuthGuard)
   @Get('/')
   async getAll(@Res() res, @Query() querys) {
-      const recibos = await this.recibosCobroService.getAll(querys);
+      const { recibos, totalItems } = await this.recibosCobroService.getAll(querys);
       res.status(HttpStatus.OK).json({
           message: 'Listado de recibos correcto',
-          recibos
+          recibos,
+          totalItems
       });
   }
 

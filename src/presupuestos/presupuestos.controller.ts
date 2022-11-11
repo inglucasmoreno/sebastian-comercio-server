@@ -24,10 +24,11 @@ export class PresupuestosController {
     @UseGuards(JwtAuthGuard)
     @Get('/')
     async getAll(@Res() res, @Query() querys) {
-        const presupuestos = await this.presupuestosService.getAll(querys);
+        const {presupuestos, totalItems} = await this.presupuestosService.getAll(querys);
         res.status(HttpStatus.OK).json({
             message: 'Listado de presupuestos correcto',
-            presupuestos
+            presupuestos,
+            totalItems
         });
     }
   

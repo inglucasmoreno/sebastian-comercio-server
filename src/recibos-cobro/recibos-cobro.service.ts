@@ -86,12 +86,30 @@ export class RecibosCobroService {
   }
 
   // Listar recibos de cobro
-  async getAll(querys: any): Promise<IRecibosCobro[]> {
+  async getAll(querys: any): Promise<any> {
 
-    const { columna, direccion} = querys;
+    const { 
+      columna, 
+      direccion,
+      desde,
+      registerpp,
+      activo,
+      parametro,
+    } = querys;
 
     const pipeline = [];
+    const pipelineTotal = [];
+
     pipeline.push({ $match: {} });
+    pipelineTotal.push({$match:{}});
+
+    // Activo / Inactivo
+    let filtroActivo = {};
+    if(activo && activo !== '') {
+      filtroActivo = { activo: activo === 'true' ? true : false };
+      pipeline.push({$match: filtroActivo});
+      pipelineTotal.push({$match: filtroActivo});
+    }
 
     // Informacion de clientes
     pipeline.push({
@@ -132,6 +150,23 @@ export class RecibosCobroService {
 
     pipeline.push({ $unwind: '$updatorUser' });
 
+		// Filtro por parametros
+		if(parametro && parametro !== ''){
+			
+      const porPartes = parametro.split(' ');
+      let parametroFinal = '';
+
+      for(var i = 0; i < porPartes.length; i++){
+        if(i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
+        else parametroFinal = porPartes[i] + '.*';
+      }
+
+      const regex = new RegExp(parametroFinal,'i');
+      pipeline.push({$match: { $or: [ { nro: Number(parametro) }, { 'cliente.descripcion': regex } ] }});
+			pipelineTotal.push({$match: { $or: [ { nro: Number(parametro) }, { 'cliente.descripcion': regex } ] }});
+      
+		}
+
     // Ordenando datos
     const ordenar: any = {};
     if (columna) {
@@ -139,9 +174,18 @@ export class RecibosCobroService {
       pipeline.push({ $sort: ordenar });
     }
 
-    const recibos = await this.recibosCobroModel.aggregate(pipeline);
+    // Paginacion
+    pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
 
-    return recibos;
+    const [ recibos, recibosTotal ] = await Promise.all([
+      this.recibosCobroModel.aggregate(pipeline),
+      this.recibosCobroModel.aggregate(pipelineTotal),
+    ])
+
+    return {
+      recibos,
+      totalItems: recibosTotal.length
+    };
 
   }
 

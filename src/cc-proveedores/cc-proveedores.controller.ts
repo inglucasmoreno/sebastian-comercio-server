@@ -24,10 +24,11 @@ export class CcProveedoresController {
   @UseGuards(JwtAuthGuard)
   @Get('/')
   async getAll(@Res() res, @Query() querys) {
-      const cuentas_corrientes = await this.cuentasCorrientesService.getAll(querys);
+      const { cuentas_corrientes, totalItems } = await this.cuentasCorrientesService.getAll(querys);
       res.status(HttpStatus.OK).json({
           message: 'Listado de cuentas corrientes correcto',
-          cuentas_corrientes
+          cuentas_corrientes,
+          totalItems
       });
   }
 

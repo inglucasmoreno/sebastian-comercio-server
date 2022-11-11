@@ -24,10 +24,11 @@ export class ProveedoresController {
     @UseGuards(JwtAuthGuard)
     @Get('/')
     async getAll(@Res() res, @Query() querys) {
-        const proveedores = await this.proveedoresService.getAll(querys);
+        const {proveedores, totalItems} = await this.proveedoresService.getAll(querys);
         res.status(HttpStatus.OK).json({
             message: 'Listado de proveedores correcto',
-            proveedores
+            proveedores,
+            totalItems
         });
     }
   

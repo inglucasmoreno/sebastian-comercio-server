@@ -94,17 +94,44 @@ export class CcProveedoresMovimientosService {
   }
 
   // Listar movimientos
-  async getAll(querys: any): Promise<ICcProveedoresMovimientos[]> {
+  async getAll(querys: any): Promise<any> {
         
-    const {columna, direccion, cc_proveedor} = querys;
+    const {
+      columna, 
+      direccion,
+      desde,
+      registerpp,
+      activo,
+      parametro, 
+      cc_proveedor} = querys;
 
     const pipeline = [];
+    const pipelineTotal = [];
+
     pipeline.push({$match:{}});
+    pipelineTotal.push({ $match: {} });
 
     // Filtro por cuenta corriente
     if(cc_proveedor && cc_proveedor.trim() !== ''){
       const idCuentaCorriente = new Types.ObjectId(cc_proveedor);
       pipeline.push({ $match:{ cc_proveedor: idCuentaCorriente } }); 
+    }
+
+    // Filtro por parametros
+    if (parametro && parametro !== '') {
+
+      const porPartes = parametro.split(' ');
+      let parametroFinal = '';
+
+      for (var i = 0; i < porPartes.length; i++) {
+        if (i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
+        else parametroFinal = porPartes[i] + '.*';
+      }
+
+      const regex = new RegExp(parametroFinal, 'i');
+      pipeline.push({ $match: { $or: [ { descripcion: regex } ] } });
+      pipelineTotal.push({ $match: { $or: [ { descripcion: regex } ] } });
+
     }
 
     // Informacion de cuenta corriente
@@ -162,9 +189,18 @@ export class CcProveedoresMovimientosService {
         pipeline.push({$sort: ordenar});
     }      
 
-    const movimientos = await this.movimientosModel.aggregate(pipeline);
-    
-    return movimientos;
+    // Paginacion
+    pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
+
+    const [ movimientos, movimientosTotal ] = await Promise.all([
+      this.movimientosModel.aggregate(pipeline),
+      this.movimientosModel.aggregate(pipelineTotal),
+    ])
+
+    return {
+      movimientos,
+      totalItems: movimientosTotal.length
+    };
 
   }    
 

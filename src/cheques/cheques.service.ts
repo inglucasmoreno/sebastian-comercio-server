@@ -87,12 +87,28 @@ export class ChequesService {
   }
 
   // Listar cheques
-  async getAll(querys: any): Promise<ICheques[]> {
+  async getAll(querys: any): Promise<any> {
 
-    const { columna, direccion } = querys;
+    const { 
+      columna, 
+      direccion, 
+      desde,
+      registerpp,
+      estado,
+      parametro,
+    } = querys;
 
     const pipeline = [];
+    const pipelineTotal = [];
+
     pipeline.push({ $match: {} });
+    pipelineTotal.push({ $match: {} });
+
+    // Por estado
+    if(estado && estado !== ''){
+      pipeline.push({$match: { estado }});
+      pipelineTotal.push({$match: { estado }});
+    }
 
     // Informacion de banco
     pipeline.push({
@@ -133,6 +149,24 @@ export class ChequesService {
 
     pipeline.push({ $unwind: '$updatorUser' });
 
+		// Filtro por parametros
+		if(parametro && parametro !== ''){
+			
+      const porPartes = parametro.split(' ');
+      let parametroFinal = '';
+
+      for(var i = 0; i < porPartes.length; i++){
+        if(i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
+        else parametroFinal = porPartes[i] + '.*';
+      }
+
+      const regex = new RegExp(parametroFinal,'i');
+      pipeline.push({$match: { $or: [ { nro_cheque: regex }, { emisor: regex }, { 'banco.descripcion': regex } ] }});
+			pipelineTotal.push({$match: { $or: [ { nro_cheque: regex }, { emisor: regex }, { 'banco.descripcion': regex } ] }});
+      
+		}
+
+
     // Ordenando datos
     const ordenar: any = {};
     if (columna) {
@@ -140,9 +174,23 @@ export class ChequesService {
       pipeline.push({ $sort: ordenar });
     }
 
-    const cheques = await this.chequesModel.aggregate(pipeline);
+    // Paginacion
+    pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
 
-    return cheques;
+    const [ cheques, chequesTotal ] = await Promise.all([
+      this.chequesModel.aggregate(pipeline),
+      this.chequesModel.aggregate(pipelineTotal),
+    ])
+  
+    // Total en cheques
+    let montoTotal = 0;
+    chequesTotal.map( cheque => montoTotal += cheque.importe );
+
+    return {
+      cheques,
+      totalItems: chequesTotal.length,
+      montoTotal
+    };
 
   }
 

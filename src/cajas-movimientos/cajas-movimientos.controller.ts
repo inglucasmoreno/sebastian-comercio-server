@@ -24,10 +24,11 @@ export class CajasMovimientosController {
   @UseGuards(JwtAuthGuard)
   @Get('/')
   async getAll(@Res() res, @Query() querys) {
-      const movimientos = await this.movimientosService.getAll(querys);
+      const { movimientos, totalItems } = await this.movimientosService.getAll(querys);
       res.status(HttpStatus.OK).json({
           message: 'Listado de movimientos correcto',
-          movimientos
+          movimientos,
+          totalItems,
       });
   }
 
