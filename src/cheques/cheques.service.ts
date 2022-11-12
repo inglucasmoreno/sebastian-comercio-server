@@ -89,9 +89,9 @@ export class ChequesService {
   // Listar cheques
   async getAll(querys: any): Promise<any> {
 
-    const { 
-      columna, 
-      direccion, 
+    const {
+      columna,
+      direccion,
       desde,
       registerpp,
       estado,
@@ -105,9 +105,9 @@ export class ChequesService {
     pipelineTotal.push({ $match: {} });
 
     // Por estado
-    if(estado && estado !== ''){
-      pipeline.push({$match: { estado }});
-      pipelineTotal.push({$match: { estado }});
+    if (estado && estado !== '') {
+      pipeline.push({ $match: { estado } });
+      pipelineTotal.push({ $match: { estado } });
     }
 
     // Informacion de banco
@@ -122,6 +122,19 @@ export class ChequesService {
     );
 
     pipeline.push({ $unwind: '$banco' });
+
+    // Informacion de banco - TOTAL
+    pipelineTotal.push({
+      $lookup: { // Lookup
+        from: 'bancos',
+        localField: 'banco',
+        foreignField: '_id',
+        as: 'banco'
+      }
+    }
+    );
+
+    pipelineTotal.push({ $unwind: '$banco' });
 
     // Informacion de usuario creador
     pipeline.push({
@@ -149,22 +162,22 @@ export class ChequesService {
 
     pipeline.push({ $unwind: '$updatorUser' });
 
-		// Filtro por parametros
-		if(parametro && parametro !== ''){
-			
+    // Filtro por parametros
+    if (parametro && parametro !== '') {
+
       const porPartes = parametro.split(' ');
       let parametroFinal = '';
 
-      for(var i = 0; i < porPartes.length; i++){
-        if(i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
+      for (var i = 0; i < porPartes.length; i++) {
+        if (i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
         else parametroFinal = porPartes[i] + '.*';
       }
 
-      const regex = new RegExp(parametroFinal,'i');
-      pipeline.push({$match: { $or: [ { nro_cheque: regex }, { emisor: regex }, { 'banco.descripcion': regex } ] }});
-			pipelineTotal.push({$match: { $or: [ { nro_cheque: regex }, { emisor: regex }, { 'banco.descripcion': regex } ] }});
-      
-		}
+      const regex = new RegExp(parametroFinal, 'i');
+      pipeline.push({ $match: { $or: [{ nro_cheque: regex }, { emisor: regex }, { 'banco.descripcion': regex }] } });
+      pipelineTotal.push({ $match: { $or: [{ nro_cheque: regex }, { emisor: regex }, { 'banco.descripcion': regex }] } });
+
+    }
 
 
     // Ordenando datos
@@ -175,16 +188,16 @@ export class ChequesService {
     }
 
     // Paginacion
-    pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
+    pipeline.push({ $skip: Number(desde) }, { $limit: Number(registerpp) });
 
-    const [ cheques, chequesTotal ] = await Promise.all([
+    const [cheques, chequesTotal] = await Promise.all([
       this.chequesModel.aggregate(pipeline),
       this.chequesModel.aggregate(pipelineTotal),
     ])
-  
+
     // Total en cheques
     let montoTotal = 0;
-    chequesTotal.map( cheque => montoTotal += cheque.importe );
+    chequesTotal.map(cheque => montoTotal += cheque.importe);
 
     return {
       cheques,

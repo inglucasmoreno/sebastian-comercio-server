@@ -142,7 +142,7 @@ export class ProveedoresService {
 
         return {
             proveedores: proveedores.filter(proveedor => String(proveedor._id) !== '000000000000000000000000'),
-            totalItems: proveedores.length > 0 ? proveedoresTotal.length - 1 : 0
+            totalItems: proveedoresTotal.filter(proveedor => String(proveedor._id) !== '000000000000000000000000').length
         }
 
     }

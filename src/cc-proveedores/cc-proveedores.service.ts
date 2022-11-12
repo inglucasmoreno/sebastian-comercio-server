@@ -107,6 +107,20 @@ export class CcProveedoresService {
 
     pipeline.push({ $unwind: '$proveedor' });
 
+    
+    // Informacion de proveedor - TOTAL
+    pipelineTotal.push({
+      $lookup: { // Lookup
+        from: 'proveedores',
+        localField: 'proveedor',
+        foreignField: '_id',
+        as: 'proveedor'
+      }
+    }
+    );
+
+    pipelineTotal.push({ $unwind: '$proveedor' });
+
     // Informacion de usuario creador
     pipeline.push({
       $lookup: { // Lookup
@@ -160,11 +174,12 @@ export class CcProveedoresService {
     // Paginacion
     pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
 
+    
     const [cuentas_corrientes, cuentasCorrientesTotal] = await Promise.all([
       this.cuentaCorrienteModel.aggregate(pipeline),
       this.cuentaCorrienteModel.aggregate(pipelineTotal),
     ])
-
+    
     return {
       cuentas_corrientes,
       totalItems: cuentasCorrientesTotal.length

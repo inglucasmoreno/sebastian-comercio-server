@@ -127,6 +127,19 @@ export class PresupuestosService {
 
         pipeline.push({ $unwind: '$cliente' });
 
+        // Informacion de cliente - TOTAL
+        pipelineTotal.push({
+            $lookup: { // Lookup
+                from: 'clientes',
+                localField: 'cliente',
+                foreignField: '_id',
+                as: 'cliente'
+            }
+        }
+        );
+
+        pipelineTotal.push({ $unwind: '$cliente' });
+
         // Informacion de proveedor
         pipeline.push({
             $lookup: { // Lookup

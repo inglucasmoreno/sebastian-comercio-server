@@ -124,6 +124,19 @@ export class RecibosCobroService {
 
     pipeline.push({ $unwind: '$cliente' });
 
+    // Informacion de clientes - TOTAL
+    pipelineTotal.push({
+      $lookup: { // Lookup
+        from: 'clientes',
+        localField: 'cliente',
+        foreignField: '_id',
+        as: 'cliente'
+      }
+    }
+    );
+
+    pipelineTotal.push({ $unwind: '$cliente' });
+
     // Informacion de usuario creador
     pipeline.push({
       $lookup: { // Lookup
@@ -135,7 +148,7 @@ export class RecibosCobroService {
     }
     );
 
-    pipeline.push({ $unwind: '$creatorUser' });
+    pipeline.push({ $unwind: '$creatorUser' }); 
 
     // Informacion de usuario actualizador
     pipeline.push({

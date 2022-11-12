@@ -94,11 +94,15 @@ export class CcClientesMovimientosService {
   }
 
   // Listar movimientos
-  async getAll(querys: any): Promise<ICcClientesMovimientos[]> {
+  async getAll(querys: any): Promise<any> {
         
     const {
-      columna, 
+      columna,
       direccion,
+      desde,
+      registerpp,
+      activo,
+      parametro,
       cc_cliente
     } = querys;
 
@@ -111,7 +115,33 @@ export class CcClientesMovimientosService {
     // Filtro por cuenta corriente
     if(cc_cliente && cc_cliente.trim() !== ''){
       const idCuentaCorriente = new Types.ObjectId(cc_cliente);
-      pipeline.push({ $match:{ cc_cliente: idCuentaCorriente } }); 
+      pipeline.push({ $match:{ cc_cliente: idCuentaCorriente } });
+      pipelineTotal.push({ $match:{ cc_cliente: idCuentaCorriente } }); 
+    }
+
+    // Activo / Inactivo
+    let filtroActivo = {};
+    if (activo && activo !== '') {
+      filtroActivo = { activo: activo === 'true' ? true : false };
+      pipeline.push({ $match: filtroActivo });
+      pipelineTotal.push({ $match: filtroActivo });
+    }
+
+    // Filtro por parametros
+    if (parametro && parametro !== '') {
+
+      const porPartes = parametro.split(' ');
+      let parametroFinal = '';
+
+      for (var i = 0; i < porPartes.length; i++) {
+        if (i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
+        else parametroFinal = porPartes[i] + '.*';
+      }
+
+      const regex = new RegExp(parametroFinal, 'i');
+      pipeline.push({ $match: { $or: [{ descripcion: regex }] } });
+      pipelineTotal.push({ $match: { $or: [{ descripcion: regex }] } });
+
     }
 
     // Informacion de cuenta corriente
@@ -164,14 +194,23 @@ export class CcClientesMovimientosService {
 
     // Ordenando datos
     const ordenar: any = {};
-    if(columna){
-        ordenar[String(columna)] = Number(direccion);
-        pipeline.push({$sort: ordenar});
-    }      
+    if (columna) {
+      ordenar[String(columna)] = Number(direccion);
+      pipeline.push({ $sort: ordenar });
+    }
 
-    const movimientos = await this.movimientosModel.aggregate(pipeline);
+    // Paginacion
+    pipeline.push({ $skip: Number(desde) }, { $limit: Number(registerpp) });
+
+    const [movimientos, movimientosTotal] = await Promise.all([
+      this.movimientosModel.aggregate(pipeline),
+      this.movimientosModel.aggregate(pipelineTotal),
+    ])
     
-    return movimientos;
+    return {
+      movimientos,
+      totalItems: movimientosTotal.length
+    };  
 
   }    
 

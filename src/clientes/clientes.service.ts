@@ -182,7 +182,7 @@ export class ClientesService {
 
         return {
             clientes: clientes.filter(cliente => String(cliente._id) !== '000000000000000000000000'),
-            totalItems: clientes.length > 0 ? clientesTotal.length - 1 : 0
+            totalItems: clientesTotal.filter(cliente => String(cliente._id) !== '000000000000000000000000').length
         }
 
     }

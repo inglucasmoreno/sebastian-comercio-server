@@ -104,24 +104,46 @@ export class VentasPropiasService {
     }
 
     // Listar ventas
-    async getAll(querys: any): Promise<IVentasPropias[]> {
+    async getAll(querys: any): Promise<any> {
 
-        const { columna, direccion, cliente, cancelada } = querys;
+        const {
+            columna,
+            direccion,
+            desde,
+            registerpp,
+            activo,
+            parametro,
+            cliente,
+            cancelada
+        } = querys;
 
         const pipeline = [];
+        const pipelineTotal = [];
+
         pipeline.push({ $match: {} });
+        pipelineTotal.push({ $match: {} });
 
         // Filtrado por cliente
         if (cliente && cliente !== '') {
             const idCliente = new Types.ObjectId(cliente);
-            pipeline.push({ $match:{ cliente: idCliente} });
-        } 
+            pipeline.push({ $match: { cliente: idCliente } });
+            pipelineTotal.push({ $match: { cliente: idCliente } });
+        }
 
         // Filtro por venta cancelada
         let filtroCancelada = {};
         if (cancelada && cancelada !== '') {
             filtroCancelada = { cancelada: cancelada === 'true' ? true : false };
             pipeline.push({ $match: filtroCancelada });
+            pipelineTotal.push({ $match: filtroCancelada });
+        }
+
+        // Activo / Inactivo
+        let filtroActivo = {};
+        if (activo && activo !== '') {
+            filtroActivo = { activo: activo === 'true' ? true : false };
+            pipeline.push({ $match: filtroActivo });
+            pipelineTotal.push({ $match: filtroActivo });
         }
 
         // Informacion de cliente
@@ -136,6 +158,19 @@ export class VentasPropiasService {
         );
 
         pipeline.push({ $unwind: '$cliente' });
+
+        // Informacion de cliente - TOTAL
+        pipelineTotal.push({
+            $lookup: { // Lookup
+                from: 'clientes',
+                localField: 'cliente',
+                foreignField: '_id',
+                as: 'cliente'
+            }
+        }
+        );
+
+        pipelineTotal.push({ $unwind: '$cliente' });
 
         // Informacion de usuario creador
         pipeline.push({
@@ -163,6 +198,23 @@ export class VentasPropiasService {
 
         pipeline.push({ $unwind: '$updatorUser' });
 
+        // Filtro por parametros
+        if (parametro && parametro !== '') {
+
+            const porPartes = parametro.split(' ');
+            let parametroFinal = '';
+
+            for (var i = 0; i < porPartes.length; i++) {
+                if (i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
+                else parametroFinal = porPartes[i] + '.*';
+            }
+
+            const regex = new RegExp(parametroFinal, 'i');
+            pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }] } });
+            pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }] } });
+
+        }
+
         // Ordenando datos
         const ordenar: any = {};
         if (columna) {
@@ -170,9 +222,18 @@ export class VentasPropiasService {
             pipeline.push({ $sort: ordenar });
         }
 
-        const ventas = await this.ventasModel.aggregate(pipeline);
+        // Paginacion
+        pipeline.push({ $skip: Number(desde) }, { $limit: Number(registerpp) });
 
-        return ventas;
+        const [ventas, ventasTotal] = await Promise.all([
+            this.ventasModel.aggregate(pipeline),
+            this.ventasModel.aggregate(pipelineTotal),
+        ])
+
+        return {
+            ventas,
+            totalItems: ventasTotal.length
+        };
 
     }
 
