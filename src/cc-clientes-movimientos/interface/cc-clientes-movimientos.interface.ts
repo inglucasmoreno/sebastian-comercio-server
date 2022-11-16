@@ -1,6 +1,7 @@
 import { Document } from 'mongoose';
 
 export interface ICcClientesMovimientos extends Document {
+  readonly nro: number;
   readonly tipo: string;
   readonly cc_cliente: string;
   readonly cliente: string;

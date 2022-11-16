@@ -11,6 +11,9 @@ export class RecibosCobroVentaDTO {
   readonly venta_cancelada: Boolean;
   
   @IsNumber()
+  readonly total_deuda: Number;
+
+  @IsNumber()
   readonly monto_cobrado: Number;
 
   @IsNumber()

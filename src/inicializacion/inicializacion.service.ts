@@ -118,7 +118,7 @@ export class InicializacionService {
             unidad = String(nuevaUnidad._id);
         } 
         
-        // Generacion de PDF
+        // IMPORT - PRODUCTOS
 
         const workbook = XLSX.readFile('./importar/productos.xlsx');
         const workbookSheets = workbook.SheetNames;
@@ -210,19 +210,19 @@ export class InicializacionService {
             updatorUser: usuario 
         });
 
-        const bancoProvisorio = new this.cajasModel({ 
-            _id: '333333333333333333333333',
-            descripcion: 'Banco provisorio', 
-            saldo: 0,
-            creatorUser: usuario,
-            updatorUser: usuario 
-        });
+        // const bancoProvisorio = new this.cajasModel({ 
+        //     _id: '333333333333333333333333',
+        //     descripcion: 'Banco provisorio', 
+        //     saldo: 0,
+        //     creatorUser: usuario,
+        //     updatorUser: usuario 
+        // });
 
         await Promise.all([
             efectivo.save(),
             // dolares.save(),
             cheques.save(),
-            bancoProvisorio.save()
+            // bancoProvisorio.save()
         ])
 
         return 'Inicializacion completada';

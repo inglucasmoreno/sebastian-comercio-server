@@ -19,6 +19,11 @@ export const recibosCobroVentaSchema = new Schema({
     default: true
   },
 
+  total_deuda: {
+    type: Number,
+    required: true
+  },
+
   monto_cobrado: {
     type: Number,
     required: true

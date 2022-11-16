@@ -514,16 +514,20 @@ export class VentasService {
     async generarExcel(): Promise<any> {
 
         // Obtener ventas
-        const ventas = await this.getAll({ direccion: -1, columna: 'createdAt' });
+        const respuesta = await this.getAll({ 
+            direccion: -1, 
+            columna: 'createdAt',
+            desde: 0,
+            registerpp: 1000000,      
+        });
 
         const workbook = new ExcelJs.Workbook();
         const worksheet = workbook.addWorksheet('Reporte - Ventas directas');
 
-        worksheet.addRow(['Número', 'Fecha', 'Proveedor', 'Cliente', 'Precio total']);
+        worksheet.addRow(['Número', 'Fecha', 'Proveedor', 'Cliente', 'Precio total', 'Habilitada']);
 
         // Autofiltro
-
-        worksheet.autoFilter = 'A1:E1';
+        worksheet.autoFilter = 'A1:F1';
 
         // Estilo de filas y columnas
 
@@ -538,15 +542,18 @@ export class VentasService {
         worksheet.getColumn(3).width = 40; // Proveedor
         worksheet.getColumn(4).width = 40; // Cliente
         worksheet.getColumn(5).width = 25; // Precio total
+        worksheet.getColumn(6).width = 15; // Habilitadas
 
         // Agregar elementos
-        ventas.map(venta => {
+        respuesta.ventas.map(venta => {
             worksheet.addRow([
                 venta.nro,
                 add(venta.createdAt, { hours: -3 }),
                 venta.proveedor['descripcion'],
                 venta.cliente['descripcion'],
-                Number(venta.precio_total)]);
+                Number(venta.precio_total),
+                venta.activo ? 'SI' : 'NO'
+            ]);
         });
 
         // Generacion de reporte

@@ -11,6 +11,9 @@ import { IRecibosCobroVenta } from 'src/recibos-cobro-venta/interface/recibos-co
 import { IVentasPropias } from 'src/ventas-propias/interface/ventas-propias.interface';
 import { RecibosCobroDTO } from './dto/recibos-cobro.dto';
 import { IRecibosCobro } from './interface/recibos-cobro.interface';
+import * as fs from 'fs';
+import { format } from 'date-fns';
+import * as pdf from 'pdf-creator-node';
 
 @Injectable()
 export class RecibosCobroService {
@@ -88,8 +91,8 @@ export class RecibosCobroService {
   // Listar recibos de cobro
   async getAll(querys: any): Promise<any> {
 
-    const { 
-      columna, 
+    const {
+      columna,
       direccion,
       desde,
       registerpp,
@@ -101,14 +104,14 @@ export class RecibosCobroService {
     const pipelineTotal = [];
 
     pipeline.push({ $match: {} });
-    pipelineTotal.push({$match:{}});
+    pipelineTotal.push({ $match: {} });
 
     // Activo / Inactivo
     let filtroActivo = {};
-    if(activo && activo !== '') {
+    if (activo && activo !== '') {
       filtroActivo = { activo: activo === 'true' ? true : false };
-      pipeline.push({$match: filtroActivo});
-      pipelineTotal.push({$match: filtroActivo});
+      pipeline.push({ $match: filtroActivo });
+      pipelineTotal.push({ $match: filtroActivo });
     }
 
     // Informacion de clientes
@@ -148,7 +151,7 @@ export class RecibosCobroService {
     }
     );
 
-    pipeline.push({ $unwind: '$creatorUser' }); 
+    pipeline.push({ $unwind: '$creatorUser' });
 
     // Informacion de usuario actualizador
     pipeline.push({
@@ -163,22 +166,22 @@ export class RecibosCobroService {
 
     pipeline.push({ $unwind: '$updatorUser' });
 
-		// Filtro por parametros
-		if(parametro && parametro !== ''){
-			
+    // Filtro por parametros
+    if (parametro && parametro !== '') {
+
       const porPartes = parametro.split(' ');
       let parametroFinal = '';
 
-      for(var i = 0; i < porPartes.length; i++){
-        if(i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
+      for (var i = 0; i < porPartes.length; i++) {
+        if (i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
         else parametroFinal = porPartes[i] + '.*';
       }
 
-      const regex = new RegExp(parametroFinal,'i');
-      pipeline.push({$match: { $or: [ { nro: Number(parametro) }, { 'cliente.descripcion': regex } ] }});
-			pipelineTotal.push({$match: { $or: [ { nro: Number(parametro) }, { 'cliente.descripcion': regex } ] }});
-      
-		}
+      const regex = new RegExp(parametroFinal, 'i');
+      pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }] } });
+      pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }] } });
+
+    }
 
     // Ordenando datos
     const ordenar: any = {};
@@ -188,9 +191,9 @@ export class RecibosCobroService {
     }
 
     // Paginacion
-    pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
+    pipeline.push({ $skip: Number(desde) }, { $limit: Number(registerpp) });
 
-    const [ recibos, recibosTotal ] = await Promise.all([
+    const [recibos, recibosTotal] = await Promise.all([
       this.recibosCobroModel.aggregate(pipeline),
       this.recibosCobroModel.aggregate(pipelineTotal),
     ])
@@ -248,33 +251,37 @@ export class RecibosCobroService {
     else if (reciboDB.nro <= 99999) codigoRecibo = 'RC00' + String(reciboDB.nro);
     else if (reciboDB.nro <= 999999) codigoRecibo = 'RC0' + String(reciboDB.nro);
 
+    const observacion = `COBRO ${codigoRecibo}`;
+
     //** RELACION RECIBOS - VENTAS
 
-    // RECIBO -> VENTAS
-    carro_pago.map(async elemento => {
+    // RECIBO -> VENTAS - SI NO HAY RELACION ES UN ANTICIPO
+    if (carro_pago.length !== 0) {
+      carro_pago.map(async elemento => {
 
-      const dataReciboVenta = {
-        recibo_cobro: reciboDB._id,
-        venta_propia: elemento.venta,
-        venta_cancelada: elemento.cancelada,
-        monto_cobrado: this.redondear(elemento.monto_cobrado, 2),
-        monto_deuda: this.redondear(elemento.monto_deuda, 2),
-        creatorUser,
-        updatorUser
-      }
+        const dataReciboVenta = {
+          recibo_cobro: reciboDB._id,
+          venta_propia: elemento.venta,
+          total_deuda: elemento.total_deuda,
+          venta_cancelada: elemento.cancelada,
+          monto_cobrado: this.redondear(elemento.monto_cobrado, 2),
+          monto_deuda: this.redondear(elemento.monto_deuda, 2),
+          creatorUser,
+          updatorUser
+        }
 
-      // Relacion -> Recibo - Venta
-      const nuevaRelacion = new this.recibosCobroVentaModel(dataReciboVenta);
-      await nuevaRelacion.save();
+        // Relacion -> Recibo - Venta
+        const nuevaRelacion = new this.recibosCobroVentaModel(dataReciboVenta);
+        await nuevaRelacion.save();
 
-      // Actualizacion de venta
-      await this.ventasModel.findByIdAndUpdate(elemento.venta, {
-        cancelada: elemento.cancelada,
-        deuda_monto: this.redondear(elemento.monto_deuda, 2)
-      });
-    
-    })
+        // Actualizacion de venta
+        await this.ventasModel.findByIdAndUpdate(elemento.venta, {
+          cancelada: elemento.cancelada,
+          deuda_monto: this.redondear(elemento.monto_deuda, 2)
+        });
 
+      })
+    }
 
     //** RELACION RECIBOS - CHEQUES
 
@@ -308,17 +315,27 @@ export class RecibosCobroService {
 
     })
 
-    //** IMPACTOS EN CAJA - CHEQUES
+    //** IMPACTOS EN CAJA - CHEQUES + MOVIMIENTOS
+
+    // Proximo numero de movimiento
+    let nroMovimientoCaja = 0;
+    const ultimoCajaMov = await this.cajasMovimientosModel.find().sort({ createdAt: -1 }).limit(1);
+    ultimoCajaMov.length === 0 ? nroMovimientoCaja = 0 : nroMovimientoCaja = Number(ultimoCajaMov[0].nro);
+
     if (cheques.length !== 0) {
 
-      const chequeDB = await this.cajasModel.findById('222222222222222222222222');
+      const chequeDB = await this.cajasModel.findById('222222222222222222222222')
+
+      // Impacto en caja
       const nuevoSaldoCheque = this.redondear(chequeDB.saldo + totalCheques, 2);
       await this.cajasModel.findByIdAndUpdate(chequeDB._id, { saldo: nuevoSaldoCheque });
-    
+
       // Movimientos en cajas
+      nroMovimientoCaja += 1;
       const dataMovimientoCaja = {
+        nro: nroMovimientoCaja,
         tipo: 'Debe',
-        descripcion: `COBRO ${codigoRecibo}`,
+        descripcion: observacion,
         caja: chequeDB._id,
         saldo_anterior: this.redondear(chequeDB.saldo, 2),
         saldo_nuevo: nuevoSaldoCheque,
@@ -331,21 +348,29 @@ export class RecibosCobroService {
 
       const nuevoMovimientoCaja = new this.cajasMovimientosModel(dataMovimientoCaja);
       await nuevoMovimientoCaja.save();
-    
-    
+
+
     }
+
+    // Proximo numero de movimiento
+    let nroMovimientoCC = 0;
+    const ultimoCCMov = await this.ccClientesMovimientosModel.find().sort({ createdAt: -1 }).limit(1);
+    ultimoCCMov.length === 0 ? nroMovimientoCC = 0 : nroMovimientoCC = Number(ultimoCCMov[0].nro);
 
     //** IMPACTO EN CUENTA CORRIENTE + MOVIMIENTOS
 
-    // Impacto en saldo
     const cuentaCorrienteDB = await this.ccClientesModel.findOne({ cliente: String(cliente) });
+
+    // Impacto en saldo
     const nuevoSaldoCC = this.redondear(cuentaCorrienteDB.saldo + Number(cobro_total), 2);
     await this.ccClientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: nuevoSaldoCC });
 
     // Movimiento en cuenta corriente de cliente
+    nroMovimientoCC += 1;
     const dataMovimientoCC = {
+      nro: nroMovimientoCC,
       tipo: 'Debe',
-      descripcion: `COBRO ${codigoRecibo}`,
+      descripcion: observacion,
       cc_cliente: cuentaCorrienteDB._id,
       cliente,
       saldo_anterior: this.redondear(cuentaCorrienteDB.saldo, 2),
@@ -360,19 +385,22 @@ export class RecibosCobroService {
     const nuevoMovimientoCC = new this.ccClientesMovimientosModel(dataMovimientoCC);
     await nuevoMovimientoCC.save();
 
-    //** IMPACTOS EN CAJAS
+    //** IMPACTOS EN CAJAS + MOVIMIENTOS
 
     formas_pago.map(async elemento => {
 
-      // Impacto en saldos
-      const cajaDB = await this.cajasModel.findById(elemento._id);
+      const cajaDB = await this.cajasModel.findById(elemento._id)
+
+      // Impacto en caja
       const nuevoSaldoCaja = cajaDB.saldo + elemento.monto;
       await this.cajasModel.findByIdAndUpdate(elemento._id, { saldo: nuevoSaldoCaja });
 
       // Movimientos en cajas
+      nroMovimientoCaja += 1;
       const dataMovimientoCaja = {
+        nro: nroMovimientoCaja,
         tipo: 'Debe',
-        descripcion: `COBRO ${codigoRecibo}`,
+        descripcion: observacion,
         caja: cajaDB._id,
         saldo_anterior: this.redondear(cajaDB.saldo, 2),
         saldo_nuevo: nuevoSaldoCaja,
@@ -390,7 +418,304 @@ export class RecibosCobroService {
 
     //** GENERACION DE RECIBO DE COBRO - PDF
 
+    // RECIBO COBRO - VENTA
+    const pipeline = [];
+
+    const idRecibo = new Types.ObjectId(reciboDB._id);
+    pipeline.push({ $match: { recibo_cobro: idRecibo } })
+
+    // Informacion de venta propia
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'ventas_propias',
+        localField: 'venta_propia',
+        foreignField: '_id',
+        as: 'venta_propia'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$venta_propia' });
+
+    // Ordenando datos
+    const ordenar: any = {};
+    ordenar['createdAt'] = -1;
+    pipeline.push({ $sort: ordenar });
+
+    // RECIBO COBRO - VENTA
+    const pipelineCheques = [];
+
+    pipelineCheques.push({ $match: { recibo_cobro: idRecibo } })
+
+    // Informacion de cheques
+    pipelineCheques.push({
+      $lookup: { // Lookup
+        from: 'cheques',
+        localField: 'cheque',
+        foreignField: '_id',
+        as: 'cheque'
+      }
+    }
+    );
+
+    pipelineCheques.push({ $unwind: '$cheque' });
+
+    // Promise ALL
+    const [recibo, comprobantes, chequesDB] = await Promise.all([
+      this.getId(reciboDB._id),
+      this.recibosCobroVentaModel.aggregate(pipeline),
+      this.recibosCobroChequeModel.aggregate(pipelineCheques)
+    ]);
+
+    // ADAPTANDO COMPROBANTES
+
+    const comprobantesPDF = [];
+
+    comprobantes.map(comprobante => {
+
+      // Adaptando numero
+      let nroComprobante: string;
+      const { nro } = comprobante.venta_propia;
+      if (nro <= 9) nroComprobante = 'VP000000' + String(nro);
+      else if (nro <= 99) nroComprobante = 'VP00000' + String(nro);
+      else if (nro <= 999) nroComprobante = 'VP0000' + String(nro);
+      else if (nro <= 9999) nroComprobante = 'VP000' + String(nro);
+      else if (nro <= 99999) nroComprobante = 'VP00' + String(nro);
+      else if (nro <= 999999) nroComprobante = 'VP0' + String(nro);
+
+      comprobantesPDF.push({
+        fecha: format(comprobante.venta_propia.createdAt, 'dd/MM/yyyy'),
+        nro: nroComprobante,
+        estado: comprobante.venta_cancelada === false ? 'PAGO PARCIAL' : 'CANCELADO',
+        total_deuda: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(comprobante.total_deuda)),
+        pago_monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(comprobante.monto_cobrado)),
+      });
+
+    });
+
+    // ADAPTANDO CHEQUES
+
+    const chequesPDF = [];
+
+    chequesDB.map(elemento => {
+      chequesPDF.push({
+        nro: elemento.cheque.nro_cheque,
+        monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(elemento.cheque.importe)),
+      });
+    });
+
+    // ADAPTANDO FORMAS DE PAGO
+
+    const formasPagoPDF = [];
+
+    recibo.formas_pago.map(elemento => {
+      formasPagoPDF.push({
+        descripcion: elemento.descripcion,
+        monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(elemento.monto)),
+      });
+    });
+
+    // GENERACION DE PDF
+
+    let html: any;
+
+    html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/recibo-cobro.html', 'utf-8');
+
+    // Adaptando numero
+    let mostrarNumero: string;
+    const { nro } = recibo;
+    if (nro <= 9) mostrarNumero = 'RC000000' + String(nro);
+    else if (nro <= 99) mostrarNumero = 'RC00000' + String(nro);
+    else if (nro <= 999) mostrarNumero = 'RC0000' + String(nro);
+    else if (nro <= 9999) mostrarNumero = 'RC000' + String(nro);
+    else if (nro <= 99999) mostrarNumero = 'RC00' + String(nro);
+    else if (nro <= 999999) mostrarNumero = 'RC0' + String(nro);
+
+    const data = {
+      fecha: format(recibo.createdAt, 'dd/MM/yyyy'),
+      cliente: recibo.cliente['descripcion'],
+      numero: mostrarNumero,
+      cobro_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(recibo.cobro_total)),
+      comprobantesPDF,
+      formasPagoPDF,
+      chequesPDF,
+      anticipo: comprobantesPDF.length === 0 ? true : false,
+      total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(recibo.cobro_total))
+    };
+
+    var options = {
+      format: 'A4',
+      orientation: 'portrait',
+      border: '10mm',
+      footer: {
+        height: "35mm",
+        contents: {}
+      }
+    }
+
+    // Configuraciones de documento
+    var document = {
+      html: html,
+      data,
+      path: (process.env.PUBLIC_DIR || './public') + '/pdf/recibo_cobro.pdf'
+    }
+
+    // Generacion de PDF
+    await pdf.create(document, options);
+
     return 'Recibo generado correctamente';
+
+  }
+
+  // Generar PDF
+  async generarPDF(dataFront: any): Promise<any> {
+
+    // RECIBO COBRO - VENTA
+    const pipeline = [];
+
+    const idRecibo = new Types.ObjectId(dataFront.recibo);
+    pipeline.push({ $match: { recibo_cobro: idRecibo } })
+
+    // Informacion de venta propia
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'ventas_propias',
+        localField: 'venta_propia',
+        foreignField: '_id',
+        as: 'venta_propia'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$venta_propia' });
+
+    // Ordenando datos
+    const ordenar: any = {};
+    ordenar['createdAt'] = -1;
+    pipeline.push({ $sort: ordenar });
+
+    // RECIBO COBRO - VENTA
+    const pipelineCheques = [];
+
+    pipelineCheques.push({ $match: { recibo_cobro: idRecibo } })
+
+    // Informacion de cheques
+    pipelineCheques.push({
+      $lookup: { // Lookup
+        from: 'cheques',
+        localField: 'cheque',
+        foreignField: '_id',
+        as: 'cheque'
+      }
+    }
+    );
+
+    pipelineCheques.push({ $unwind: '$cheque' });
+
+    // Promise ALL
+    const [recibo, comprobantes, cheques] = await Promise.all([
+      this.getId(dataFront.recibo),
+      this.recibosCobroVentaModel.aggregate(pipeline),
+      this.recibosCobroChequeModel.aggregate(pipelineCheques)
+    ]);
+
+    // ADAPTANDO COMPROBANTES
+
+    const comprobantesPDF = [];
+
+    comprobantes.map(comprobante => {
+
+      // Adaptando numero
+      let nroComprobante: string;
+      const { nro } = comprobante.venta_propia;
+      if (nro <= 9) nroComprobante = 'VP000000' + String(nro);
+      else if (nro <= 99) nroComprobante = 'VP00000' + String(nro);
+      else if (nro <= 999) nroComprobante = 'VP0000' + String(nro);
+      else if (nro <= 9999) nroComprobante = 'VP000' + String(nro);
+      else if (nro <= 99999) nroComprobante = 'VP00' + String(nro);
+      else if (nro <= 999999) nroComprobante = 'VP0' + String(nro);
+
+      comprobantesPDF.push({
+        fecha: format(comprobante.venta_propia.createdAt, 'dd/MM/yyyy'),
+        nro: nroComprobante,
+        estado: comprobante.venta_cancelada === false ? 'PAGO PARCIAL' : 'CANCELADO',
+        total_deuda: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(comprobante.total_deuda)),
+        pago_monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(comprobante.monto_cobrado)),
+      });
+
+    });
+
+    // ADAPTANDO CHEQUES
+
+    const chequesPDF = [];
+
+    cheques.map(elemento => {
+      chequesPDF.push({
+        nro: elemento.cheque.nro_cheque,
+        monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(elemento.cheque.importe)),
+      });
+    });
+
+    // ADAPTANDO FORMAS DE PAGO
+
+    const formasPagoPDF = [];
+
+    recibo.formas_pago.map(elemento => {
+      formasPagoPDF.push({
+        descripcion: elemento.descripcion,
+        monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(elemento.monto)),
+      });
+    });
+
+    // GENERACION DE PDF
+
+    let html: any;
+
+    html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/recibo-cobro.html', 'utf-8');
+
+    // Adaptando numero
+    let mostrarNumero: string;
+    const { nro } = recibo;
+    if (nro <= 9) mostrarNumero = 'RC000000' + String(nro);
+    else if (nro <= 99) mostrarNumero = 'RC00000' + String(nro);
+    else if (nro <= 999) mostrarNumero = 'RC0000' + String(nro);
+    else if (nro <= 9999) mostrarNumero = 'RC000' + String(nro);
+    else if (nro <= 99999) mostrarNumero = 'RC00' + String(nro);
+    else if (nro <= 999999) mostrarNumero = 'RC0' + String(nro);
+
+    const data = {
+      fecha: format(recibo.createdAt, 'dd/MM/yyyy'),
+      cliente: recibo.cliente['descripcion'],
+      numero: mostrarNumero,
+      cobro_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(recibo.cobro_total)),
+      comprobantesPDF,
+      formasPagoPDF,
+      chequesPDF,
+      anticipo: comprobantesPDF.length === 0 ? true : false,
+      total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(recibo.cobro_total))
+    };
+
+    var options = {
+      format: 'A4',
+      orientation: 'portrait',
+      border: '10mm',
+      footer: {
+        height: "35mm",
+        contents: {}
+      }
+    }
+
+    // Configuraciones de documento
+    var document = {
+      html: html,
+      data,
+      path: (process.env.PUBLIC_DIR || './public') + '/pdf/recibo_cobro.pdf'
+    }
+
+    // Generacion de PDF
+    await pdf.create(document, options);
+
+    return '';
 
   }
 

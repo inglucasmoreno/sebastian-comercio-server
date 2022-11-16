@@ -118,8 +118,8 @@ export class CajasMovimientosService {
       }
 
       const regex = new RegExp(parametroFinal,'i');
-      pipeline.push({$match: { $or: [ { descripcion: regex } ] }});
-			pipelineTotal.push({$match: { $or: [ { descripcion: regex } ] }});
+      pipeline.push({$match: { $or: [ { nro: Number(parametro) }, { descripcion: regex } ] }});
+			pipelineTotal.push({$match: { $or: [ { nro: Number(parametro) }, { descripcion: regex } ] }});
       
 		}
 

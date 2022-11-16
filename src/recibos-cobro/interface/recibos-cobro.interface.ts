@@ -8,4 +8,6 @@ export interface IRecibosCobro extends Document {
   readonly activo: boolean;
   readonly creatorUser: string;
   readonly updatorUser: string;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 }

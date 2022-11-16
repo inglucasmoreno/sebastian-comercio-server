@@ -46,8 +46,17 @@
     <div style="font-size: 8px; margin-top: 14px"> <span style="font-weight: bold; margin-left: 18px;"> Condición de IVA: </span> <span style="margin-left: 20px;"> {{ condicion_iva }} </span>  </div>
   </div>
 
+  <p style="position: absolute; margin-top: 280px; font-size: 9px; padding: 5px;">
+    <span style="font-weight: bold;">  
+      FORMAS DE PAGO
+    </span>
+    {{#each formas_pago}}
+      <span> | {{ descripcion }} - ${{ monto }} </span>
+    {{/each}} 
+  </p>
+
   <!-- Tabla de productos -->
-  <div style="position: absolute; margin-top: 270px; font-size: 9px; border: 1px solid black; padding: 10px;">
+  <div style="position: absolute; margin-top: 305px; font-size: 9px; border: 1px solid black; padding: 10px;">
     <table>
       <tr>
         <th style="width: 500px; text-align: left;"> Producto </th>

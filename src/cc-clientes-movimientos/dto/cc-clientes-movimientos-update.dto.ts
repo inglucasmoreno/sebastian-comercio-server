@@ -1,6 +1,8 @@
 
 
 export class CcClientesMovimientosUpdateDTO {
+  
+  readonly nro: number;
 
   readonly tipo: string;
 

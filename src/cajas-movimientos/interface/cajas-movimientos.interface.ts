@@ -1,6 +1,7 @@
 import { Document } from 'mongoose';
 
 export interface ICajasMovimientos extends Document {
+  readonly nro: number;
   readonly tipo: string;
   readonly caja: string;
   readonly monto: number;

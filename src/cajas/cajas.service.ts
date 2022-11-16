@@ -157,14 +157,24 @@ constructor(
       updatorUser
     } = movimientoData;
 
-    const caja_origenDB = await this.cajasModel.findById(caja_origen);
-    const caja_destinoDB = await this.cajasModel.findById(caja_destino);
+
+    const [ultimoCajaMov, caja_origenDB, caja_destinoDB] = await Promise.all([
+      this.movimientosModel.find().sort({ createdAt: -1 }).limit(1),
+      this.cajasModel.findById(caja_origen),
+      this.cajasModel.findById(caja_destino)
+    ])
+    
+    // Proximo numero de movimiento
+    let nroMovimiento = 0;
+    ultimoCajaMov.length === 0 ? nroMovimiento = 1 : nroMovimiento= Number(ultimoCajaMov[0].nro + 1);
+
     const nuevoSaldoOrigen = caja_origenDB.saldo - monto;
     const nuevoSaldoDestino = caja_destinoDB.saldo + monto;
   
     // 1) - Caja origen
     
     const nuevoMovimientoOrigen = new this.movimientosModel({
+      nro: nroMovimiento,
       caja: caja_origen,
       monto: this.redondear(monto, 2),
       saldo_anterior: this.redondear(caja_origenDB.saldo, 2),
@@ -180,6 +190,7 @@ constructor(
     // 2) - Caja destino    
 
     const nuevoMovimientoDestino = new this.movimientosModel({
+      nro: nroMovimiento + 1,
       caja: caja_destino,
       monto: this.redondear(monto, 2),
       saldo_anterior: this.redondear(caja_destinoDB.saldo, 2),

@@ -371,14 +371,23 @@ export class VentasPropiasService {
 
         // IMPACTO - MOVIMIENTOS CUENTA CORRIENTE DE CLIENTE
 
+        // Proximo numero de movimiento
+        let nroMovimientoCC = 0;
+        const ultimoCCMov = await this.ccClientesMovimientosModel.find().sort({ createdAt: -1 }).limit(1);
+        ultimoCCMov.length === 0 ? nroMovimientoCC = 0 : nroMovimientoCC = Number(ultimoCCMov[0].nro);
+
         // (-) Decremento en cuenta corriente de cliente
         if (decrementoCC) {
             const cuentaCorrienteDB: any = await this.ccClientesModel.findOne({ cliente });
             if (cuentaCorrienteDB) {
-                await this.ccClientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: cuentaCorrienteDB.saldo - montoDecremento });
 
-                // Creacion de movimiento
+                await this.ccClientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: cuentaCorrienteDB.saldo - montoDecremento })
+
+                // Creacion de movimient
+                
+                nroMovimientoCC += 1;
                 const dataMovimiento = {
+                    nro: nroMovimientoCC,
                     descripcion: `VENTA ${codigoVenta}`,
                     tipo: 'Haber',
                     cc_cliente: String(cuentaCorrienteDB._id),
@@ -404,11 +413,14 @@ export class VentasPropiasService {
             if (cuentaCorrienteDB) {
 
                 const montoIncremento = totalPagado - precio_total;
-
-                await this.ccClientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: cuentaCorrienteDB.saldo + montoIncremento });
+                
+                await this.ccClientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: cuentaCorrienteDB.saldo + montoIncremento })
 
                 // Creacion de movimiento
+
+                nroMovimientoCC += 1;
                 const dataMovimiento = {
+                    nro: nroMovimientoCC,
                     descripcion: `VENTA ${codigoVenta}`,
                     tipo: 'Debe',
                     cc_cliente: String(cuentaCorrienteDB._id),
@@ -427,16 +439,21 @@ export class VentasPropiasService {
 
         }
 
+        // Proximo numero de movimiento - MOVIMIENTOS DE CAJA
+        let nroMovimientoCaja = 0;
+        const ultimoCajaMov = await this.cajasMovimientosModel.find().sort({ createdAt: -1 }).limit(1);
+        ultimoCajaMov.length === 0 ? nroMovimientoCaja = 0 : nroMovimientoCaja = Number(ultimoCajaMov[0].nro);
+
         // IMPACTO - EN CAJAS
         formas_pago.map(async (forma_pago: any) => {
 
             if (forma_pago._id !== 'cuenta_corriente') {
 
-                // Impaco en movimiento de cajas
+                const cajaDB = await this.cajasModel.findById(forma_pago._id)
 
-                const cajaDB = await this.cajasModel.findById(forma_pago._id);
-
+                nroMovimientoCaja += 1;
                 const data = {
+                    nro: nroMovimientoCaja,
                     descripcion: `VENTA ${codigoVenta}`,
                     tipo: 'Debe',
                     caja: forma_pago._id,
@@ -464,7 +481,9 @@ export class VentasPropiasService {
             const cajaCheques = await this.cajasModel.findById('222222222222222222222222');
 
             // Impacto en movimientos de cajas
+            nroMovimientoCaja += 1;
             const data = {
+                nro: nroMovimientoCaja,
                 descripcion: `VENTA ${codigoVenta}`,
                 tipo: 'Debe',
                 caja: '222222222222222222222222',
@@ -541,6 +560,7 @@ export class VentasPropiasService {
         }
 
         let productosPDF: any[] = [];
+        let formasPagoPDF: any[] = [];
         const productosMap: any = productos;
 
         // Adaptando productos
@@ -562,9 +582,19 @@ export class VentasPropiasService {
         else if (nro <= 99999) mostrarNumero = 'VP00' + String(nro);
         else if (nro <= 999999) mostrarNumero = 'VP0' + String(nro);
 
+        // Adaptando formas de pago
+        venta.formas_pago.map((forma: any) => formasPagoPDF.push({
+            descripcion: forma.descripcion,
+            monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(forma.monto),
+        }));
+
+        // Cheques
+        if (totalEnCheques > 0) formasPagoPDF.push({ descripcion: 'CHEQUES', monto: totalEnCheques });
+
         const data = {
             fecha: format(venta.createdAt, 'dd/MM/yyyy'),
             numero: mostrarNumero,
+            formas_pago: formasPagoPDF,
             descripcion: venta.cliente['descripcion'],
             correo_electronico: venta.cliente['correo_electronico'],
             condicion_iva: venta.cliente['condicion_iva'],
@@ -604,20 +634,38 @@ export class VentasPropiasService {
     // Generar PDF
     async generarPDF(dataFront: any): Promise<any> {
 
-        // Promisa ALL
-        const [venta, productos] = await Promise.all([
-            this.getId(dataFront.venta),
-            this.ventaProductosModel.find({ venta_propia: dataFront.venta })
-        ]);
+        const pipeline: any = [];
 
-        //   const venta = await this.getId(dataFront.venta);
-        //   const productos = await this.ventaProductosModel.find({ venta: dataFront.venta });
+        // Relacion por ID
+        const idVentaPropia = new Types.ObjectId(dataFront.venta);
+        pipeline.push({ $match: { venta_propia: idVentaPropia } });
+
+        // Informacion de cheque
+        pipeline.push({
+            $lookup: { // Lookup
+                from: 'cheques',
+                localField: 'cheque',
+                foreignField: '_id',
+                as: 'cheque'
+            }
+        }
+        );
+
+        pipeline.push({ $unwind: '$cheque' });
+
+        // Promisa ALL
+        const [venta, productos, relaciones] = await Promise.all([
+            this.getId(dataFront.venta),
+            this.ventaProductosModel.find({ venta_propia: dataFront.venta }),
+            this.ventasPropiasChequesModel.aggregate(pipeline)
+        ]);
 
         let html: any;
 
         html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/venta-propia.html', 'utf-8');
 
         let productosPDF: any[] = [];
+        let formasPagoPDF: any[] = [];
 
         // Adaptando productos
         productos.map(producto => productosPDF.push({
@@ -638,10 +686,27 @@ export class VentasPropiasService {
         else if (nro <= 99999) mostrarNumero = 'VP00' + String(nro);
         else if (nro <= 999999) mostrarNumero = 'VP0' + String(nro);
 
+        // Adaptando formas de pago
+        venta.formas_pago.map((forma: any) => formasPagoPDF.push({
+            descripcion: forma.descripcion,
+            monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(forma.monto),
+        }));
+
+        // Cheques
+        if (relaciones && relaciones.length !== 0) {
+            let montoCheques = 0;
+            relaciones.map((relacion: any) => montoCheques += relacion.cheque.importe);
+            formasPagoPDF.push({
+                descripcion: 'CHEQUES',
+                monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(montoCheques),
+            })
+        }
+
         const data = {
             fecha: format(venta.createdAt, 'dd/MM/yyyy'),
             numero: mostrarNumero,
             descripcion: venta.cliente['descripcion'],
+            formas_pago: formasPagoPDF,
             correo_electronico: venta.cliente['correo_electronico'],
             condicion_iva: venta.cliente['condicion_iva'],
             direccion: venta.cliente['direccion'],
@@ -687,16 +752,21 @@ export class VentasPropiasService {
     async generarExcel(): Promise<any> {
 
         // Obtener ventas
-        const ventas = await this.getAll({ direccion: -1, columna: 'createdAt' });
+        const respuesta = await this.getAll({
+            direccion: -1,
+            columna: 'createdAt',
+            desde: 0,
+            registerpp: 1000000
+        });
 
         const workbook = new ExcelJs.Workbook();
         const worksheet = workbook.addWorksheet('Reporte - Ventas propias');
 
-        worksheet.addRow(['Número', 'Fecha', 'Cliente', 'Precio total']);
+        worksheet.addRow(['Número', 'Fecha', 'Cliente', 'Precio total', 'Habilitada', 'Cancelada']);
 
         // Autofiltro
 
-        worksheet.autoFilter = 'A1:E1';
+        worksheet.autoFilter = 'A1:F1';
 
         // Estilo de filas y columnas
 
@@ -708,16 +778,21 @@ export class VentasPropiasService {
 
         worksheet.getColumn(1).width = 14; // Codigo
         worksheet.getColumn(2).width = 15; // Fecha
-        worksheet.getColumn(4).width = 40; // Cliente
-        worksheet.getColumn(5).width = 25; // Precio total
+        worksheet.getColumn(3).width = 40; // Cliente
+        worksheet.getColumn(4).width = 25; // Precio total
+        worksheet.getColumn(5).width = 15; // Habilitadas
+        worksheet.getColumn(6).width = 16; // Habilitadas
 
         // Agregar elementos
-        ventas.map(venta => {
+        respuesta.ventas.map(venta => {
             worksheet.addRow([
                 venta.nro,
                 add(venta.createdAt, { hours: -3 }),
                 venta.cliente['descripcion'],
-                Number(venta.precio_total)]);
+                Number(venta.precio_total),
+                venta.activo ? 'SI' : 'NO',
+                venta.cancelada ? 'SI' : 'NO'
+            ]);
         });
 
         // Generacion de reporte

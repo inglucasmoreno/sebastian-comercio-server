@@ -1,6 +1,8 @@
 
 export class CajasMovimientosUpdateDTO {
 
+  readonly nro: number;
+
   readonly tipo: string;
 
   readonly caja: string;

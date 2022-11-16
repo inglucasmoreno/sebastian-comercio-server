@@ -277,7 +277,14 @@ export class ChequesService {
 
       // Movimientos -> En CHEQUES y DESTINO
 
+      const ultimoCajaMov = await this.cajasMovimientosModel.find().sort({ createdAt: -1 }).limit(1);
+      
+      // Proximo numero de movimiento
+      let nroCaja = 0;
+      ultimoCajaMov.length === 0 ? nroCaja = 1 : nroCaja = Number(ultimoCajaMov[0].nro + 1);
+
       const dataMovimientoCheque = {
+        nro: nroCaja,
         descripcion: `COBRO DE CHEQUE #${chequeDB.nro_cheque}`,
         tipo: 'Haber',
         caja: '222222222222222222222222',
@@ -293,6 +300,7 @@ export class ChequesService {
       }
 
       const dataMovimientoDestino = {
+        nro: nroCaja + 1,
         descripcion: `COBRO DE CHEQUE #${chequeDB.nro_cheque}`,
         tipo: 'Debe',
         caja,

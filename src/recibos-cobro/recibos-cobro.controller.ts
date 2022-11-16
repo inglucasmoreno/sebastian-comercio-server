@@ -20,6 +20,16 @@ export class RecibosCobroController {
       });
   }
 
+  // Generar PDF
+  @UseGuards(JwtAuthGuard)
+  @Post('/generarPDF')
+  async generarPDF(@Res() res, @Body() data: any ) {
+      await this.recibosCobroService.generarPDF(data);        
+      res.status(HttpStatus.CREATED).json({
+          message: 'PDF generado correctamente',
+      });
+  } 
+
   // Listar recibos
   @UseGuards(JwtAuthGuard)
   @Get('/')

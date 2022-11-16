@@ -2,6 +2,10 @@
 import { Schema } from 'mongoose';
 
 export const CcClientesMovimientosSchema = new Schema({
+  nro: {
+    type: Number,
+    required: true,
+  },
 
   tipo: {
     type: String,

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+
+<link rel="stylesheet" href="template.css">
+
+<style>
+  /* CSS de PDF */
+
+  * {
+    box-sizing: border-box;
+    margin: 0px;
+    padding: 0px;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+</style>
+
+<head>
+  <mate charest="utf-8" />
+  <title> Recibo de cobro </title>
+</head>
+
+<body style="font-family: Arial, Helvetica, sans-serif;">
+
+  <div style="position: absolute; padding-top: 5px;">
+    <img style="width: 80px; margin-left: 20px;" src="http://localhost:3000/pdf/logo.png">
+    <p style="font-size: 8px; padding: 5px; padding-top:2px;"> <img style="width: 11px;"
+        src="http://localhost:3000/pdf/whatsapp.png"> <span style="margin-left: 5px"> Tel. +54 9 2664 363225 </span>
+    </p>
+  </div>
+  <div style="position: absolute; margin-top: 30px; margin-left: 450px; padding: 10px">
+    <p style="font-size: 12px; padding: 5px;"> <span> RECIBO NRO {{ numero }} </span> </p>
+    <p style="font-size: 12px; padding: 5px;"> Fecha: {{ fecha }} </p>
+  </div>
+
+  <div style="position: absolute; margin-top: 160px; padding: 10px;  width: 100%;">
+    <div style="font-size: 15px;">
+      <span style="font-weight: bold;"> Cliente: </span> <span style="margin-left: 5px;"> {{ cliente }} </span>
+    </div>
+
+    <!-- COMPROBANTES CANCELADOS -->
+
+    <div style="margin-top: 15px; font-size: 14px; border: 1px solid black; width: 100%;">
+      
+      {{#ifCond anticipo '===' false }}
+        <h1 style="font-size: 18px; border-bottom: 1px solid black; padding: 5px; text-align: center;"> 
+          COMPROBANTES CANCELADOS 
+        </h1>
+      {{/ifCond}}
+
+      {{#ifCond anticipo '===' true }}
+      <h1 style="font-size: 18px; border-bottom: 1px solid black; padding: 5px; text-align: center;"> 
+        PAGO DE ANTICIPO
+      </h1>
+      {{/ifCond}}
+
+      <div style="padding: 10px;">
+
+        <!-- CANCELACION DE COMPROBANTES -->
+        {{#ifCond anticipo '===' false }}
+        <table>
+          <tr>
+            <th style="width: 100px; text-align: left;"> Fecha </th>
+            <th style="width: 120px; text-align: left;"> Número </th>
+            <th style="width: 150px; text-align: left;"> Estado </th>
+            <th style="width: 400px; text-align: left;"> Total </th>
+            <th style="width: 120px; text-align: right;"> Monto pago </th>
+          </tr>
+          {{#each comprobantesPDF}}
+          <tr>
+            <td style="text-align:left; padding-top: 10px;"> {{ fecha }}</td>
+            <td style="text-align:left; padding-top: 10px;"> {{ nro }} </td>
+            <td style="text-align:left; padding-top: 10px;"> {{ estado }} </td>
+            <td style="text-align:left; padding-top: 10px;"> ${{ total_deuda }} </td>
+            <td style="text-align:right; padding-top: 10px;"> ${{ pago_monto }} </td>
+          </tr>
+          {{/each}}
+        </table>
+        {{/ifCond}}
+
+        <!-- ANTICIPO -->
+        {{#ifCond anticipo '===' true }}
+        <table>
+          <tr>
+            <th style="width: 100px; text-align: left;"> Fecha </th>
+            <th style="width: 120px; text-align: left;"> Concepto </th>
+            <th style="width: 400px; text-align: left;"> Total </th>
+            <th style="width: 120px; text-align: right;"> Monto pago </th>
+          </tr>
+          <tr>
+            <td style="text-align:left; padding-top: 10px;"> {{ fecha }}</td>
+            <td style="text-align:left; padding-top: 10px;"> ANTICIPO </td>
+            <td style="text-align:left; padding-top: 10px;"> ${{ total }} </td>
+            <td style="text-align:right; padding-top: 10px;"> ${{ total }} </td>
+          </tr>
+        </table>
+        {{/ifCond}}
+
+        <p style="width: 100%; text-align:right; margin-top: 15px; font-weight: bold; font-size: 16px;">
+          <span>
+            TOTAL:
+          </span>
+          <span style="margin-left: 30px;">
+            ${{ total }}
+          </span>
+        </p>
+      </div>
+    </div>
+
+    <!-- FORMA DE PAGO -->
+
+    <div style="margin-top: 15px; border: 1px solid black; font-size: 14px; width: 100%;">
+      <h1 style="font-size: 18px; padding: 5px; text-align: center; border-bottom: 1px solid black;"> FORMA DE PAGO
+      </h1>
+      <div style="padding: 10px;">
+        <table>
+          <tr>
+            <th style="width: 600px; text-align: left;"> Forma de pago </th>
+            <th style="width: 200px; text-align: right;"> Monto pago </th>
+          </tr>
+          {{#each formasPagoPDF}}
+          <tr>
+            <td style="text-align:left; padding-top: 10px;"> {{ descripcion }}</td>
+            <td style="text-align:right; padding-top: 10px;"> ${{ monto }} </td>
+          </tr>
+          {{/each}}
+          {{#each chequesPDF}}
+          <tr>
+            <td style="text-align:left; padding-top: 10px;"> CHEQUE #{{ nro }}</td>
+            <td style="text-align:right; padding-top: 10px;"> ${{ monto }} </td>
+          </tr>
+          {{/each}}
+        </table>
+        <p style="width: 100%; text-align:right; margin-top: 15px; font-weight: bold; font-size: 16px;">
+          <span>
+            TOTAL:
+          </span>
+          <span style="margin-left: 30px;">
+            ${{ total }}
+          </span>
+      </div>
+      </p>
+    </div>
+
+    <p style="margin-top:120px; margin-left: 500px; border-top: 1px solid black; text-align: center; padding-top: 5px;">
+      Firma Autorizada </p>
+
+  </div>
+
+
+</body>
+
+</html>

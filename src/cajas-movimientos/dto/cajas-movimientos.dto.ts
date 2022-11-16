@@ -2,6 +2,9 @@ import { IsNumber, IsString } from "class-validator";
 
 export class CajasMovimientosDTO {
 
+  @IsNumber()
+  readonly nro: number;
+
   @IsString()
   readonly tipo: string;
 
