@@ -27,28 +27,28 @@
         src="http://localhost:3000/pdf/whatsapp.png"> <span style="margin-left: 5px"> Tel. +54 9 2664 363225 </span>
     </p>
   </div>
-  <div style="position: absolute; margin-top: 30px; margin-left: 450px; padding: 10px">
+  <div style="position: absolute; margin-top: 30px; margin-left: 357px; padding: 10px">
     <p style="font-size: 12px; padding: 5px;"> <span> RECIBO NRO {{ numero }} </span> </p>
     <p style="font-size: 12px; padding: 5px;"> Fecha: {{ fecha }} </p>
   </div>
 
   <div style="position: absolute; margin-top: 160px; padding: 10px;  width: 100%;">
-    <div style="font-size: 15px;">
+    <div style="font-size: 11px;">
       <span style="font-weight: bold;"> Cliente: </span> <span style="margin-left: 5px;"> {{ cliente }} </span>
     </div>
 
     <!-- COMPROBANTES CANCELADOS -->
 
-    <div style="margin-top: 15px; font-size: 14px; border: 1px solid black; width: 100%;">
+    <div style="margin-top: 15px; font-size: 9px; border: 1px solid black; width: 100%;">
       
       {{#ifCond anticipo '===' false }}
-        <h1 style="font-size: 18px; border-bottom: 1px solid black; padding: 5px; text-align: center;"> 
+        <h1 style="font-size: 12px; border-bottom: 1px solid black; padding: 5px; text-align: center;"> 
           COMPROBANTES CANCELADOS 
         </h1>
       {{/ifCond}}
 
       {{#ifCond anticipo '===' true }}
-      <h1 style="font-size: 18px; border-bottom: 1px solid black; padding: 5px; text-align: center;"> 
+      <h1 style="font-size: 12px; border-bottom: 1px solid black; padding: 5px; text-align: center;"> 
         PAGO DE ANTICIPO
       </h1>
       {{/ifCond}}
@@ -95,7 +95,7 @@
         </table>
         {{/ifCond}}
 
-        <p style="width: 100%; text-align:right; margin-top: 15px; font-weight: bold; font-size: 16px;">
+        <p style="width: 100%; text-align:right; margin-top: 15px; font-weight: bold; font-size: 12px;">
           <span>
             TOTAL:
           </span>
@@ -108,8 +108,8 @@
 
     <!-- FORMA DE PAGO -->
 
-    <div style="margin-top: 15px; border: 1px solid black; font-size: 14px; width: 100%;">
-      <h1 style="font-size: 18px; padding: 5px; text-align: center; border-bottom: 1px solid black;"> FORMA DE PAGO
+    <div style="margin-top: 15px; border: 1px solid black; font-size: 9px; width: 100%;">
+      <h1 style="font-size: 12px; padding: 5px; text-align: center; border-bottom: 1px solid black;"> FORMA DE PAGO
       </h1>
       <div style="padding: 10px;">
         <table>
@@ -130,7 +130,7 @@
           </tr>
           {{/each}}
         </table>
-        <p style="width: 100%; text-align:right; margin-top: 15px; font-weight: bold; font-size: 16px;">
+        <p style="width: 100%; text-align:right; margin-top: 15px; font-weight: bold; font-size: 12px;">
           <span>
             TOTAL:
           </span>
@@ -141,8 +141,9 @@
       </p>
     </div>
 
-    <p style="margin-top:120px; margin-left: 500px; border-top: 1px solid black; text-align: center; padding-top: 5px;">
-      Firma Autorizada </p>
+    <p style="margin-top:70px; margin-left: 300px; font-size:12px; border-top: 1px solid black; text-align: center; padding-top: 5px;">
+      Firma Autorizada 
+    </p>
 
   </div>
 
