@@ -15,6 +15,8 @@ export class VentasUpdateDTO {
         
     readonly precio_total: number;
     
+    readonly fecha_venta: string;
+
     readonly activo: boolean;
 
     readonly creatorUser: string;

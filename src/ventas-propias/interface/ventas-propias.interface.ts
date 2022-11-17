@@ -11,6 +11,7 @@ export interface IVentasPropias extends Document {
   readonly pago_monto: number;
   readonly deuda_monto: number;
   readonly cancelada: boolean;
+  readonly fecha_venta: Date;
   readonly activo: boolean;
   readonly creatorUser: string;
   readonly updatorUser: string;

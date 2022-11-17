@@ -39,6 +39,8 @@ export class VentasPropiasUpdateDTO {
 
     readonly cancelada: boolean;
 
+    readonly fecha_venta: string;
+
     readonly activo: boolean;
 
     readonly creatorUser: string;

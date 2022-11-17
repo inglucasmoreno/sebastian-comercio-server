@@ -19,6 +19,9 @@ export class RecibosCobroDTO {
   @IsNumber()
   readonly cobro_total: Number;
   
+  @IsString()
+  readonly fecha_cobro: String;
+
   readonly activo: Boolean;
   
   @IsString()

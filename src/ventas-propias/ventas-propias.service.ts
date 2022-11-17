@@ -245,6 +245,7 @@ export class VentasPropiasService {
             cliente,
             formas_pago,
             cheques,
+            fecha_venta,
             cancelada,
             deuda_monto,
             cliente_descripcion,
@@ -305,6 +306,7 @@ export class VentasPropiasService {
         // Datos de venta
         const dataVenta = {
             nro: nroVenta,
+            fecha_venta: add(new Date(fecha_venta), { hours: 3 }),
             tipo: tipo_venta,
             cliente,
             precio_total: this.redondear(precio_total, 2),
@@ -592,9 +594,10 @@ export class VentasPropiasService {
         if (totalEnCheques > 0) formasPagoPDF.push({ descripcion: 'CHEQUES', monto: totalEnCheques });
 
         const data = {
-            fecha: format(venta.createdAt, 'dd/MM/yyyy'),
+            fecha: venta.fecha_venta ? format(venta.fecha_venta, 'dd/MM/yyyy') : format(venta.createdAt, 'dd/MM/yyyy'),
             numero: mostrarNumero,
             formas_pago: formasPagoPDF,
+            fecha_venta: add(new Date(fecha_venta), { hours: 3 }),
             descripcion: venta.cliente['descripcion'],
             correo_electronico: venta.cliente['correo_electronico'],
             condicion_iva: venta.cliente['condicion_iva'],
@@ -703,7 +706,7 @@ export class VentasPropiasService {
         }
 
         const data = {
-            fecha: format(venta.createdAt, 'dd/MM/yyyy'),
+            fecha: venta.fecha_venta ? format(venta.fecha_venta, 'dd/MM/yyyy') : format(venta.createdAt, 'dd/MM/yyyy'),
             numero: mostrarNumero,
             descripcion: venta.cliente['descripcion'],
             formas_pago: formasPagoPDF,
