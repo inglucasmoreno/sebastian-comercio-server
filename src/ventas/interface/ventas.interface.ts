@@ -8,6 +8,7 @@ export interface IVentas extends Document {
   readonly proveedor: string;
   readonly precio_total: number;
   readonly observacion: string;
+  readonly fecha_venta: Date;
   readonly activo: boolean;
   readonly creatorUser: string;
   readonly updatorUser: string;

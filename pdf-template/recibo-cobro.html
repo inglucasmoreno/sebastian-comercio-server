@@ -43,7 +43,7 @@
       
       {{#ifCond anticipo '===' false }}
         <h1 style="font-size: 12px; border-bottom: 1px solid black; padding: 5px; text-align: center;"> 
-          COMPROBANTES CANCELADOS 
+          CONCEPTOS A CANCELAR
         </h1>
       {{/ifCond}}
 
@@ -74,6 +74,17 @@
             <td style="text-align:right; padding-top: 10px;"> ${{ pago_monto }} </td>
           </tr>
           {{/each}}
+          
+          {{#ifCond flagAnticipo '===' true }}
+          <tr>
+            <td style="text-align:left; padding-top: 10px;"> {{ fecha }} </td>
+            <td style="text-align:left; padding-top: 10px;"> ANTICIPO </td>
+            <td style="text-align:left; padding-top: 10px;"> PAGADO </td>
+            <td style="text-align:left; padding-top: 10px;"> ${{ montoAnticipo }} </td>
+            <td style="text-align:right; padding-top: 10px;"> ${{ montoAnticipo }} </td>
+          </tr>
+          {{/ifCond}}
+
         </table>
         {{/ifCond}}
 
@@ -146,7 +157,6 @@
     </p>
 
   </div>
-
 
 </body>
 

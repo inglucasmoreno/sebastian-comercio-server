@@ -23,6 +23,11 @@ export const recibosCobroSchema = new Schema({
     required: true
   },
 
+  fecha_cobro: {
+    type: Date,
+    required: true
+  },
+
   activo: {
     type: Boolean,
     default: true

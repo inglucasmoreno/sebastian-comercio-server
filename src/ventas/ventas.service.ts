@@ -252,6 +252,7 @@ export class VentasService {
             nro_factura,
             tipo_venta,
             cliente,
+            fecha_venta,
             cliente_descripcion,
             cliente_identificacion,
             cliente_tipo_identificacion,
@@ -311,6 +312,7 @@ export class VentasService {
         const dataVenta = {
             nro: nroVenta,
             nro_factura,
+            fecha_venta: add(new Date(fecha_venta), { hours: 3 }),
             tipo: tipo_venta,
             cliente,
             proveedor,
@@ -386,7 +388,7 @@ export class VentasService {
         else if (nro <= 999999) mostrarNumero = 'VD0' + String(nro);
 
         const data = {
-            fecha: format(venta.createdAt, 'dd/MM/yyyy'),
+            fecha: venta.fecha_venta ? format(venta.fecha_venta, 'dd/MM/yyyy') : format(venta.createdAt, 'dd/MM/yyyy'),
             numero: mostrarNumero,
             nro_factura: venta['nro_factura'],
             proveedor: venta.proveedor['descripcion'],
@@ -464,7 +466,7 @@ export class VentasService {
         else if (nro <= 999999) mostrarNumero = 'VD0' + String(nro);
 
         const data = {
-            fecha: format(venta.createdAt, 'dd/MM/yyyy'),
+            fecha: venta.fecha_venta ? format(venta.fecha_venta, 'dd/MM/yyyy') : format(venta.createdAt, 'dd/MM/yyyy'),
             numero: mostrarNumero,
             nro_factura: venta['nro_factura'],
             proveedor: venta.proveedor['descripcion'],

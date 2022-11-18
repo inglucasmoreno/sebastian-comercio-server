@@ -12,7 +12,7 @@ import { IVentasPropias } from 'src/ventas-propias/interface/ventas-propias.inte
 import { RecibosCobroDTO } from './dto/recibos-cobro.dto';
 import { IRecibosCobro } from './interface/recibos-cobro.interface';
 import * as fs from 'fs';
-import { format } from 'date-fns';
+import { add, format } from 'date-fns';
 import * as pdf from 'pdf-creator-node';
 
 @Injectable()
@@ -206,10 +206,11 @@ export class RecibosCobroService {
   }
 
   // Crear recibo de cobro
-  async insert(recibosCobrosDTO: RecibosCobroDTO): Promise<any> {
+  async insert(recibosCobrosDTO: any): Promise<any> {
 
     const {
       cliente,
+      fecha_cobro,
       formas_pago,
       cobro_total,
       carro_pago,
@@ -233,6 +234,7 @@ export class RecibosCobroService {
     const dataRecibo = {
       nro: nroRecibo,
       cliente,
+      fecha_cobro: add(new Date(fecha_cobro), { hours: 3 }),
       formas_pago,
       cobro_total,
       creatorUser,
@@ -262,6 +264,7 @@ export class RecibosCobroService {
         const dataReciboVenta = {
           recibo_cobro: reciboDB._id,
           venta_propia: elemento.venta,
+          fecha_cobro: add(new Date(fecha_cobro), { hours: 3 }),
           total_deuda: elemento.total_deuda,
           venta_cancelada: elemento.cancelada,
           monto_cobrado: this.redondear(elemento.monto_cobrado, 2),
@@ -484,7 +487,7 @@ export class RecibosCobroService {
       else if (nro <= 999999) nroComprobante = 'VP0' + String(nro);
 
       comprobantesPDF.push({
-        fecha: format(comprobante.venta_propia.createdAt, 'dd/MM/yyyy'),
+        fecha: comprobante.venta_propia.fecha_venta ? format(comprobante.venta_propia.fecha_venta, 'dd/MM/yyyy') : format(comprobante.venta_propia.createdAt, 'dd/MM/yyyy'),
         nro: nroComprobante,
         estado: comprobante.venta_cancelada === false ? 'PAGO PARCIAL' : 'CANCELADO',
         total_deuda: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(comprobante.total_deuda)),
@@ -532,7 +535,7 @@ export class RecibosCobroService {
     else if (nro <= 999999) mostrarNumero = 'RC0' + String(nro);
 
     const data = {
-      fecha: format(recibo.createdAt, 'dd/MM/yyyy'),
+      fecha: recibo.fecha_cobro ? format(recibo.fecha_cobro, 'dd/MM/yyyy') : format(recibo.createdAt, 'dd/MM/yyyy'),
       cliente: recibo.cliente['descripcion'],
       numero: mostrarNumero,
       cobro_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(recibo.cobro_total)),
@@ -622,8 +625,12 @@ export class RecibosCobroService {
     // ADAPTANDO COMPROBANTES
 
     const comprobantesPDF = [];
+    let montoACobrar = 0;
+
 
     comprobantes.map(comprobante => {
+
+      montoACobrar += comprobante.monto_cobrado;
 
       // Adaptando numero
       let nroComprobante: string;
@@ -636,11 +643,12 @@ export class RecibosCobroService {
       else if (nro <= 999999) nroComprobante = 'VP0' + String(nro);
 
       comprobantesPDF.push({
-        fecha: format(comprobante.venta_propia.createdAt, 'dd/MM/yyyy'),
+        fecha: comprobante.venta_propia.fecha_venta ? format(comprobante.venta_propia.fecha_venta, 'dd/MM/yyyy') : format(comprobante.venta_propia.createdAt, 'dd/MM/yyyy'),
         nro: nroComprobante,
         estado: comprobante.venta_cancelada === false ? 'PAGO PARCIAL' : 'CANCELADO',
         total_deuda: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(comprobante.total_deuda)),
         pago_monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(comprobante.monto_cobrado)),
+        anticipo: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(comprobante.monto_cobrado)),
       });
 
     });
@@ -684,7 +692,7 @@ export class RecibosCobroService {
     else if (nro <= 999999) mostrarNumero = 'RC0' + String(nro);
 
     const data = {
-      fecha: format(recibo.createdAt, 'dd/MM/yyyy'),
+      fecha: recibo.fecha_cobro ? format(recibo.fecha_cobro, 'dd/MM/yyyy') : format(recibo.createdAt, 'dd/MM/yyyy'),
       cliente: recibo.cliente['descripcion'],
       numero: mostrarNumero,
       cobro_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(recibo.cobro_total)),
@@ -692,7 +700,10 @@ export class RecibosCobroService {
       formasPagoPDF,
       chequesPDF,
       anticipo: comprobantesPDF.length === 0 ? true : false,
-      total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(recibo.cobro_total))
+      montoACobrar: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(montoACobrar)),
+      total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(recibo.cobro_total)),
+      flagAnticipo: (Number(recibo.cobro_total) - montoACobrar) === 0 ? false : true,
+      montoAnticipo: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(recibo.cobro_total) - montoACobrar),
     };
 
     var options = {

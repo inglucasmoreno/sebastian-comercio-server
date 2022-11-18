@@ -48,6 +48,11 @@ export const ventasPropiasSchema = new Schema({
     required: true
   },
 
+  fecha_venta: {
+    type: Date,
+    required: true
+  },
+
   activo: {
     type: Boolean,
     default: true
