@@ -4,6 +4,9 @@ import { Model, Types } from 'mongoose';
 import { CcClientesUpdateDTO } from './dto/cc-clientes-update.dto';
 import { CcClientesDTO } from './dto/cc-clientes.dto';
 import { ICcClientes } from './interface/cc-clientes.interface';
+import * as ExcelJs from 'exceljs';
+import { add } from 'date-fns';
+import * as path from 'path';
 
 @Injectable()
 export class CcClientesService {
@@ -233,7 +236,7 @@ export class CcClientesService {
       this.cuentaCorrienteModel.aggregate(pipeline),
       this.cuentaCorrienteModel.aggregate(pipelineTotal),
     ])
-    
+
     return {
       cuentas_corrientes,
       totalItems: cuentasCorrientesTotal.length
@@ -257,5 +260,63 @@ export class CcClientesService {
     const cuentaCorriente = await this.cuentaCorrienteModel.findByIdAndUpdate(id, cuentaCorrienteUpdateDTO, { new: true });
     return cuentaCorriente;
   }
+
+  // Reporte excel
+  async generarExcel(): Promise<any> {
+
+    // Obtener ventas
+    const respuestas = await this.getAll({
+      direccion: 1,
+      columna: 'cliente.descripcion',
+      desde: 0,
+      registerpp: 1000000,
+    });
+
+    const workbook = new ExcelJs.Workbook();
+    const worksheet = workbook.addWorksheet('Reporte - Cuentas corrientes');
+
+    worksheet.addRow(['Cliente', 'Saldo', 'Fecha', 'Activa']);
+
+    // Autofiltro
+    worksheet.autoFilter = 'A1:D1';
+
+    // Estilo de filas y columnas
+
+    worksheet.getRow(1).height = 20;
+
+    worksheet.getRow(1).eachCell(cell => {
+      cell.font = { bold: true }
+    });
+
+    worksheet.getColumn(1).width = 40; // Cliente
+    worksheet.getColumn(2).width = 17; // Saldo
+    worksheet.getColumn(3).width = 17; // Fecha
+    worksheet.getColumn(4).width = 15; // Estado
+
+    // Agregar elementos
+    respuestas.cuentas_corrientes.map(elemento => {
+      worksheet.addRow([
+        elemento.cliente.descripcion,
+        Number(elemento.saldo),
+        add(elemento.createdAt, { hours: -3 }),
+        elemento.activo ? 'SI' : 'NO'
+      ]);
+    });
+
+    // Generacion de reporte
+
+    const nombreReporte = '../../public/excel/cuentas_corrientes.xlsx';
+    workbook.xlsx.writeFile(path.join(__dirname, nombreReporte)).then(async data => {
+      const pathReporte = path.join(__dirname, nombreReporte);
+    });
+
+    // const fechaHoy = new Date();
+
+    // worksheet.addRow(['Fecha'])
+
+    return true;
+
+  }
+
 
 }
