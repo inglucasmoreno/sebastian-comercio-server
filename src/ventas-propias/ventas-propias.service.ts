@@ -765,11 +765,11 @@ export class VentasPropiasService {
         const workbook = new ExcelJs.Workbook();
         const worksheet = workbook.addWorksheet('Reporte - Ventas propias');
 
-        worksheet.addRow(['Número', 'Fecha', 'Cliente', 'Precio total', 'Habilitada', 'Cancelada']);
+        worksheet.addRow(['Número', 'Fecha de venta', 'Fecha de carga', 'Cliente', 'Precio total', 'Habilitada', 'Cancelada']);
 
         // Autofiltro
 
-        worksheet.autoFilter = 'A1:F1';
+        worksheet.autoFilter = 'A1:G1';
 
         // Estilo de filas y columnas
 
@@ -780,16 +780,18 @@ export class VentasPropiasService {
         });
 
         worksheet.getColumn(1).width = 14; // Codigo
-        worksheet.getColumn(2).width = 15; // Fecha
-        worksheet.getColumn(3).width = 40; // Cliente
-        worksheet.getColumn(4).width = 25; // Precio total
-        worksheet.getColumn(5).width = 15; // Habilitadas
-        worksheet.getColumn(6).width = 16; // Habilitadas
+        worksheet.getColumn(2).width = 15; // Fecha de venta
+        worksheet.getColumn(3).width = 15; // Fecha de carga
+        worksheet.getColumn(4).width = 40; // Cliente
+        worksheet.getColumn(5).width = 25; // Precio total
+        worksheet.getColumn(6).width = 15; // Habilitadas
+        worksheet.getColumn(7).width = 16; // Canceladas
 
         // Agregar elementos
         respuesta.ventas.map(venta => {
             worksheet.addRow([
                 venta.nro,
+                add(venta.fecha_venta ? venta.fecha_venta : venta.createdAt, { hours: -3 }),
                 add(venta.createdAt, { hours: -3 }),
                 venta.cliente['descripcion'],
                 Number(venta.precio_total),
