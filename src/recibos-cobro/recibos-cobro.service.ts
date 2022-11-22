@@ -473,8 +473,11 @@ export class RecibosCobroService {
     // ADAPTANDO COMPROBANTES
 
     const comprobantesPDF = [];
+    let montoACobrar = 0;
 
     comprobantes.map(comprobante => {
+
+      montoACobrar += comprobante.monto_cobrado;
 
       // Adaptando numero
       let nroComprobante: string;
@@ -492,6 +495,7 @@ export class RecibosCobroService {
         estado: comprobante.venta_cancelada === false ? 'PAGO PARCIAL' : 'CANCELADO',
         total_deuda: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(comprobante.total_deuda)),
         pago_monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(comprobante.monto_cobrado)),
+        anticipo: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(comprobante.monto_cobrado)),
       });
 
     });
@@ -543,7 +547,10 @@ export class RecibosCobroService {
       formasPagoPDF,
       chequesPDF,
       anticipo: comprobantesPDF.length === 0 ? true : false,
-      total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(recibo.cobro_total))
+      montoACobrar: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(montoACobrar)),
+      total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(recibo.cobro_total)),
+      flagAnticipo: (Number(recibo.cobro_total) - montoACobrar) === 0 ? false : true,
+      montoAnticipo: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(recibo.cobro_total) - montoACobrar),
     };
 
     var options = {
@@ -626,7 +633,6 @@ export class RecibosCobroService {
 
     const comprobantesPDF = [];
     let montoACobrar = 0;
-
 
     comprobantes.map(comprobante => {
 

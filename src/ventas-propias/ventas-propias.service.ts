@@ -386,7 +386,7 @@ export class VentasPropiasService {
                 await this.ccClientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: cuentaCorrienteDB.saldo - montoDecremento })
 
                 // Creacion de movimient
-                
+
                 nroMovimientoCC += 1;
                 const dataMovimiento = {
                     nro: nroMovimientoCC,
@@ -415,7 +415,7 @@ export class VentasPropiasService {
             if (cuentaCorrienteDB) {
 
                 const montoIncremento = totalPagado - precio_total;
-                
+
                 await this.ccClientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: cuentaCorrienteDB.saldo + montoIncremento })
 
                 // Creacion de movimiento
@@ -633,6 +633,87 @@ export class VentasPropiasService {
         return venta;
 
     }
+
+    // Alta y Baja de venta
+    async altaBaja(id: string, data: any): Promise<IVentasPropias> {
+
+        const { estado } = data;
+
+        const ventaDB = await this.ventasModel.findById(id);
+
+        // Verificacion: La venta no existe
+        if (!ventaDB) throw new NotFoundException('La venta no existe');
+
+        let condicion: any = null;
+        let saldoCC: number = 0;
+        let saldoCaja: number = 0;
+
+        if (estado === 'Alta') {
+            condicion = { activo: true };
+        } else if (estado === 'Baja') {
+            condicion = { activo: false };
+        }
+
+        // Ajustando saldos    
+        ventaDB.formas_pago.map(async (pago: any) => {
+            
+            // OTRAS CAJAS
+            const caja = await this.cajasModel.findById(pago._id);
+            if(estado === 'Alta') saldoCaja = caja.saldo + pago.monto;
+            else saldoCaja = caja.saldo - pago.monto;
+            await this.cajasModel.findByIdAndUpdate(caja._id, { saldo: saldoCaja });
+
+            // CUENTA CORRIENTE
+            if (pago._id === 'cuenta_corriente') {
+                const cc_cliente = await this.ccClientesModel.findOne({ cliente: ventaDB.cliente });
+                if(estado === 'Alta') saldoCC = cc_cliente.saldo + pago.monto;
+                else saldoCC = cc_cliente.saldo - pago.monto;
+                await this.ccClientesModel.findByIdAndUpdate(cc_cliente._id, { saldo: saldoCC });
+            }
+        
+        });
+
+        let saldoCheque = 0;
+
+        const pipelineCheques = [];
+        
+        const idVenta = new Types.ObjectId(ventaDB._id);
+        pipelineCheques.push({$match:{ venta_propia: idVenta }});
+
+        // CHEQUES
+
+        // Informacion de cliente - TOTAL
+        pipelineCheques.push({
+            $lookup: { // Lookup
+                from: 'cheques',
+                localField: 'cheque',
+                foreignField: '_id',
+                as: 'cheque'
+            }
+        }
+        );
+
+        pipelineCheques.push({ $unwind: '$cheque' });
+
+        const cheques = await this.ventasPropiasChequesModel.aggregate(pipelineCheques);
+        
+        cheques.map( (elemento: any) => {
+            saldoCheque += elemento.cheque.importe;
+        });
+
+        if(saldoCheque){
+            const cajaCheque = await this.cajasModel.findById('222222222222222222222222');
+            if(estado === 'Alta') saldoCheque = cajaCheque.saldo + saldoCheque;
+            else saldoCheque = cajaCheque.saldo - saldoCheque;
+            await this.cajasModel.findByIdAndUpdate('222222222222222222222222', { saldo: saldoCheque });
+        }
+
+        // Generando movimientos
+        const venta = await this.ventasModel.findByIdAndUpdate(id, condicion, { new: true });
+        return venta;
+
+    }
+
 
     // Generar PDF
     async generarPDF(dataFront: any): Promise<any> {

@@ -54,6 +54,17 @@ export class VentasPropiasController {
         });
     }
 
+    // Alta/Baja de venta propia
+    @UseGuards(JwtAuthGuard)
+    @Put('/alta-baja/:id')
+    async altaBaja(@Res() res, @Body() data: any, @Param('id') ventaID) {
+        const venta = await this.ventasPropiasService.altaBaja(ventaID, data);
+        res.status(HttpStatus.OK).json({
+            message: 'Venta actualizada correctamente',
+            venta
+        });
+    }
+
     // Generar PDF
     @UseGuards(JwtAuthGuard)
     @Post('/generarPDF')
