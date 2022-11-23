@@ -16,6 +16,7 @@ import { IVentasPropiasCheques } from 'src/ventas-propias-cheques/interface/vent
 import { ICcClientesMovimientos } from 'src/cc-clientes-movimientos/interface/cc-clientes-movimientos.interface';
 import { ICajas } from 'src/cajas/interface/cajas.interface';
 import { ICajasMovimientos } from 'src/cajas-movimientos/interface/cajas-movimientos.interface';
+import { IRecibosCobroVenta } from 'src/recibos-cobro-venta/interface/recibos-cobro-venta.interface';
 
 @Injectable()
 export class VentasPropiasService {
@@ -32,6 +33,7 @@ export class VentasPropiasService {
         @InjectModel('Cajas') private readonly cajasModel: Model<ICajas>,
         @InjectModel('CajasMovimientos') private readonly cajasMovimientosModel: Model<ICajasMovimientos>,
         @InjectModel('VentasPropiasProductos') private readonly ventaProductosModel: Model<IVentasPropiasProductos>,
+        @InjectModel('RecibosCobroVenta') private readonly recibosCobroVentaModel: Model<IRecibosCobroVenta>,
     ) { };
 
     // Funcion para redondeo
@@ -637,12 +639,16 @@ export class VentasPropiasService {
     // Alta y Baja de venta
     async altaBaja(id: string, data: any): Promise<IVentasPropias> {
 
-        const { estado } = data;
+        const { estado, creatorUser, updatorUser } = data;
 
         const ventaDB = await this.ventasModel.findById(id);
 
         // Verificacion: La venta no existe
         if (!ventaDB) throw new NotFoundException('La venta no existe');
+
+        // Verificacion: Si tiene recibos de cobros asociados no puede darse de baja
+        const reciboVentaDB = await this.recibosCobroVentaModel.find({ venta_propia: ventaDB._id });
+        if(reciboVentaDB.length !== 0) throw new NotFoundException('La venta tiene un recibo de cobro asociado');
 
         let condicion: any = null;
         let saldoCC: number = 0;
@@ -654,24 +660,93 @@ export class VentasPropiasService {
             condicion = { activo: false };
         }
 
-        // Ajustando saldos    
+        // AJUSTE DE SALDOS
+
         ventaDB.formas_pago.map(async (pago: any) => {
             
-            // OTRAS CAJAS
-            const caja = await this.cajasModel.findById(pago._id);
-            if(estado === 'Alta') saldoCaja = caja.saldo + pago.monto;
-            else saldoCaja = caja.saldo - pago.monto;
-            await this.cajasModel.findByIdAndUpdate(caja._id, { saldo: saldoCaja });
+            let codigoVenta: string;
+            const { nro } = ventaDB;
+            if (nro <= 9) codigoVenta = 'VP000000' + String(nro);
+            else if (nro <= 99) codigoVenta = 'VP00000' + String(nro);
+            else if (nro <= 999) codigoVenta = 'VP0000' + String(nro);
+            else if (nro <= 9999) codigoVenta = 'VP000' + String(nro);
+            else if (nro <= 99999) codigoVenta = 'VP00' + String(nro);
+            else if (nro <= 999999) codigoVenta = 'VP0' + String(nro);
+
+
+            // CAJAS VARIAS
+            if(pago._id !== 'cuenta_corriente'){
+                
+                // Impacto en saldo
+                const caja = await this.cajasModel.findById(pago._id);
+                if(estado === 'Alta') saldoCaja = caja.saldo + pago.monto;
+                else saldoCaja = caja.saldo - pago.monto;
+                await this.cajasModel.findByIdAndUpdate(caja._id, { saldo: saldoCaja });
+
+                // Generacion de movimiento
+
+                let nroMovimientoCaja = 0;
+                const ultimoCajaMov = await this.cajasMovimientosModel.find().sort({ createdAt: -1 }).limit(1);
+                ultimoCajaMov.length === 0 ? nroMovimientoCaja = 0 : nroMovimientoCaja = Number(ultimoCajaMov[0].nro);
+
+                nroMovimientoCaja += 1;
+                const dataMovimiento = {
+                    nro: nroMovimientoCaja,
+                    descripcion: estado === 'Alta' ?  `ALTA DE VENTA - ${codigoVenta}` : `BAJA DE VENTA - ${codigoVenta}`,
+                    tipo: estado === 'Alta' ? 'Debe' : 'Haber',
+                    caja: String(caja._id),
+                    venta_propia: String(ventaDB._id),
+                    monto: this.redondear(pago.monto, 2),
+                    saldo_anterior: this.redondear(caja.saldo, 2),
+                    saldo_nuevo: estado === 'Alta' ? this.redondear(caja.saldo + pago.monto, 2) : this.redondear(caja.saldo - pago.monto, 2),
+                    creatorUser,
+                    updatorUser
+                }
+
+                const nuevoMovimiento = new this.cajasMovimientosModel(dataMovimiento);
+                await nuevoMovimiento.save();
+
+            }
 
             // CUENTA CORRIENTE
             if (pago._id === 'cuenta_corriente') {
+                
+                // Impacto en saldo
                 const cc_cliente = await this.ccClientesModel.findOne({ cliente: ventaDB.cliente });
-                if(estado === 'Alta') saldoCC = cc_cliente.saldo + pago.monto;
-                else saldoCC = cc_cliente.saldo - pago.monto;
+                if(estado === 'Alta') saldoCC = cc_cliente.saldo - pago.monto;
+                else saldoCC = cc_cliente.saldo + pago.monto;
                 await this.ccClientesModel.findByIdAndUpdate(cc_cliente._id, { saldo: saldoCC });
+            
+                // Generacion de movimiento
+
+                let nroMovimientoCC = 0;
+                const ultimoCCMov = await this.ccClientesMovimientosModel.find().sort({ createdAt: -1 }).limit(1);
+                ultimoCCMov.length === 0 ? nroMovimientoCC = 0 : nroMovimientoCC = Number(ultimoCCMov[0].nro);
+
+                nroMovimientoCC += 1;
+                const dataMovimiento = {
+                    nro: nroMovimientoCC,
+                    descripcion: estado === 'Alta' ?  `ALTA DE VENTA - ${codigoVenta}` : `BAJA DE VENTA - ${codigoVenta}`,
+                    tipo: estado === 'Alta' ? 'Haber' : 'Debe',
+                    cc_cliente: String(cc_cliente._id),
+                    cliente: String(ventaDB.cliente),
+                    venta_propia: String(ventaDB._id),
+                    monto: this.redondear(pago.monto, 2),
+                    saldo_anterior: this.redondear(cc_cliente.saldo, 2),
+                    saldo_nuevo: estado === 'Alta' ? this.redondear(cc_cliente.saldo - pago.monto, 2) : this.redondear(cc_cliente.saldo + pago.monto, 2),
+                    creatorUser,
+                    updatorUser
+                }
+
+                const nuevoMovimiento = new this.ccClientesMovimientosModel(dataMovimiento);
+                await nuevoMovimiento.save();
+
+
             }
         
         });
+
+        // CHEQUES
 
         let saldoCheque = 0;
 
@@ -679,8 +754,6 @@ export class VentasPropiasService {
         
         const idVenta = new Types.ObjectId(ventaDB._id);
         pipelineCheques.push({$match:{ venta_propia: idVenta }});
-
-        // CHEQUES
 
         // Informacion de cliente - TOTAL
         pipelineCheques.push({
@@ -697,8 +770,13 @@ export class VentasPropiasService {
 
         const cheques = await this.ventasPropiasChequesModel.aggregate(pipelineCheques);
         
-        cheques.map( (elemento: any) => {
+        // RECORRIDO Y BAJA DE CHEQUES
+        cheques.map( async (elemento: any) => {
             saldoCheque += elemento.cheque.importe;
+            let dataCheque: any = null
+            if(estado === 'Alta') dataCheque = { estado: 'Creado', activo: true };  
+            else dataCheque = { estado: 'Baja', activo: false };  
+            await this.chequesModel.findByIdAndUpdate(elemento.cheque._id, dataCheque);
         });
 
         if(saldoCheque){

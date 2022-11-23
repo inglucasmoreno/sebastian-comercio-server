@@ -36,7 +36,6 @@ export class VentasPropiasController {
     @UseGuards(JwtAuthGuard)
     @Post('/')
     async insert(@Res() res, @Body() ventasDTO: VentasPropiasDTO) {
-        console.log(ventasDTO);
         await this.ventasPropiasService.insert(ventasDTO);
         res.status(HttpStatus.CREATED).json({
             message: 'Venta creada correctamente',
