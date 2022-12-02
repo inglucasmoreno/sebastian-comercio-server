@@ -35,6 +35,8 @@ import { CajasMovimientosModule } from './cajas-movimientos/cajas-movimientos.mo
 import { RecibosCobroModule } from './recibos-cobro/recibos-cobro.module';
 import { RecibosCobroVentaModule } from './recibos-cobro-venta/recibos-cobro-venta.module';
 import { RecibosCobroChequeModule } from './recibos-cobro-cheque/recibos-cobro-cheque.module';
+import { TiposGastosModule } from './tipos-gastos/tipos-gastos.module';
+import { GastosModule } from './gastos/gastos.module';
 
 @Module({
   imports: [
@@ -87,6 +89,8 @@ import { RecibosCobroChequeModule } from './recibos-cobro-cheque/recibos-cobro-c
     RecibosCobroModule,
     RecibosCobroVentaModule,
     RecibosCobroChequeModule,
+    TiposGastosModule,
+    GastosModule,
   ],
   
   controllers: [AppController],

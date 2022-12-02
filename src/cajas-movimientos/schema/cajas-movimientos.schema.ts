@@ -44,6 +44,11 @@ export const CajasMovimientosSchema = new Schema({
     default: ''
   },
 
+  gasto: {
+    type: String,
+    default: ''
+  },
+
   recibo_cobro: {
     type: String,
     default: ''
