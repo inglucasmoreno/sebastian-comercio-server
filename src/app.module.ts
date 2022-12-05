@@ -37,6 +37,11 @@ import { RecibosCobroVentaModule } from './recibos-cobro-venta/recibos-cobro-ven
 import { RecibosCobroChequeModule } from './recibos-cobro-cheque/recibos-cobro-cheque.module';
 import { TiposGastosModule } from './tipos-gastos/tipos-gastos.module';
 import { GastosModule } from './gastos/gastos.module';
+import { ComprasModule } from './compras/compras.module';
+import { ComprasProductosModule } from './compras-productos/compras-productos.module';
+import { ComprasCajasModule } from './compras-cajas/compras-cajas.module';
+import { OrdenesPagoModule } from './ordenes-pago/ordenes-pago.module';
+import { OrdenesPagoCajasModule } from './ordenes-pago-cajas/ordenes-pago-cajas.module';
 
 @Module({
   imports: [
@@ -91,6 +96,11 @@ import { GastosModule } from './gastos/gastos.module';
     RecibosCobroChequeModule,
     TiposGastosModule,
     GastosModule,
+    ComprasModule,
+    ComprasProductosModule,
+    ComprasCajasModule,
+    OrdenesPagoModule,
+    OrdenesPagoCajasModule,
   ],
   
   controllers: [AppController],
