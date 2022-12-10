@@ -4,9 +4,18 @@ export class ComprasDTO {
 
   readonly fecha_compra: string;
 
-  @IsNumber()
+  readonly obervacion: string;
+
   readonly nro: number;
   
+  readonly proveedor: string;
+
+  readonly productos: [];
+
+  readonly formas_pago: [];
+
+  readonly cheques: [];
+
   @IsNumber()
   readonly monto_deuda: number;
   

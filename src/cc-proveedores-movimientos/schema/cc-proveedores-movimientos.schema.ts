@@ -39,6 +39,16 @@ export const CcProveedoresMovimientosSchema = new Schema({
     uppercase: true
   },
 
+  compra: {
+    type: String,
+    default: ''
+  },
+
+  orden_pago: {
+    type: String,
+    default: ''
+  },
+
   activo: {
     type: Boolean,
     default: true

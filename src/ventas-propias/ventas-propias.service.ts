@@ -387,7 +387,7 @@ export class VentasPropiasService {
 
                 await this.ccClientesModel.findByIdAndUpdate(cuentaCorrienteDB._id, { saldo: cuentaCorrienteDB.saldo - montoDecremento })
 
-                // Creacion de movimient
+                // Creacion de movimient0
 
                 nroMovimientoCC += 1;
                 const dataMovimiento = {

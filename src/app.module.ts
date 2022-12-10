@@ -42,6 +42,8 @@ import { ComprasProductosModule } from './compras-productos/compras-productos.mo
 import { ComprasCajasModule } from './compras-cajas/compras-cajas.module';
 import { OrdenesPagoModule } from './ordenes-pago/ordenes-pago.module';
 import { OrdenesPagoCajasModule } from './ordenes-pago-cajas/ordenes-pago-cajas.module';
+import { ComprasChequesModule } from './compras-cheques/compras-cheques.module';
+import { OrdenesPagoChequesModule } from './ordenes-pago-cheques/ordenes-pago-cheques.module';
 
 @Module({
   imports: [
@@ -101,6 +103,8 @@ import { OrdenesPagoCajasModule } from './ordenes-pago-cajas/ordenes-pago-cajas.
     ComprasCajasModule,
     OrdenesPagoModule,
     OrdenesPagoCajasModule,
+    ComprasChequesModule,
+    OrdenesPagoChequesModule,
   ],
   
   controllers: [AppController],

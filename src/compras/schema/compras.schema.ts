@@ -7,6 +7,16 @@ export const comprasSchema = new Schema({
     required: true,
   },
 
+  formas_pago: {
+    type: Array,
+    default: []
+  },
+
+  observacion: {
+    type: String,
+    default: ''
+  },
+  
   nro: {
     type: Number,
     required: true,
@@ -16,7 +26,7 @@ export const comprasSchema = new Schema({
     type: Number,
     required: true,
   },
-
+  
   monto_pago: {
     type: Number,
     required: true,

@@ -68,6 +68,61 @@ export class CcProveedoresService {
 
   }
 
+  // CC por proveedor
+  async getPorProveedor(idProveedor: string): Promise<ICcProveedores> {
+
+    const pipeline = [];
+
+    // Cuenta corriente por proveedor
+    const proveedor = new Types.ObjectId(idProveedor);
+    pipeline.push({ $match: { proveedor } });
+
+    // Informacion de cliente
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'proveedores',
+        localField: 'proveedor',
+        foreignField: '_id',
+        as: 'proveedor'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$proveedor' });
+
+
+    // Informacion de usuario creador
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'usuarios',
+        localField: 'creatorUser',
+        foreignField: '_id',
+        as: 'creatorUser'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$creatorUser' });
+
+    // Informacion de usuario actualizador
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'usuarios',
+        localField: 'updatorUser',
+        foreignField: '_id',
+        as: 'updatorUser'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$updatorUser' });
+
+    const cuentaCorriente = await this.cuentaCorrienteModel.aggregate(pipeline);
+
+    return cuentaCorriente[0];
+
+  }
+
   // Listar cuentas corrientes
   async getAll(querys: any): Promise<any> {
 

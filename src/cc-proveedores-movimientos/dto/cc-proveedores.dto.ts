@@ -20,6 +20,10 @@ export class CcProveedoresMovimientosDTO {
  
   @IsString()
   readonly descripcion: string;
+
+  readonly compra: string;
+
+  readonly orden_pago: string;
   
   readonly activo: boolean;
   

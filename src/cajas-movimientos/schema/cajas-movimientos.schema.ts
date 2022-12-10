@@ -44,6 +44,11 @@ export const CajasMovimientosSchema = new Schema({
     default: ''
   },
 
+  compra: {
+    type: String,
+    default: ''
+  },
+
   gasto: {
     type: String,
     default: ''

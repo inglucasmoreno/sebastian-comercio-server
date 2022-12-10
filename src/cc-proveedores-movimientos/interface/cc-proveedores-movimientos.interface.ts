@@ -8,6 +8,8 @@ export interface ICcProveedoresMovimientos extends Document {
   readonly saldo_anterior: number;
   readonly saldo_nuevo: number;
   readonly descripcion: string;
+  readonly compra: string;
+  readonly orden_pago: string;
   readonly activo: boolean;
   readonly creatorUser: string;
   readonly updatorUser: string;
