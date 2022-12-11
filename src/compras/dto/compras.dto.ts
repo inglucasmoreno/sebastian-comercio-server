@@ -1,8 +1,8 @@
-import { IsNumber, IsString } from "class-validator";
+import { IsBoolean, IsNumber } from "class-validator";
 
 export class ComprasDTO {
 
-  readonly fecha_compra: string;
+  fecha_compra: string;
 
   readonly obervacion: string;
 
@@ -25,8 +25,8 @@ export class ComprasDTO {
   @IsNumber()
   readonly precio_total: number;
   
-  @IsString()
-  readonly estado: string;
+  @IsBoolean()
+  readonly cancelada: boolean;
   
   readonly activo: boolean;
   

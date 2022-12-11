@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ComprasProductosService } from './compras-productos.service';
 import { ComprasProductosUpdateDTO } from './dto/compras-producto-update.dto';
@@ -24,10 +24,10 @@ export class ComprasProductosController {
   @UseGuards(JwtAuthGuard)
   @Get('/')
   async getAll(@Res() res, @Query() querys) {
-    const relaciones = await this.comprasProductosService.getAll(querys);
+    const productos = await this.comprasProductosService.getAll(querys);
     res.status(HttpStatus.OK).json({
-      message: 'Listado de relaciones correcto',
-      relaciones
+      message: 'Listado de productos correcto',
+      productos
     });
   }
 
@@ -53,6 +53,25 @@ export class ComprasProductosController {
     });
   }
 
+  // Actualizar relaciones
+  @UseGuards(JwtAuthGuard)
+  @Put('/actualizar/productos')
+  async updateProductos(@Res() res, @Body() productos: any) {
+    await this.comprasProductosService.updateRelaciones(productos);
+    res.status(HttpStatus.OK).json({
+      message: 'Productos actualizados correctamente',
+    });
+  }
 
+  // Eliminar producto
+  @UseGuards(JwtAuthGuard)
+  @Delete('/:id')
+  async delete(@Res() res, @Param('id') productoID) {
+    const producto = await this.comprasProductosService.delete(productoID);
+    res.status(HttpStatus.OK).json({
+      message: 'Producto eliminado correctamente',
+      producto
+    });
+  }
 
 }

@@ -21,7 +21,7 @@ export class ComprasUpdateDTO {
   
   readonly precio_total: number;
   
-  readonly estado: string;
+  readonly cancelada: boolean;
   
   readonly activo: boolean;
   

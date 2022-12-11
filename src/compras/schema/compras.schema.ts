@@ -7,6 +7,12 @@ export const comprasSchema = new Schema({
     required: true,
   },
 
+  proveedor: {
+    type: Schema.Types.ObjectId,
+    ref: 'proveedores',
+    required: true,
+  },
+
   formas_pago: {
     type: Array,
     default: []
@@ -37,8 +43,8 @@ export const comprasSchema = new Schema({
     required: true,
   },
   
-  estado: {
-    type: String,
+  cancelada: {
+    type: Boolean,
     required: true,
   },
 

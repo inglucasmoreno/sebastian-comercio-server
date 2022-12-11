@@ -3,6 +3,11 @@ import { Schema } from 'mongoose';
 
 export const CcProveedoresMovimientosSchema = new Schema({
 
+  nro: {
+    type: Number,
+    required: true,
+  },
+
   tipo: {
     type: String,
     required: true,

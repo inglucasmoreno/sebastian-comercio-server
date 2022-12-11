@@ -24,10 +24,11 @@ export class ComprasController {
   @UseGuards(JwtAuthGuard)
   @Get('/')
   async getAll(@Res() res, @Query() querys) {
-    const compras = await this.comprasService.getAll(querys);
+    const { compras, totalItems } = await this.comprasService.getAll(querys);
     res.status(HttpStatus.OK).json({
       message: 'Listado de compras correcto',
-      compras
+      compras,
+      totalItems
     });
   }
 
@@ -52,5 +53,27 @@ export class ComprasController {
       compra
     });
   }
+
+  // Alta/Baja de compra
+  @UseGuards(JwtAuthGuard)
+  @Put('/alta-baja/:id')
+  async altaBaja(@Res() res, @Body() data: any, @Param('id') compraID) {
+    const compra = await this.comprasService.altaBaja(compraID, data);
+    res.status(HttpStatus.OK).json({
+      message: 'Compra actualizada correctamente',
+      compra
+    });
+  }
+
+  // Generar PDF
+  @UseGuards(JwtAuthGuard)
+  @Post('/generarPDF')
+  async generarPDF(@Res() res, @Body() data: any) {
+    await this.comprasService.generarPDF(data);
+    res.status(HttpStatus.CREATED).json({
+      message: 'PDF generado correctamente',
+    });
+  }
+
 
 }

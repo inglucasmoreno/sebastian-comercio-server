@@ -1,6 +1,7 @@
 import { Document } from 'mongoose';
 
 export interface ICcProveedoresMovimientos extends Document {
+  readonly nro: number;
   readonly tipo: string;
   readonly cc_proveedor: string;
   readonly proveedor: string;

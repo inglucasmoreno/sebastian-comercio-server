@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { ICompras } from 'src/compras/interface/compras.interface';
 import { ComprasProductosDTO } from './dto/compras-productos.dto';
 import { IComprasProductos } from './interface/compras-productos.interface';
 
@@ -9,6 +10,7 @@ export class ComprasProductosService {
 
   constructor(
     @InjectModel('ComprasProductos') private readonly comprasProductosModel: Model<IComprasProductos>,
+    @InjectModel('Compras') private readonly comprasModel: Model<ICompras>,
   ) { };
 
   // Relacion por ID
@@ -59,10 +61,42 @@ export class ComprasProductosService {
   // Listar relaciones
   async getAll(querys: any): Promise<IComprasProductos[]> {
 
-    const { columna, direccion } = querys;
+    const { columna, direccion, compra } = querys;
 
     const pipeline = [];
     pipeline.push({ $match: {} });
+
+    // Listar por compra
+    if (compra && compra !== '') {
+      const idCompra = new Types.ObjectId(compra);
+      pipeline.push({ $match: { compra: idCompra } })
+    }
+
+    // Informacion de producto
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'productos',
+        localField: 'producto',
+        foreignField: '_id',
+        as: 'producto'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$producto' });
+
+    // Informacion de producto
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'unidad_medida',
+        localField: 'producto.unidad_medida',
+        foreignField: '_id',
+        as: 'producto.unidad_medida'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$producto.unidad_medida' });
 
     // Informacion de usuario creador
     pipeline.push({
@@ -97,9 +131,9 @@ export class ComprasProductosService {
       pipeline.push({ $sort: ordenar });
     }
 
-    const relaciones = await this.comprasProductosModel.aggregate(pipeline);
+    const productos = await this.comprasProductosModel.aggregate(pipeline);
 
-    return relaciones;
+    return productos;
 
   }
 
@@ -120,6 +154,31 @@ export class ComprasProductosService {
     const relacion = await this.comprasProductosModel.findByIdAndUpdate(id, comprasProductosUpdateDTO, { new: true });
     return relacion;
 
+  }
+
+  // Actualizar relaciones
+  async updateRelaciones(dataProductos: any): Promise<any> {
+
+    if (dataProductos.length <= 0) throw new NotFoundException('No hay productos cargados');
+
+    let precioTotal = 0;
+
+    // Precio total
+    dataProductos.map(data => precioTotal += data.precio_total);
+
+    // Actualizacion de productos
+    dataProductos.map(async data => await this.comprasProductosModel.findByIdAndUpdate(data._id, data));
+
+    await this.comprasModel.findByIdAndUpdate(dataProductos[0].compra, { precio_total: precioTotal });
+
+    return 'Actualizacion correcta';
+
+  }
+
+  // Eliminar producto
+  async delete(id: string): Promise<IComprasProductos> {
+    const producto = await this.comprasProductosModel.findByIdAndRemove(id);
+    return producto;
   }
 
 

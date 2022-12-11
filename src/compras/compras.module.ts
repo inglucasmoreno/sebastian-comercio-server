@@ -4,9 +4,11 @@ import { CajasMovimientosSchema } from 'src/cajas-movimientos/schema/cajas-movim
 import { cajasSchema } from 'src/cajas/schema/cajas.schema';
 import { CcProveedoresMovimientosSchema } from 'src/cc-proveedores-movimientos/schema/cc-proveedores-movimientos.schema';
 import { CcProveedoresSchema } from 'src/cc-proveedores/schema/cc-proveedores.schema';
+import { chequesSchema } from 'src/cheques/schema/cheques.schema';
 import { comprasCajasSchema } from 'src/compras-cajas/schema/compras-cajas.schema';
 import { comprasChequesSchema } from 'src/compras-cheques/schema/compras-cheques.schema';
 import { comprasProductosSchema } from 'src/compras-productos/schema/compras-productos.schema';
+import { ordenesPagoSchema } from 'src/ordenes-pago/schema/ordenes-pago.schema';
 import { ComprasController } from './compras.controller';
 import { ComprasService } from './compras.service';
 import { comprasSchema } from './schema/compras.schema';
@@ -22,6 +24,8 @@ import { comprasSchema } from './schema/compras.schema';
 			{ name: 'CajasMovimientos', schema: CajasMovimientosSchema },
 			{ name: 'CcProveedores', schema: CcProveedoresSchema },
 			{ name: 'CcProveedoresMovimientos', schema: CcProveedoresMovimientosSchema },
+			{ name: 'OrdenesPago', schema: ordenesPagoSchema },
+			{ name: 'Cheques', schema: chequesSchema },
 		])
 	],
   controllers: [ComprasController],

@@ -2,6 +2,8 @@ import { IsNumber, IsString } from "class-validator";
 
 export class CcProveedoresMovimientosDTO {
 
+  readonly nro: number;
+
   @IsString()
   readonly tipo: string;
 

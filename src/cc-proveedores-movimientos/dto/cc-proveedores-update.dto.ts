@@ -2,6 +2,8 @@
 
 export class CcProveedoresMovimientosUpdateDTO {
 
+  readonly nro: number;
+
   readonly tipo: string;
 
   readonly cc_proveedor: string;
