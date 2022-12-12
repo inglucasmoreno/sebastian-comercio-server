@@ -5,7 +5,7 @@ export class OrdenesPagoUpdateDTO {
 
   readonly nro: number;
   
-  readonly compra: string;
+  readonly formas_pago: [];
   
   readonly proveedor: string;
   

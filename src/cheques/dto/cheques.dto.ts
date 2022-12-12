@@ -16,7 +16,13 @@ export class ChequesDTO {
 
   @IsString()
   readonly fecha_cobro: Date;
+
+  readonly fecha_salida: Date;
   
+  readonly destino: string;
+
+  readonly destino_caja: string;
+
   readonly estado: string;
 
   readonly activo: boolean;

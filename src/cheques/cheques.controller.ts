@@ -13,10 +13,12 @@ export class ChequesController {
     @UseGuards(JwtAuthGuard)
     @Get('/:id')
     async getId(@Res() res, @Param('id') chequeID) {
-        const cheque = await this.chequesService.getId(chequeID);
+        const { cheque, destino, destino_caja } = await this.chequesService.getId(chequeID);
         res.status(HttpStatus.OK).json({
             message: 'Cheque obtenido correctamente',
-            cheque
+            cheque,
+            destino,
+            destino_caja
         });
     }
 

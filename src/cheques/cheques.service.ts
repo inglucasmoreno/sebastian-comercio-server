@@ -4,6 +4,7 @@ import { add } from 'date-fns';
 import { Model, Types } from 'mongoose';
 import { ICajasMovimientos } from 'src/cajas-movimientos/interface/cajas-movimientos.interface';
 import { ICajas } from 'src/cajas/interface/cajas.interface';
+import { IProveedores } from 'src/proveedores/interface/proveedores.interface';
 import { ChequesUpdateDTO } from './dto/cheques-update';
 import { ChequesDTO } from './dto/cheques.dto';
 import { ICheques } from './interface/cheques.interface';
@@ -15,6 +16,7 @@ export class ChequesService {
     @InjectModel('Cheques') private readonly chequesModel: Model<ICheques>,
     @InjectModel('Cajas') private readonly cajasModel: Model<ICajas>,
     @InjectModel('CajasMovimientos') private readonly cajasMovimientosModel: Model<ICajasMovimientos>,
+    @InjectModel('Proveedores') private readonly proveedoresModel: Model<IProveedores>,
   ) { };
 
   // Funcion para redondeo
@@ -29,7 +31,7 @@ export class ChequesService {
   }
 
   // Cheques por ID
-  async getId(id: string): Promise<ICheques> {
+  async getId(id: string): Promise<any> {
 
     // Se verifica si el cheque existe
     const chequeDB = await this.chequesModel.findById(id);
@@ -82,7 +84,22 @@ export class ChequesService {
 
     const cheque = await this.chequesModel.aggregate(pipeline);
 
-    return cheque[0];
+    let destino = null;
+    let destino_caja = null;
+
+    if(cheque[0].destino && cheque[0].destino.trim() !== ''){
+      destino = await this.proveedoresModel.findById(cheque[0].destino);
+    }
+    
+    if(cheque[0].destino_caja && cheque[0].destino_caja.trim() !== ''){
+      destino_caja = await this.cajasModel.findById(cheque[0].destino_caja);
+    }
+
+    return {
+      cheque: cheque[0],
+      destino,
+      destino_caja
+    }
 
   }
 
@@ -263,7 +280,9 @@ export class ChequesService {
     if (fecha_cobro) data.fecha_cobro = add(new Date(fecha_cobro), { hours: 3 });
     if (importe) data.importe = this.redondear(importe, 2);
 
-    if (chequeDB.estado === 'Creado' && data.estado === 'Cobrado') {
+    if (chequeDB.estado === 'Creado' && data.estado === 'Cobrado') { // Se cobra el cheque
+
+      data.fecha_salida = new Date();
 
       // Impacto en saldo de caja -> CHEQUES y EFECTIVO
       const cajaChequeDB = await this.cajasModel.findById('222222222222222222222222');

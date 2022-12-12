@@ -12,9 +12,9 @@ export const ordenesPagoSchema = new Schema({
     required: true,
   },
 
-  compra: {
-    type: Schema.Types.ObjectId,
-    ref: 'compras',
+  formas_pago: {
+    type: Array,
+    ref: 'formas_pago',
     required: true,
   },
 

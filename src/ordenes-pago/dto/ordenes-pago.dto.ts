@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from "class-validator";
+import { IsArray, IsNumber, IsString } from "class-validator";
 
 export class OrdenesPagoDTO {
 
@@ -7,8 +7,8 @@ export class OrdenesPagoDTO {
 
   readonly nro: number;
   
-  @IsString()
-  readonly compra: string;
+  @IsArray()
+  readonly formas_pago: [];
   
   @IsString()
   readonly proveedor: string;

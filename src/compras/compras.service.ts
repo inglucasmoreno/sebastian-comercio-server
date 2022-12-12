@@ -16,6 +16,7 @@ import { ComprasDTO } from './dto/compras.dto';
 import { ICompras } from './interface/compras.interface';
 import * as fs from 'fs';
 import * as pdf from 'pdf-creator-node';
+import { IOrdenesPagoCompra } from 'src/ordenes-pago-compra/interface/ordenes-pago-compra.interface';
 
 @Injectable()
 export class ComprasService {
@@ -30,6 +31,7 @@ export class ComprasService {
     @InjectModel('CcProveedores') private readonly ccProveedoresModel: Model<ICcProveedores>,
     @InjectModel('CcProveedoresMovimientos') private readonly ccProveedoresMovimientosModel: Model<ICcProveedoresMovimientos>,
     @InjectModel('OrdenesPago') private readonly ordenesPagoModel: Model<IOrdenesPago>,
+    @InjectModel('OrdenesPagoCompra') private readonly ordenesPagoCompraModel: Model<IOrdenesPagoCompra>,
     @InjectModel('Cheques') private readonly chequesModel: Model<ICheques>,
   ) { };
 
@@ -399,6 +401,13 @@ export class ComprasService {
       const nuevaRelacion = new this.comprasChequesModel(dataCheques);
       await nuevaRelacion.save();
 
+      // Actualizacion de cheques
+      await this.chequesModel.findByIdAndUpdate(cheque._id, { 
+        estado: 'Transferido', 
+        destino: String(proveedor), 
+        fecha_salida: add(new Date(fecha_compra), { hours: 3 }),
+      });
+
     });
 
     if (cheques.length !== 0) {
@@ -464,6 +473,9 @@ export class ComprasService {
 
     }
 
+    // 6) - GENERACION DE PDF
+    await this.generarPDF({ compra: compraDB._id });
+
     return compraDB;
 
   }
@@ -494,7 +506,7 @@ export class ComprasService {
     if (!compraDB) throw new NotFoundException('La compra no existe');
 
     // Verificacion: Si tiene recibos de cobros asociados no puede darse de baja
-    const ordenPagoDB = await this.ordenesPagoModel.find({ compra: compraDB._id });
+    const ordenPagoDB = await this.ordenesPagoCompraModel.find({ compra: compraDB._id });
     if (ordenPagoDB.length !== 0) throw new NotFoundException('La compra tiene una orden de pago asociada');
 
     let condicion: any = null;
@@ -620,8 +632,15 @@ export class ComprasService {
     cheques.map(async (elemento: any) => {
       saldoCheque += elemento.cheque.importe;
       let dataCheque: any = null
-      if (estado === 'Alta') dataCheque = { estado: 'Creado', activo: true };
-      else dataCheque = { estado: 'Baja', activo: false };
+      if (estado === 'Alta') dataCheque = { 
+        estado: 'Creado', 
+        activo: true, 
+        destino: ''
+      };
+      else dataCheque = { 
+        estado: 'Baja', 
+        activo: false 
+      };
       await this.chequesModel.findByIdAndUpdate(elemento.cheque._id, dataCheque);
     });
 
@@ -697,8 +716,6 @@ export class ComprasService {
       this.comprasProductosModel.aggregate(pipelineProductos),
       this.comprasChequesModel.aggregate(pipeline)
     ]);
-
-    console.log(productos);
 
     let html: any;
 

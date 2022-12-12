@@ -59,6 +59,11 @@ export const CajasMovimientosSchema = new Schema({
     default: ''
   },
 
+  orden_pago: {
+    type: String,
+    default: ''
+  },
+
   cheque: {
     type: String,
     default: ''

@@ -13,21 +13,32 @@ export class OrdenesPagoController {
   @UseGuards(JwtAuthGuard)
   @Get('/:id')
   async getId(@Res() res, @Param('id') ordenesPagoID) {
-    const ordenes_pago = await this.ordenesPagoService.getId(ordenesPagoID);
+    const orden_pago = await this.ordenesPagoService.getId(ordenesPagoID);
     res.status(HttpStatus.OK).json({
-      message: 'Ordenes de pago obtenida correctamente',
-      ordenes_pago
+      message: 'Orden de pago obtenida correctamente',
+      orden_pago
     });
   }
+
+  // Generar PDF
+  @UseGuards(JwtAuthGuard)
+  @Post('/generarPDF')
+  async generarPDF(@Res() res, @Body() data: any ) {
+      await this.ordenesPagoService.generarPDF(data);        
+      res.status(HttpStatus.CREATED).json({
+          message: 'PDF generado correctamente',
+      });
+  } 
 
   // Listar ordenes de pago
   @UseGuards(JwtAuthGuard)
   @Get('/')
   async getAll(@Res() res, @Query() querys) {
-    const ordenes_pago = await this.ordenesPagoService.getAll(querys);
+    const {ordenes_pago, totalItems} = await this.ordenesPagoService.getAll(querys);
     res.status(HttpStatus.OK).json({
       message: 'Listado de ordenes de pago correcto',
-      ordenes_pago
+      ordenes_pago,
+      totalItems
     });
   }
 

@@ -23,6 +23,8 @@ export class CajasMovimientosUpdateDTO {
 
   readonly recibo_cobro: string;
 
+  readonly orden_pago: string;
+
   readonly cheque: string;
 
   readonly activo: boolean;

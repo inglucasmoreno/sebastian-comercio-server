@@ -44,6 +44,7 @@ import { OrdenesPagoModule } from './ordenes-pago/ordenes-pago.module';
 import { OrdenesPagoCajasModule } from './ordenes-pago-cajas/ordenes-pago-cajas.module';
 import { ComprasChequesModule } from './compras-cheques/compras-cheques.module';
 import { OrdenesPagoChequesModule } from './ordenes-pago-cheques/ordenes-pago-cheques.module';
+import { OrdenesPagoCompraModule } from './ordenes-pago-compra/ordenes-pago-compra.module';
 
 @Module({
   imports: [
@@ -105,6 +106,7 @@ import { OrdenesPagoChequesModule } from './ordenes-pago-cheques/ordenes-pago-ch
     OrdenesPagoCajasModule,
     ComprasChequesModule,
     OrdenesPagoChequesModule,
+    OrdenesPagoCompraModule,
   ],
   
   controllers: [AppController],

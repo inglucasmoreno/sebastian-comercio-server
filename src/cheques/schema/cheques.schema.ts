@@ -30,6 +30,21 @@ export const chequesSchema = new Schema({
     required: true    
   },
 
+  fecha_salida: {
+    type: Date,
+    default: new Date()   
+  },
+
+  destino: {
+    type: String,
+    default: ''
+  },
+
+  destino_caja: {
+    type: String,
+    default: ''
+  },
+
   estado: {
     type: String,
     default: 'Creado'
