@@ -7,6 +7,11 @@ export const comprasSchema = new Schema({
     required: true,
   },
 
+  nro_factura: {
+    type: String,
+    required: true
+  },
+
   proveedor: {
     type: Schema.Types.ObjectId,
     ref: 'proveedores',

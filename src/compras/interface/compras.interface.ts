@@ -1,7 +1,8 @@
 import { Document } from 'mongoose';
 
 export interface ICompras extends Document {
-  fecha_compra: any;
+  readonly fecha_compra: any;
+  readonly nro_factura: string;
   readonly proveedor: string;
   readonly formas_pago: [];
   readonly observacion: string;
