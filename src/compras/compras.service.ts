@@ -202,8 +202,8 @@ export class ComprasService {
       }
 
       const regex = new RegExp(parametroFinal, 'i');
-      pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'proveedor.descripcion': regex }] } });
-      pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'proveedor.descripcion': regex }] } });
+      pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'proveedor.descripcion': regex }, { nro_factura: parametro }] } });
+      pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'proveedor.descripcion': regex }, { nro_factura: parametro }] } });
 
     }
 
@@ -241,6 +241,7 @@ export class ComprasService {
       precio_total,
       productos,
       monto_deuda,
+      nro_factura,
       formas_pago,
       cancelada,
       cheques,
@@ -263,6 +264,7 @@ export class ComprasService {
     const dataCompra = {
       nro: nroCompra,
       fecha_compra: add(new Date(fecha_compra), { hours: 3 }),
+      nro_factura,
       proveedor,
       monto_deuda,
       formas_pago,
@@ -762,6 +764,7 @@ export class ComprasService {
     const data = {
       fecha: compra.fecha_compra ? format(compra.fecha_compra, 'dd/MM/yyyy') : format(compra.createdAt, 'dd/MM/yyyy'),
       numero: mostrarNumero,
+      nro_factura: compra.nro_factura,
       descripcion: compra.proveedor['descripcion'],
       formas_pago: formasPagoPDF,
       correo_electronico: compra.proveedor['correo_electronico'],

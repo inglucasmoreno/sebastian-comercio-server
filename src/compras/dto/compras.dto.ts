@@ -4,6 +4,8 @@ export class ComprasDTO {
 
   fecha_compra: string;
 
+  readonly nro_factura: string;
+
   readonly obervacion: string;
 
   readonly nro: number;
