@@ -212,8 +212,8 @@ export class VentasPropiasService {
             }
 
             const regex = new RegExp(parametroFinal, 'i');
-            pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }] } });
-            pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }] } });
+            pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }, { observacion: regex }] } });
+            pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }, { observacion: regex } ] } });
 
         }
 

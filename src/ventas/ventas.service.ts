@@ -218,8 +218,8 @@ export class VentasService {
             }
 
             const regex = new RegExp(parametroFinal, 'i');
-            pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }, { 'proveedor.descripcion': regex }] } });
-            pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }, { 'proveedor.descripcion': regex }] } });
+            pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }, { 'proveedor.descripcion': regex }, { observacion: regex }] } });
+            pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }, { 'proveedor.descripcion': regex }, { observacion: regex }] } });
 
         }
 

@@ -64,6 +64,11 @@ export const CajasMovimientosSchema = new Schema({
     default: ''
   },
 
+  movimiento_interno: {
+    type: String,
+    default: ''
+  },
+
   cheque: {
     type: String,
     default: ''

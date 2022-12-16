@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ICajasMovimientos } from 'src/cajas-movimientos/interface/cajas-movimientos.interface';
+import { IMovimientosInternos } from 'src/movimientos-internos/interface/movimientos-internos.interface';
 import { CajasUpdateDTO } from './dto/cajas-update.dto';
 import { CajasDTO } from './dto/cajas.dto';
 import { ICajas } from './interface/cajas.interface';
@@ -12,6 +13,7 @@ export class CajasService {
 constructor(
   @InjectModel('Cajas') private readonly cajasModel: Model<ICajas>,
   @InjectModel('CajasMovimientos') private readonly movimientosModel: Model<ICajasMovimientos>,
+  @InjectModel('MovimientosInternos') private readonly movimientosInternosModel: Model<IMovimientosInternos>,
   ){};
 
   // Funcion para redondeo
@@ -151,52 +153,75 @@ constructor(
 
     const { 
       caja_origen, 
-      monto, 
-      caja_destino, 
+      caja_destino,
+      monto_origen,
+      monto_destino, 
+      observacion,
       creatorUser,
       updatorUser
     } = movimientoData;
 
+    const ultimoMovimientoInternoDB = await this.movimientosInternosModel.find().sort({ createdAt: -1 }).limit(1);
 
-    const [ultimoCajaMov, caja_origenDB, caja_destinoDB] = await Promise.all([
+    // Proximo numero de MOVIMIENTO INTERNO
+    let nroMovimientoInterno = 0;
+    ultimoMovimientoInternoDB.length === 0 ? nroMovimientoInterno = 1 : nroMovimientoInterno = Number(ultimoMovimientoInternoDB[0].nro + 1);
+
+    const dataMovimientoInterno = {
+      nro: nroMovimientoInterno,
+      caja_origen,
+      caja_destino,
+      monto_origen,
+      monto_destino,
+      observacion,
+      creatorUser,
+      updatorUser
+    }
+
+    const nuevoMovimientoInterno = new this.movimientosInternosModel(dataMovimientoInterno);
+
+    const [ultimoCajaMov, caja_origenDB, caja_destinoDB, movimiento_internoDB] = await Promise.all([
       this.movimientosModel.find().sort({ createdAt: -1 }).limit(1),
       this.cajasModel.findById(caja_origen),
-      this.cajasModel.findById(caja_destino)
+      this.cajasModel.findById(caja_destino),
+      nuevoMovimientoInterno.save()
     ])
     
-    // Proximo numero de movimiento
+    // Proximo numero de MOVIMIENTO DE CAJA
     let nroMovimiento = 0;
     ultimoCajaMov.length === 0 ? nroMovimiento = 1 : nroMovimiento= Number(ultimoCajaMov[0].nro + 1);
 
-    const nuevoSaldoOrigen = caja_origenDB.saldo - monto;
-    const nuevoSaldoDestino = caja_destinoDB.saldo + monto;
+    const nuevoSaldoOrigen = caja_origenDB.saldo - monto_origen;
+    const nuevoSaldoDestino = caja_destinoDB.saldo + monto_destino;
   
-    // 1) - Caja origen
+    // 1) - CAJA ORIGEN
     
     const nuevoMovimientoOrigen = new this.movimientosModel({
       nro: nroMovimiento,
       caja: caja_origen,
-      monto: this.redondear(monto, 2),
+      monto: this.redondear(monto_origen, 2),
       saldo_anterior: this.redondear(caja_origenDB.saldo, 2),
       saldo_nuevo: this.redondear(nuevoSaldoOrigen, 2),
       tipo: 'Haber',
       venta_propia: '',
+      movimiento_interno: movimiento_internoDB._id,
       descripcion: 'MOVIMIENTO INTERNO',
       observacion: caja_origenDB.descripcion + ' -> ' + caja_destinoDB.descripcion,
       creatorUser,
       updatorUser
     });
 
-    // 2) - Caja destino    
+    // 2) - CAJA DESTINO   
 
     const nuevoMovimientoDestino = new this.movimientosModel({
       nro: nroMovimiento + 1,
       caja: caja_destino,
-      monto: this.redondear(monto, 2),
+      monto: this.redondear(monto_destino, 2),
       saldo_anterior: this.redondear(caja_destinoDB.saldo, 2),
       saldo_nuevo: this.redondear(nuevoSaldoDestino, 2),
       tipo: 'Debe',
       venta_propia: '',
+      movimiento_interno: movimiento_internoDB._id,
       descripcion: 'MOVIMIENTO INTERNO',
       observacion: caja_origenDB.descripcion + ' -> ' + caja_destinoDB.descripcion,
       creatorUser,
@@ -210,7 +235,7 @@ constructor(
         saldo: this.redondear(nuevoSaldoOrigen, 2) }),
 
       this.cajasModel.findByIdAndUpdate(caja_destino, { 
-        saldo: this.redondear(caja_destinoDB.saldo + monto, 2) }),
+        saldo: this.redondear(nuevoSaldoDestino, 2) }),
       
       nuevoMovimientoOrigen.save(),
       nuevoMovimientoDestino.save()

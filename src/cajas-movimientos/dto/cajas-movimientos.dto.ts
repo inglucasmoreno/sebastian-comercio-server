@@ -31,6 +31,8 @@ export class CajasMovimientosDTO {
 
   readonly orden_pago: string;
 
+  readonly movimiento_interno: string;
+
   readonly cheque: string;
 
   readonly activo: boolean;

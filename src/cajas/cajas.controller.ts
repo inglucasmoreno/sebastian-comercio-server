@@ -42,7 +42,7 @@ export class CajasController {
         });
   }
 
-    // Crear caja
+    // Crear movimiento interno
     @UseGuards(JwtAuthGuard)
     @Post('/movimiento-interno')
     async movimientoInterno(@Res() res, @Body() movimientoData: any ) {

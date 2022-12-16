@@ -13,6 +13,7 @@ export interface ICajasMovimientos extends Document {
   readonly gasto: string;
   readonly recibo_cobro: string;
   readonly orden_pago: string;
+  readonly movimiento_interno: string;
   readonly cheque: string;
   readonly observacion: string;
   readonly activo: boolean;

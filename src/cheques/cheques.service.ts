@@ -196,7 +196,6 @@ export class ChequesService {
 
     }
 
-
     // Ordenando datos
     const ordenar: any = {};
     if (columna) {
