@@ -6,7 +6,7 @@ export class ComprasDTO {
 
   readonly nro_factura: string;
 
-  readonly obervacion: string;
+  readonly observacion: string;
 
   readonly nro: number;
   

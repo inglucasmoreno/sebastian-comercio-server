@@ -5,7 +5,7 @@ export class ComprasUpdateDTO {
 
   readonly nro_factura: string;
 
-  readonly obervacion: string;
+  readonly observacion: string;
 
   readonly proveedor: string;
 

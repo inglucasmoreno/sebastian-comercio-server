@@ -220,6 +220,7 @@ export class OrdenesPagoService {
       updatorUser,
     } = ordenesPagoDTO;
 
+    console.log(ordenesPagoDTO);
 
     //** GENERACION DE ORDEN DE PAGO
 
@@ -712,7 +713,7 @@ export class OrdenesPagoService {
 
     const data = {
       fecha: orden_pago.fecha_pago ? format(orden_pago.fecha_pago, 'dd/MM/yyyy') : format(orden_pago.createdAt, 'dd/MM/yyyy'),
-      cliente: orden_pago.proveedor['descripcion'],
+      proveedor: orden_pago.proveedor['descripcion'],
       numero: mostrarNumero,
       pago_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(orden_pago.pago_total)),
       comprobantesPDF,

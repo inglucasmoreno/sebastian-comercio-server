@@ -237,6 +237,7 @@ export class ComprasService {
     const {
       proveedor,
       fecha_compra,
+      observacion,
       monto_pago,
       precio_total,
       productos,
@@ -266,6 +267,7 @@ export class ComprasService {
       fecha_compra: add(new Date(fecha_compra), { hours: 3 }),
       nro_factura,
       proveedor,
+      observacion,
       monto_deuda,
       formas_pago,
       monto_pago,
@@ -274,6 +276,8 @@ export class ComprasService {
       creatorUser,
       updatorUser
     }
+
+    console.log(observacion);
 
     const nuevaCompra = new this.comprasModel(dataCompra);
     const compraDB = await nuevaCompra.save();
