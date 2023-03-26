@@ -109,8 +109,6 @@ export class CcProveedoresMovimientosService {
       parametro,
       cc_proveedor } = querys;
 
-    console.log(querys);
-
     const pipeline = [];
     const pipelineTotal = [];
 

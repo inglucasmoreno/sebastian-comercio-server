@@ -220,8 +220,6 @@ export class OrdenesPagoService {
       updatorUser,
     } = ordenesPagoDTO;
 
-    console.log(ordenesPagoDTO);
-
     //** GENERACION DE ORDEN DE PAGO
 
     // Generacion de numero

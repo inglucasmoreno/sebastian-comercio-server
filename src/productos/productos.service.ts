@@ -91,7 +91,8 @@ export class ProductosService {
 						registerpp,
 						activo,
 						parametro,
-            alerta_stock
+            alerta_stock,
+            alerta_cantidad_negativa
 		} = querys;
 
 		// Pipelines
@@ -207,6 +208,12 @@ export class ProductosService {
     if(alerta_stock === 'true'){
       productos = productos.filter( producto => (producto.stock_minimo_alerta && (producto.cantidad <= producto.cantidad_minima)));
       productosTotal = productosTotal.filter( producto => (producto.stock_minimo_alerta && (producto.cantidad <= producto.cantidad_minima)));
+    }
+
+    // Filtro por cantidad negativa
+    if(alerta_cantidad_negativa === 'true'){
+      productos = productos.filter( producto => (producto.cantidad < 0));
+      productosTotal = productosTotal.filter( producto => (producto.cantidad < 0));
     }
     
     return {

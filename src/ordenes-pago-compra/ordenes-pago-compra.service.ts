@@ -85,8 +85,6 @@ export class OrdenesPagoCompraService {
 
     const { columna, direccion, orden_pago, compra } = querys;
 
-    console.log(querys);
-
     const pipeline = [];
     pipeline.push({ $match: {} });
 
@@ -162,8 +160,6 @@ export class OrdenesPagoCompraService {
     }
 
     const relaciones = await this.ordenesPagoCompraModel.aggregate(pipeline);
-
-    console.log(relaciones);
 
     return relaciones;
 

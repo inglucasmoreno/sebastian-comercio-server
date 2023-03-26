@@ -17,6 +17,7 @@ import { ICcClientesMovimientos } from 'src/cc-clientes-movimientos/interface/cc
 import { ICajas } from 'src/cajas/interface/cajas.interface';
 import { ICajasMovimientos } from 'src/cajas-movimientos/interface/cajas-movimientos.interface';
 import { IRecibosCobroVenta } from 'src/recibos-cobro-venta/interface/recibos-cobro-venta.interface';
+import { IProductos } from 'src/productos/interface/productos.interface';
 
 @Injectable()
 export class VentasPropiasService {
@@ -25,6 +26,7 @@ export class VentasPropiasService {
 
     constructor(
         @InjectModel('VentasPropias') private readonly ventasModel: Model<IVentasPropias>,
+        @InjectModel('Productos') private readonly productosModel: Model<IProductos>,
         @InjectModel('Cheques') private readonly chequesModel: Model<ICheques>,
         @InjectModel('Clientes') private readonly clientesModel: Model<IClientes>,
         @InjectModel('VentasPropiasCheques') private readonly ventasPropiasChequesModel: Model<IVentasPropiasCheques>,
@@ -532,9 +534,14 @@ export class VentasPropiasService {
 
         // CARGA DE PRODUCTOS
         let productosVenta: any = productos;
-        productosVenta.map(producto => producto.venta_propia = String(ventaDB._id))
 
+        productosVenta.map(producto => producto.venta_propia = String(ventaDB._id))
         await this.ventaProductosModel.insertMany(productosVenta);
+
+        // Impacto en stock
+        productosVenta.map( async producto => {
+            await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } })    
+        })
 
         // GENERACION DE PDF
 

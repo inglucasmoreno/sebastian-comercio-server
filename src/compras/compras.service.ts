@@ -17,12 +17,14 @@ import { ICompras } from './interface/compras.interface';
 import * as fs from 'fs';
 import * as pdf from 'pdf-creator-node';
 import { IOrdenesPagoCompra } from 'src/ordenes-pago-compra/interface/ordenes-pago-compra.interface';
+import { IProductos } from 'src/productos/interface/productos.interface';
 
 @Injectable()
 export class ComprasService {
 
   constructor(
     @InjectModel('Compras') private readonly comprasModel: Model<ICompras>,
+    @InjectModel('Productos') private readonly productosModel: Model<IProductos>,
     @InjectModel('ComprasProductos') private readonly comprasProductosModel: Model<IComprasProductos>,
     @InjectModel('ComprasCajas') private readonly comprasCajasModel: Model<IComprasCajas>,
     @InjectModel('ComprasCheques') private readonly comprasChequesModel: Model<IComprasCheques>,
@@ -277,8 +279,6 @@ export class ComprasService {
       updatorUser
     }
 
-    console.log(observacion);
-
     const nuevaCompra = new this.comprasModel(dataCompra);
     const compraDB = await nuevaCompra.save();
 
@@ -306,7 +306,11 @@ export class ComprasService {
       }
 
       const nuevaRelacion = new this.comprasProductosModel(dataProducto);
-      await nuevaRelacion.save();
+
+      await Promise.all([
+        nuevaRelacion.save(), // Generando relacion Producto - Compra
+        this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: producto.cantidad } }) // Incrementando el stock
+      ])
 
     });
 

@@ -106,8 +106,6 @@ export class CcClientesMovimientosService {
       cc_cliente
     } = querys;
 
-    console.log(parametro);
-
     const pipeline = [];
     const pipelineTotal = [];
 
