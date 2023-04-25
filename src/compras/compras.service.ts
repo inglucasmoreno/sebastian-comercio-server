@@ -510,7 +510,10 @@ export class ComprasService {
 
     const { estado, creatorUser, updatorUser } = data;
 
-    const compraDB = await this.comprasModel.findById(id);
+    const [compraDB, productos] = await Promise.all([
+      this.comprasModel.findById(id),
+      this.comprasProductosModel.find({ compra: id })  // Productos de la compra
+    ]);
 
     // Verificacion: La compra no existe
     if (!compraDB) throw new NotFoundException('La compra no existe');
@@ -660,6 +663,15 @@ export class ComprasService {
       else saldoCheque = cajaCheque.saldo - saldoCheque;
       await this.cajasModel.findByIdAndUpdate('222222222222222222222222', { saldo: saldoCheque });
     }
+
+    // Ajuste de stock
+    productos.map( async producto => {
+      if(estado === 'Alta'){
+        await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: producto.cantidad } }) // Incrementando stock
+      }else{
+        await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } }) // Decrementando stock
+      }
+    })
 
     // Generando movimientos
     const compra = await this.comprasModel.findByIdAndUpdate(id, condicion, { new: true });

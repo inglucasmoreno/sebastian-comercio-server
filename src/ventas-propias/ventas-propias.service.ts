@@ -648,7 +648,10 @@ export class VentasPropiasService {
 
         const { estado, creatorUser, updatorUser } = data;
 
-        const ventaDB = await this.ventasModel.findById(id);
+        const [ventaDB, productos] = await Promise.all([
+            this.ventasModel.findById(id),
+            this.ventaProductosModel.find({venta_propia: id})
+        ]);
 
         // Verificacion: La venta no existe
         if (!ventaDB) throw new NotFoundException('La venta no existe');
@@ -792,6 +795,15 @@ export class VentasPropiasService {
             else saldoCheque = cajaCheque.saldo - saldoCheque;
             await this.cajasModel.findByIdAndUpdate('222222222222222222222222', { saldo: saldoCheque });
         }
+
+        // Ajuste de stock
+        productos.map( async producto => {
+            if(estado === 'Alta'){
+            await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } }) // Incrementando stock
+            }else{
+            await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: producto.cantidad } }) // Decrementando stock
+            }
+        })
 
         // Generando movimientos
         const venta = await this.ventasModel.findByIdAndUpdate(id, condicion, { new: true });
