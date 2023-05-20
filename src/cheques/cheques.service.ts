@@ -8,6 +8,12 @@ import { IProveedores } from 'src/proveedores/interface/proveedores.interface';
 import { ChequesUpdateDTO } from './dto/cheques-update';
 import { ChequesDTO } from './dto/cheques.dto';
 import { ICheques } from './interface/cheques.interface';
+import { IComprasCheques } from 'src/compras-cheques/interface/compras-cheques.interface';
+import { IVentasPropiasCheques } from 'src/ventas-propias-cheques/interface/ventas-propias-cheques.interface';
+import { IOrdenesPagoCheques } from 'src/ordenes-pago-cheques/interface/ordenes-pago-cheques.interface';
+import { IRecibosCobroCheque } from 'src/recibos-cobro-cheque/interface/recibos-cheque.interface';
+import { IRecibosCobroVenta } from 'src/recibos-cobro-venta/interface/recibos-cobro-venta.interface';
+import { IOrdenesPagoCompra } from 'src/ordenes-pago-compra/interface/ordenes-pago-compra.interface';
 
 @Injectable()
 export class ChequesService {
@@ -17,6 +23,12 @@ export class ChequesService {
     @InjectModel('Cajas') private readonly cajasModel: Model<ICajas>,
     @InjectModel('CajasMovimientos') private readonly cajasMovimientosModel: Model<ICajasMovimientos>,
     @InjectModel('Proveedores') private readonly proveedoresModel: Model<IProveedores>,
+    @InjectModel('comprasCheques') private readonly comprasChequesModel: Model<IComprasCheques>,
+    @InjectModel('ventasPropiasCheques') private readonly ventasPropiasChequesModel: Model<IVentasPropiasCheques>,
+    @InjectModel('ordenesPagoCheques') private readonly ordenesPagoChequesModel: Model<IOrdenesPagoCheques>,
+    @InjectModel('recibosCobroCheques') private readonly recibosCobroChequesModel: Model<IRecibosCobroCheque>,
+    @InjectModel('recibosCobroVenta') private readonly recibosCobroVentaModel: Model<IRecibosCobroVenta>,
+    @InjectModel('ordenesPagoCompra') private readonly ordenesPagoCompraModel: Model<IOrdenesPagoCompra>,
   ) { };
 
   // Funcion para redondeo
@@ -87,11 +99,11 @@ export class ChequesService {
     let destino = null;
     let destino_caja = null;
 
-    if(cheque[0].destino && cheque[0].destino.trim() !== ''){
+    if (cheque[0].destino && cheque[0].destino.trim() !== '') {
       destino = await this.proveedoresModel.findById(cheque[0].destino);
     }
-    
-    if(cheque[0].destino_caja && cheque[0].destino_caja.trim() !== ''){
+
+    if (cheque[0].destino_caja && cheque[0].destino_caja.trim() !== '') {
       destino_caja = await this.cajasModel.findById(cheque[0].destino_caja);
     }
 
@@ -100,6 +112,142 @@ export class ChequesService {
       destino,
       destino_caja
     }
+
+  }
+
+  // Listar de relaciones
+  async getRelaciones(id: string): Promise<any> {
+
+    const idCheque = new Types.ObjectId(id);
+
+    // --> Relacion con compra
+    const pipelineCompra = [];
+    pipelineCompra.push({ $match: { cheque: idCheque } });
+
+    // Informacion de la venta
+    pipelineCompra.push({
+      $lookup: { // Lookup
+        from: 'compras',
+        localField: 'compra',
+        foreignField: '_id',
+        as: 'compra'
+      }
+    }
+    );
+    pipelineCompra.push({ $unwind: '$compra' });
+
+    // --> Relacion con venta
+    const pipelineVenta = [];
+    pipelineVenta.push({ $match: { cheque: idCheque } });
+
+    // Informacion de la venta
+    pipelineVenta.push({
+      $lookup: { // Lookup
+        from: 'ventas_propias',
+        localField: 'venta_propia',
+        foreignField: '_id',
+        as: 'venta_propia'
+      }
+    }
+    );
+    pipelineVenta.push({ $unwind: '$venta_propia' });
+
+    // Relacion -> orden de pago
+    const pipelineOrdenesPago = [];
+    pipelineOrdenesPago.push({ $match: { cheque: idCheque } });
+
+    // Informacion de la orden de pago
+    pipelineOrdenesPago.push({
+      $lookup: { // Lookup
+        from: 'ordenes_pago',
+        localField: 'orden_pago',
+        foreignField: '_id',
+        as: 'orden_pago'
+      }
+    }
+    );
+    pipelineOrdenesPago.push({ $unwind: '$orden_pago' });
+
+    // Relacion -> recibo de cobro
+    const pipelineRecibosCobro = [];
+    pipelineRecibosCobro.push({ $match: { cheque: idCheque } });
+
+    // Informacion del recibo de cobro
+    pipelineRecibosCobro.push({
+      $lookup: { // Lookup
+        from: 'recibos_cobros',
+        localField: 'recibo_cobro',
+        foreignField: '_id',
+        as: 'recibo_cobro'
+      }
+    }
+    );
+    pipelineRecibosCobro.push({ $unwind: '$recibo_cobro' });
+
+    const [chequeVenta, chequeCompra, chequeOrdenPago, chequeReciboCobro] = await Promise.all<any>([
+      this.ventasPropiasChequesModel.aggregate(pipelineVenta),
+      this.comprasChequesModel.aggregate(pipelineCompra),
+      this.ordenesPagoChequesModel.aggregate(pipelineOrdenesPago),
+      this.recibosCobroChequesModel.aggregate(pipelineRecibosCobro),
+    ])
+
+    let ventaPropia = chequeVenta[0] ? chequeVenta[0].venta_propia : null;
+    let compra = chequeCompra[0] ? chequeCompra[0].compra : null;
+    let ordenPago = chequeOrdenPago[0] ? chequeOrdenPago[0].orden_pago : null;
+    let reciboCobro = chequeReciboCobro[0] ? chequeReciboCobro[0].recibo_cobro : null;
+
+    // Obtener venta propia desde recibo de cobro
+    if(chequeReciboCobro[0]){
+
+      const pipelineTMP = [];
+      pipelineTMP.push({ $match: { recibo_cobro: chequeReciboCobro[0].recibo_cobro._id } });
+  
+      // Informacion del recibo de cobro
+      pipelineTMP.push({
+        $lookup: { // Lookup
+          from: 'ventas_propias',
+          localField: 'venta_propia',
+          foreignField: '_id',
+          as: 'venta_propia'
+        }
+      }
+      );
+      pipelineTMP.push({ $unwind: '$venta_propia' });
+
+      const relacionTMP: any = await this.recibosCobroVentaModel.aggregate(pipelineTMP);
+      ventaPropia = relacionTMP[0].venta_propia;
+
+    }
+
+    // Obtener compra desde orden de pago
+    if(chequeOrdenPago[0]){
+      
+      const pipelineTMP = [];
+      pipelineTMP.push({ $match: { orden_pago: chequeOrdenPago[0].orden_pago._id } });
+  
+      // Informacion de la orden de pago
+      pipelineTMP.push({
+        $lookup: { // Lookup
+          from: 'compras',
+          localField: 'compra',
+          foreignField: '_id',
+          as: 'compra'
+        }
+      }
+      );
+      pipelineTMP.push({ $unwind: '$compra' });
+
+      const relacionTMP: any = await this.ordenesPagoCompraModel.aggregate(pipelineTMP);
+      compra = relacionTMP[0].compra;
+    
+    }
+
+    return {
+      ventaPropia,
+      compra,
+      ordenPago,
+      reciboCobro,
+    };
 
   }
 
@@ -296,7 +444,7 @@ export class ChequesService {
       // Movimientos -> En CHEQUES y DESTINO
 
       const ultimoCajaMov = await this.cajasMovimientosModel.find().sort({ createdAt: -1 }).limit(1);
-      
+
       // Proximo numero de movimiento
       let nroCaja = 0;
       ultimoCajaMov.length === 0 ? nroCaja = 1 : nroCaja = Number(ultimoCajaMov[0].nro + 1);

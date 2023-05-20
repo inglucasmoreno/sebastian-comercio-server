@@ -35,6 +35,17 @@ export class ChequesController {
         });
     }
 
+    // Relaciones
+    @UseGuards(JwtAuthGuard)
+    @Get('/relaciones/:id')
+    async getRelaciones(@Res() res, @Param('id') chequeID) {
+        const relaciones = await this.chequesService.getRelaciones(chequeID);
+        res.status(HttpStatus.OK).json({
+            message: 'Listado de relaciones de cheques correcto',
+            relaciones
+        });
+    }
+
     // Crear cheque
     @UseGuards(JwtAuthGuard)
     @Post('/')

@@ -1,0 +1,6 @@
+
+### -> Listar relaciones
+
+GET http://localhost:3000/cheques/relaciones/6467dbbdeb2e15d7573d8809
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2MzExNDQ0YWM0MGQ5ZmMwMDEyOWRmOGYiLCJ1c3VhcmlvIjoibG1vcmVubyIsImFwZWxsaWRvIjoiTU9SRU5PIiwibm9tYnJlIjoiTFVDQVMgT01BUiIsInBlcm1pc29zIjpbXSwicm9sZSI6IkFETUlOX1JPTEUiLCJpYXQiOjE2ODQ1MTgzNzcsImV4cCI6MTY4NDU2MTU3N30.-JT4Ma4e9nQVdtWg15o4GhTDkOqld--l0WToV4s17s0
+Content-Type: application/json
