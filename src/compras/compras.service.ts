@@ -252,7 +252,22 @@ export class ComprasService {
       updatorUser
     } = compraDTO;
 
-    // 1) - CREACION DE COMPRA
+    //** VERIFICACIONES INICIALES */
+
+    // Cheques validos al momento de pagar
+
+    let chequeInvalido: any;
+
+    await Promise.all(
+      cheques.map( async (cheque: any) => {
+        const chequeDB = await this.chequesModel.findById(cheque._id);
+        if(chequeDB.estado !== 'Creado') chequeInvalido = chequeDB;
+      })
+    );
+
+    if(chequeInvalido) throw new NotFoundException(`El #${chequeInvalido.nro_cheque} no esta en cartera`);
+
+    //** 1) - CREACION DE COMPRA
 
     let nroCompra: number = 0;
 
@@ -291,7 +306,7 @@ export class ComprasService {
     else if (compraDB.nro <= 99999) codigoCompra = 'C00' + String(compraDB.nro);
     else if (compraDB.nro <= 999999) codigoCompra = 'C0' + String(compraDB.nro);
 
-    // 2) - RELACION PRODUCTOS - COMPRA
+    //** 2) - RELACION PRODUCTOS - COMPRA
 
     productos.map(async (producto: any) => {
 
@@ -314,7 +329,7 @@ export class ComprasService {
 
     });
 
-    // 3) - RELACION CAJAS - COMPRA
+    //** 3) - RELACION CAJAS - COMPRA
 
     let nroMovimientoCaja = 0;
     const ultimoCajaMov = await this.cajasMovimientosModel.find().sort({ createdAt: -1 }).limit(1);
@@ -393,11 +408,14 @@ export class ComprasService {
 
     });
 
-    // 4) - RELACION CHEQUES - COMPRA
+    //** 4) - RELACION CHEQUES - COMPRA
 
     let totalCheques = 0;
 
-    cheques.map(async (cheque: any) => {
+    // cheques.map(async (cheque: any) => {
+    for( const elemento of cheques ) {
+
+      const cheque: any = elemento;
 
       totalCheques += cheque.importe;
 
@@ -418,7 +436,9 @@ export class ComprasService {
         fecha_salida: add(new Date(fecha_compra), { hours: 3 }),
       });
 
-    });
+    // });
+
+    }
 
     if (cheques.length !== 0) {
       // Impacto sobre saldo de cheques
@@ -449,7 +469,7 @@ export class ComprasService {
     }
 
 
-    // 5) - SALDO A FAVOR - IMPACTO EN CUENTA CORRIENTE
+    //** 5) - SALDO A FAVOR - IMPACTO EN CUENTA CORRIENTE
 
     if (monto_pago > precio_total) {
 
@@ -483,7 +503,7 @@ export class ComprasService {
 
     }
 
-    // 6) - GENERACION DE PDF
+    //** 6) - GENERACION DE PDF
     await this.generarPDF({ compra: compraDB._id });
 
     return compraDB;

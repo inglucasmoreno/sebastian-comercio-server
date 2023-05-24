@@ -220,6 +220,21 @@ export class OrdenesPagoService {
       updatorUser,
     } = ordenesPagoDTO;
 
+    //** VERIFICACIONES INICIALES */
+
+    // Cheques validos al momento de pagar
+
+    let chequeInvalido: any;
+
+    await Promise.all(
+      cheques.map( async cheque => {
+        const chequeDB = await this.chequesModel.findById(cheque._id);
+        if(chequeDB.estado !== 'Creado') chequeInvalido = chequeDB;
+      })
+    );
+
+    if(chequeInvalido) throw new NotFoundException(`El #${chequeInvalido.nro_cheque} no esta en cartera`);
+    
     //** GENERACION DE ORDEN DE PAGO
 
     // Generacion de numero
@@ -292,7 +307,9 @@ export class OrdenesPagoService {
     let totalCheques = 0;
 
     // RECORRIDO -> CHEQUES
-    cheques.map(async elemento => {
+    for( const elemento of cheques ) {
+
+    // cheques.map(async elemento => {
 
       totalCheques += elemento.importe;
 
@@ -314,7 +331,9 @@ export class OrdenesPagoService {
         fecha_salida: add(new Date(fecha_pago), { hours: 3 }),
       });
 
-    })
+    // })
+    
+    }
 
     //** IMPACTOS EN CAJA - CHEQUES + MOVIMIENTOS
 
