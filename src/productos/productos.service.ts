@@ -91,8 +91,8 @@ export class ProductosService {
 						registerpp,
 						activo,
 						parametro,
-            alerta_stock,
-            alerta_cantidad_negativa
+            alerta_stock = 'false',
+            alerta_cantidad_negativa = 'false'
 		} = querys;
 
 		// Pipelines
@@ -194,8 +194,9 @@ export class ProductosService {
 		}
 
     // Paginacion
-    pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
-
+    if(alerta_stock === 'true' || alerta_cantidad_negativa === 'true') pipeline.push({$skip: Number(0)}, {$limit: Number(100000)});
+    else pipeline.push({$skip: Number(desde)}, {$limit: Number(registerpp)});
+     
 		// Busqueda de productos
 		let [productos, productosTotal, unidades_medida, familias] = await Promise.all([
 			this.productosModel.aggregate(pipeline),
@@ -220,7 +221,7 @@ export class ProductosService {
 			productos,
       unidades_medida,
       familias,
-			totalItems: productosTotal.length
+			totalItems: (alerta_stock === 'true' || alerta_cantidad_negativa === 'true') ? productos.length : productosTotal.length
 		};
 
   }

@@ -815,6 +815,8 @@ export class ComprasService {
       total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(compra.precio_total)
     };
 
+    console.log(data);
+
     var options = {
       format: 'A4',
       orientation: 'portrait',
