@@ -16,6 +16,8 @@ import { ComprasDTO } from './dto/compras.dto';
 import { ICompras } from './interface/compras.interface';
 import * as fs from 'fs';
 import * as pdf from 'pdf-creator-node';
+import * as ExcelJs from 'exceljs';
+import * as path from 'path';
 import { IOrdenesPagoCompra } from 'src/ordenes-pago-compra/interface/ordenes-pago-compra.interface';
 import { IProductos } from 'src/productos/interface/productos.interface';
 
@@ -259,13 +261,13 @@ export class ComprasService {
     let chequeInvalido: any;
 
     await Promise.all(
-      cheques.map( async (cheque: any) => {
+      cheques.map(async (cheque: any) => {
         const chequeDB = await this.chequesModel.findById(cheque._id);
-        if(chequeDB.estado !== 'Creado') chequeInvalido = chequeDB;
+        if (chequeDB.estado !== 'Creado') chequeInvalido = chequeDB;
       })
     );
 
-    if(chequeInvalido) throw new NotFoundException(`El #${chequeInvalido.nro_cheque} no esta en cartera`);
+    if (chequeInvalido) throw new NotFoundException(`El #${chequeInvalido.nro_cheque} no esta en cartera`);
 
     //** 1) - CREACION DE COMPRA
 
@@ -413,7 +415,7 @@ export class ComprasService {
     let totalCheques = 0;
 
     // cheques.map(async (cheque: any) => {
-    for( const elemento of cheques ) {
+    for (const elemento of cheques) {
 
       const cheque: any = elemento;
 
@@ -430,13 +432,13 @@ export class ComprasService {
       await nuevaRelacion.save();
 
       // Actualizacion de cheques
-      await this.chequesModel.findByIdAndUpdate(cheque._id, { 
-        estado: 'Transferido', 
-        destino: String(proveedor), 
+      await this.chequesModel.findByIdAndUpdate(cheque._id, {
+        estado: 'Transferido',
+        destino: String(proveedor),
         fecha_salida: add(new Date(fecha_compra), { hours: 3 }),
       });
 
-    // });
+      // });
 
     }
 
@@ -665,14 +667,14 @@ export class ComprasService {
     cheques.map(async (elemento: any) => {
       saldoCheque += elemento.cheque.importe;
       let dataCheque: any = null
-      if (estado === 'Alta') dataCheque = { 
-        estado: 'Creado', 
-        activo: true, 
+      if (estado === 'Alta') dataCheque = {
+        estado: 'Creado',
+        activo: true,
         destino: ''
       };
-      else dataCheque = { 
-        estado: 'Baja', 
-        activo: false 
+      else dataCheque = {
+        estado: 'Baja',
+        activo: false
       };
       await this.chequesModel.findByIdAndUpdate(elemento.cheque._id, dataCheque);
     });
@@ -685,10 +687,10 @@ export class ComprasService {
     }
 
     // Ajuste de stock
-    productos.map( async producto => {
-      if(estado === 'Alta'){
+    productos.map(async producto => {
+      if (estado === 'Alta') {
         await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: producto.cantidad } }) // Incrementando stock
-      }else{
+      } else {
         await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } }) // Decrementando stock
       }
     })
@@ -725,7 +727,7 @@ export class ComprasService {
 
     const pipelineProductos: any = [];
     pipelineProductos.push({ $match: { compra: idCompra } });
-    
+
     // Informacion de producto
     pipelineProductos.push({
       $lookup: { // Lookup
@@ -750,7 +752,7 @@ export class ComprasService {
     }
     );
 
-    pipelineProductos.push({ $unwind: '$producto.unidad_medida' });    
+    pipelineProductos.push({ $unwind: '$producto.unidad_medida' });
 
     // Promisa ALL
     const [compra, productos, relaciones] = await Promise.all([
@@ -850,5 +852,79 @@ export class ComprasService {
 
   }
 
+  // Reporte en Excel
+  async generarExcel(data: any): Promise<any> {
+
+    const { fechaDesde, fechaHasta } = data;
+
+    console.log(fechaDesde, fechaHasta);
+
+    // OBTENCION DE DATOS
+
+    const pipeline = [];
+    pipeline.push({ $match: {} });
+
+    const condicionProveedor = {
+      $lookup: { // Lookup
+        from: 'proveedores',
+        localField: 'proveedor',
+        foreignField: '_id',
+        as: 'proveedor'
+      }
+    }
+
+    pipeline.push(condicionProveedor);
+    pipeline.push({ $unwind: '$proveedor' });
+
+    const compras = await this.comprasModel.aggregate(pipeline);
+
+    // GENERACION EXCEL
+
+    const workbook = new ExcelJs.Workbook();
+    const worksheet = workbook.addWorksheet('Reporte - Compras');
+
+    worksheet.addRow(['Número', 'Fecha de compra', 'Fecha de carga', 'Proveedor', 'Precio total', 'Habilitada', 'Cancelada']);
+
+    // Autofiltro
+    worksheet.autoFilter = 'A1:G1';
+
+    // Estilo de filas y columnas
+
+    worksheet.getRow(1).height = 20;
+
+    worksheet.getRow(1).eachCell(cell => {
+      cell.font = { bold: true }
+    });
+
+    worksheet.getColumn(1).width = 14; // Codigo
+    worksheet.getColumn(2).width = 15; // Fecha de venta
+    worksheet.getColumn(3).width = 15; // Fecha de carga
+    worksheet.getColumn(4).width = 40; // Cliente
+    worksheet.getColumn(5).width = 25; // Precio total
+    worksheet.getColumn(6).width = 15; // Habilitadas
+    worksheet.getColumn(7).width = 16; // Canceladas
+
+    // Agregar elementos
+    compras.map(compra => {
+      worksheet.addRow([
+        compra.nro,
+        add(compra.fecha_venta ? compra.fecha_venta : compra.createdAt, { hours: -3 }),
+        add(compra.createdAt, { hours: -3 }),
+        compra.proveedor['descripcion'],
+        Number(compra.precio_total),
+        compra.activo ? 'SI' : 'NO',
+        compra.cancelada ? 'SI' : 'NO'
+      ]);
+    });
+
+
+    const nombreReporte = '../../public/excel/compras.xlsx';
+    workbook.xlsx.writeFile(path.join(__dirname, nombreReporte)).then(async data => {
+      const pathReporte = path.join(__dirname, nombreReporte);
+    });
+
+    return true;
+
+  }
 
 }

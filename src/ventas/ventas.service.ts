@@ -513,7 +513,14 @@ export class VentasService {
     }
 
     // Reporte excel
-    async generarExcel(): Promise<any> {
+    async generarExcel(data: any): Promise<any> {
+
+        const {
+            fechaDesde,
+            fechaHasta
+        } = data;
+
+        console.log(fechaDesde, fechaHasta);
 
         // Obtener ventas
         const respuesta = await this.getAll({ 

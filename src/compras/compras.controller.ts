@@ -75,5 +75,15 @@ export class ComprasController {
     });
   }
 
+  // Reporte en Excel
+  @UseGuards(JwtAuthGuard)
+  @Post('/generarExcel')
+  async generarExcel(@Res() res, @Body() data: any) {
+    await this.comprasService.generarExcel(data);
+    res.status(HttpStatus.CREATED).json({
+      message: 'Excel generado correctamente',
+    });
+  }
+
 
 }
