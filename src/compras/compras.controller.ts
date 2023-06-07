@@ -76,13 +76,22 @@ export class ComprasController {
   }
 
   // Reporte en Excel
-  @UseGuards(JwtAuthGuard)
-  @Post('/generarExcel')
-  async generarExcel(@Res() res, @Body() data: any) {
-    await this.comprasService.generarExcel(data);
-    res.status(HttpStatus.CREATED).json({
-      message: 'Excel generado correctamente',
-    });
+  // @UseGuards(JwtAuthGuard)
+  @Get('/generarExcel/2/2')
+  async generarExcel(@Res() res) {
+    console.log('Llega');
+    const buffer = await this.comprasService.generarExcel({});
+    
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      // 'Content-Disposition': 'attachment; filename-example.pdf',
+      'Content-Length': buffer.length
+    })
+    
+    res.end(buffer);
+    // res.status(HttpStatus.CREATED).json({
+    //   message: 'Excel generado correctamente',
+    // });
   }
 
 

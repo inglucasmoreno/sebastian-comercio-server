@@ -817,8 +817,6 @@ export class ComprasService {
       total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(compra.precio_total)
     };
 
-    console.log(data);
-
     var options = {
       format: 'A4',
       orientation: 'portrait',
@@ -857,8 +855,6 @@ export class ComprasService {
 
     const { fechaDesde, fechaHasta } = data;
 
-    console.log(fechaDesde, fechaHasta);
-
     // OBTENCION DE DATOS
 
     const pipeline = [];
@@ -873,6 +869,20 @@ export class ComprasService {
       }
     }
 
+    // Filtro por fechas [ Desde -> Hasta ]
+
+    if(fechaDesde && fechaDesde.trim() !== ''){
+      pipeline.push({$match: { 
+        fecha_compra: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
+      }});    
+    }
+
+    if(fechaHasta && fechaHasta.trim() !== ''){
+      pipeline.push({$match: { 
+        fecha_compra: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
+      }});
+    }
+
     pipeline.push(condicionProveedor);
     pipeline.push({ $unwind: '$proveedor' });
 
@@ -883,23 +893,31 @@ export class ComprasService {
     const workbook = new ExcelJs.Workbook();
     const worksheet = workbook.addWorksheet('Reporte - Compras');
 
+    worksheet.addRow([
+      'Desde:', 
+      `${fechaDesde && fechaDesde.trim() !== '' ? format(add(new Date(fechaDesde), {hours: 3}), 'dd-MM-yyyy') : 'Principio'}`, 
+      'Hasta:', 
+      `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), {hours: 3}), 'dd-MM-yyyy') : 'Ahora'}`
+    ]);
+
     worksheet.addRow(['Número', 'Fecha de compra', 'Fecha de carga', 'Proveedor', 'Precio total', 'Habilitada', 'Cancelada']);
 
     // Autofiltro
-    worksheet.autoFilter = 'A1:G1';
+
+    worksheet.autoFilter = 'A2:G2';
 
     // Estilo de filas y columnas
 
     worksheet.getRow(1).height = 20;
+    worksheet.getRow(2).height = 20;
 
-    worksheet.getRow(1).eachCell(cell => {
-      cell.font = { bold: true }
-    });
+    worksheet.getRow(1).eachCell(cell => { cell.font = { bold: true } });
+    worksheet.getRow(2).eachCell(cell => { cell.font = { bold: true } });
 
     worksheet.getColumn(1).width = 14; // Codigo
-    worksheet.getColumn(2).width = 15; // Fecha de venta
-    worksheet.getColumn(3).width = 15; // Fecha de carga
-    worksheet.getColumn(4).width = 40; // Cliente
+    worksheet.getColumn(2).width = 20; // Fecha de compra
+    worksheet.getColumn(3).width = 20; // Fecha de carga
+    worksheet.getColumn(4).width = 40; // Proveedor
     worksheet.getColumn(5).width = 25; // Precio total
     worksheet.getColumn(6).width = 15; // Habilitadas
     worksheet.getColumn(7).width = 16; // Canceladas
@@ -918,12 +936,15 @@ export class ComprasService {
     });
 
 
-    const nombreReporte = '../../public/excel/compras.xlsx';
-    workbook.xlsx.writeFile(path.join(__dirname, nombreReporte)).then(async data => {
-      const pathReporte = path.join(__dirname, nombreReporte);
-    });
+    return await workbook.xlsx.writeBuffer();
 
-    return true;
+    // const nombreReporte = '../../public/excel/compras.xlsx';
+    // workbook.xlsx.writeFile(path.join(__dirname, nombreReporte)).then(async data => {
+    //   const pathReporte = path.join(__dirname, nombreReporte);
+    // });
+
+    // return true;
+
 
   }
 

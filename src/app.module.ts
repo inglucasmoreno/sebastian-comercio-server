@@ -46,6 +46,7 @@ import { ComprasChequesModule } from './compras-cheques/compras-cheques.module';
 import { OrdenesPagoChequesModule } from './ordenes-pago-cheques/ordenes-pago-cheques.module';
 import { OrdenesPagoCompraModule } from './ordenes-pago-compra/ordenes-pago-compra.module';
 import { MovimientosInternosModule } from './movimientos-internos/movimientos-internos.module';
+import { ReportesModule } from './reportes/reportes.module';
 
 @Module({
   imports: [
@@ -109,6 +110,7 @@ import { MovimientosInternosModule } from './movimientos-internos/movimientos-in
     OrdenesPagoChequesModule,
     OrdenesPagoCompraModule,
     MovimientosInternosModule,
+    ReportesModule,
   ],
   
   controllers: [AppController],

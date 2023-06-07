@@ -520,8 +520,6 @@ export class VentasService {
             fechaHasta
         } = data;
 
-        console.log(fechaDesde, fechaHasta);
-
         // Obtener ventas
         const respuesta = await this.getAll({ 
             direccion: -1, 
@@ -569,16 +567,16 @@ export class VentasService {
 
         // Generacion de reporte
 
-        const nombreReporte = '../../public/excel/ventas-directas.xlsx';
-        workbook.xlsx.writeFile(path.join(__dirname, nombreReporte)).then(async data => {
-            const pathReporte = path.join(__dirname, nombreReporte);
-        });
+        // const nombreReporte = '../../public/excel/ventas-directas.xlsx';
+        // workbook.xlsx.writeFile(path.join(__dirname, nombreReporte)).then(async data => {
+        //     const pathReporte = path.join(__dirname, nombreReporte);
+        // });
 
         // const fechaHoy = new Date();
 
         // worksheet.addRow(['Fecha'])
 
-        return true;
+        return await workbook.xlsx.writeBuffer();
 
     }
 
