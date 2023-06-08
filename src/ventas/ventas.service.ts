@@ -437,9 +437,6 @@ export class VentasService {
             this.ventaProductosModel.find({ venta: dataFront.venta })
         ]);
 
-        //   const venta = await this.getId(dataFront.venta);
-        //   const productos = await this.ventaProductosModel.find({ venta: dataFront.venta });
-
         let html: any;
 
         html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/venta.html', 'utf-8');
@@ -511,74 +508,5 @@ export class VentasService {
         return '';
 
     }
-
-    // Reporte excel
-    async generarExcel(data: any): Promise<any> {
-
-        const {
-            fechaDesde,
-            fechaHasta
-        } = data;
-
-        // Obtener ventas
-        const respuesta = await this.getAll({ 
-            direccion: -1, 
-            columna: 'createdAt',
-            desde: 0,
-            registerpp: 1000000,      
-        });
-
-        const workbook = new ExcelJs.Workbook();
-        const worksheet = workbook.addWorksheet('Reporte - Ventas directas');
-
-        worksheet.addRow(['Número', 'Fecha de venta', 'Fecha de carga', 'Proveedor', 'Cliente', 'Precio total', 'Habilitada']);
-
-        // Autofiltro
-        worksheet.autoFilter = 'A1:G1';
-
-        // Estilo de filas y columnas
-
-        worksheet.getRow(1).height = 20;
-
-        worksheet.getRow(1).eachCell(cell => {
-            cell.font = { bold: true }
-        });
-
-        worksheet.getColumn(1).width = 14; // Codigo
-        worksheet.getColumn(2).width = 17; // Fecha de venta
-        worksheet.getColumn(3).width = 17; // Fecha de carga
-        worksheet.getColumn(4).width = 40; // Proveedor
-        worksheet.getColumn(5).width = 40; // Cliente
-        worksheet.getColumn(6).width = 25; // Precio total
-        worksheet.getColumn(7).width = 15; // Habilitadas
-
-        // Agregar elementos
-        respuesta.ventas.map(venta => {
-            worksheet.addRow([
-                venta.nro,
-                add(venta.fecha_venta ? venta.fecha_venta : venta.createdAt, { hours: -3 }),
-                add(venta.createdAt, { hours: -3 }),
-                venta.proveedor['descripcion'],
-                venta.cliente['descripcion'],
-                Number(venta.precio_total),
-                venta.activo ? 'SI' : 'NO'
-            ]);
-        });
-
-        // Generacion de reporte
-
-        // const nombreReporte = '../../public/excel/ventas-directas.xlsx';
-        // workbook.xlsx.writeFile(path.join(__dirname, nombreReporte)).then(async data => {
-        //     const pathReporte = path.join(__dirname, nombreReporte);
-        // });
-
-        // const fechaHoy = new Date();
-
-        // worksheet.addRow(['Fecha'])
-
-        return await workbook.xlsx.writeBuffer();
-
-    }
-
 
 }
