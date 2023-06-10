@@ -73,4 +73,83 @@ export class ReportesController {
     res.send(buffer);
   }
 
+  // Reporte en Excel - Cuentas corrientes de proveedores
+  @UseGuards(JwtAuthGuard)
+  @Get('/excel/cc-proveedores')
+  async cuentasCorrientesProveedoresExcel(@Res() res, @Query() querys) {
+    const buffer = await this.reportesService.cuentasCorrientesProveedoresExcel(querys);
+    res.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename="datos.xlsx"',
+      'Content-Length': buffer.length,
+    });
+    res.send(buffer);
+  }
+
+  // Reporte en Excel - Cuentas corrientes de clientes
+  @UseGuards(JwtAuthGuard)
+  @Get('/excel/cc-clientes')
+  async cuentasCorrientesClientesExcel(@Res() res, @Query() querys) {
+    const buffer = await this.reportesService.cuentasCorrientesClientesExcel(querys);
+    res.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename="datos.xlsx"',
+      'Content-Length': buffer.length,
+    });
+    res.send(buffer);
+  }
+
+  // Reporte en Excel - Movimientos de clientes
+  @UseGuards(JwtAuthGuard)
+  @Get('/excel/movimientos-clientes')
+  async movimientosClientesExcel(@Res() res, @Query() querys) {
+    const buffer = await this.reportesService.movimientosClientesExcel(querys);
+    res.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename="datos.xlsx"',
+      'Content-Length': buffer.length,
+    });
+    res.send(buffer);
+  }
+
+  // Reporte en Excel - Movimientos de proveedores
+  @UseGuards(JwtAuthGuard)
+  @Get('/excel/movimientos-proveedores')
+  async movimientosProveedoresExcel(@Res() res, @Query() querys) {
+    const buffer = await this.reportesService.movimientosProveedoresExcel(querys);
+    res.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename="datos.xlsx"',
+      'Content-Length': buffer.length,
+    });
+    res.send(buffer);
+  }
+
+  // Reporte en Excel - Movimientos de cajas
+  @UseGuards(JwtAuthGuard)
+  @Get('/excel/movimientos-cajas')
+  async movimientosCajasExcel(@Res() res, @Query() querys) {
+    const buffer = await this.reportesService.movimientosCajasExcel(querys);
+    res.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename="datos.xlsx"',
+      'Content-Length': buffer.length,
+    });
+    res.send(buffer);
+  }
+
+  // Reporte en Excel - Cajas
+  @UseGuards(JwtAuthGuard)
+  @Get('/excel/cajas')
+  async cajasExcel(@Res() res, @Query() querys) {
+    const buffer = await this.reportesService.cajasExcel(querys);
+    res.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename="datos.xlsx"',
+      'Content-Length': buffer.length,
+    });
+    res.send(buffer);
+  }
+
+
 }

@@ -206,8 +206,8 @@ export class ComprasService {
       }
 
       const regex = new RegExp(parametroFinal, 'i');
-      pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'proveedor.descripcion': regex }, { nro_factura: parametro }] } });
-      pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'proveedor.descripcion': regex }, { nro_factura: parametro }] } });
+      pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { observacion: regex }, { 'proveedor.descripcion': regex }, { nro_factura: parametro }] } });
+      pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { observacion: regex }, { 'proveedor.descripcion': regex }, { nro_factura: parametro }] } });
 
     }
 
