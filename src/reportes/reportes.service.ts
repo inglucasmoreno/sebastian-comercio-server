@@ -97,11 +97,20 @@ export class ReportesService {
       `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
     ]);
 
-    worksheet.addRow(['Número', 'Fecha de compra', 'Fecha de carga', 'Proveedor', 'Precio total', 'Habilitada', 'Cancelada']);
+    worksheet.addRow([
+      'Número', 
+      'Fecha de compra', 
+      'Fecha de carga', 
+      'Proveedor', 
+      'Precio total', 
+      'Habilitada', 
+      'Cancelada',
+      'Observaciones'
+    ]);
 
     // Autofiltro
 
-    worksheet.autoFilter = 'A2:G2';
+    worksheet.autoFilter = 'A2:H2';
 
     // Estilo de filas y columnas
 
@@ -118,6 +127,7 @@ export class ReportesService {
     worksheet.getColumn(5).width = 25; // Precio total
     worksheet.getColumn(6).width = 15; // Habilitadas
     worksheet.getColumn(7).width = 16; // Canceladas
+    worksheet.getColumn(8).width = 40; // Observaciones
 
     // Agregar elementos
     compras.map(compra => {
@@ -128,7 +138,8 @@ export class ReportesService {
         compra.proveedor['descripcion'],
         Number(compra.precio_total),
         compra.activo ? 'SI' : 'NO',
-        compra.cancelada ? 'SI' : 'NO'
+        compra.cancelada ? 'SI' : 'NO',
+        compra.observacion,
       ]);
     });
 
@@ -199,11 +210,20 @@ export class ReportesService {
       `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
     ]);
 
-    worksheet.addRow(['Número', 'Fecha de venta', 'Fecha de carga', 'Cliente', 'Precio total', 'Habilitada']);
+    worksheet.addRow([
+      'Número', 
+      'Fecha de venta', 
+      'Fecha de carga', 
+      'Cliente', 
+      'Precio total', 
+      'Habilitada',
+      'Nro de factura',
+      'observaciones'
+    ]);
 
     // Autofiltro
 
-    worksheet.autoFilter = 'A2:F2';
+    worksheet.autoFilter = 'A2:H2';
 
     // Estilo de filas y columnas
 
@@ -219,6 +239,8 @@ export class ReportesService {
     worksheet.getColumn(4).width = 40; // Cliente
     worksheet.getColumn(5).width = 25; // Precio total
     worksheet.getColumn(6).width = 15; // Habilitadas
+    worksheet.getColumn(7).width = 20; // Nro de factura
+    worksheet.getColumn(8).width = 40; // Observaciones
 
     // Agregar elementos
     ventas.map(venta => {
@@ -229,6 +251,8 @@ export class ReportesService {
         venta.cliente['descripcion'],
         Number(venta.precio_total),
         venta.activo ? 'SI' : 'NO',
+        venta.nro_factura,
+        venta.observacion
       ]);
     });
 
@@ -299,11 +323,20 @@ export class ReportesService {
       `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
     ]);
 
-    worksheet.addRow(['Número', 'Fecha de venta', 'Fecha de carga', 'Cliente', 'Precio total', 'Habilitada', 'Cancelada']);
+    worksheet.addRow([
+      'Número', 
+      'Fecha de venta', 
+      'Fecha de carga', 
+      'Cliente', 
+      'Precio total', 
+      'Habilitada', 
+      'Cancelada',
+      'Observaciones',
+    ]);
 
     // Autofiltro
 
-    worksheet.autoFilter = 'A2:G2';
+    worksheet.autoFilter = 'A2:H2';
 
     // Estilo de filas y columnas
 
@@ -320,6 +353,7 @@ export class ReportesService {
     worksheet.getColumn(5).width = 25; // Precio total
     worksheet.getColumn(6).width = 20; // Habilitadas
     worksheet.getColumn(7).width = 20; // Canceladas
+    worksheet.getColumn(8).width = 20; // Observaciones
 
     // Agregar elementos
     ventas.map(venta => {
@@ -330,7 +364,8 @@ export class ReportesService {
         venta.cliente['descripcion'],
         Number(venta.precio_total),
         venta.activo ? 'SI' : 'NO',
-        venta.cancelada ? 'SI' : 'NO'
+        venta.cancelada ? 'SI' : 'NO',
+        venta.observacion
       ]);
     });
 
@@ -1055,6 +1090,5 @@ export class ReportesService {
     return await workbook.xlsx.writeBuffer();
 
   }
-
 
 }
