@@ -105,12 +105,13 @@ export class ReportesService {
       'Precio total', 
       'Habilitada', 
       'Cancelada',
-      'Observaciones'
+      'Observaciones',
+      'Número de factura'
     ]);
 
     // Autofiltro
 
-    worksheet.autoFilter = 'A2:H2';
+    worksheet.autoFilter = 'A2:I2';
 
     // Estilo de filas y columnas
 
@@ -128,6 +129,7 @@ export class ReportesService {
     worksheet.getColumn(6).width = 15; // Habilitadas
     worksheet.getColumn(7).width = 16; // Canceladas
     worksheet.getColumn(8).width = 40; // Observaciones
+    worksheet.getColumn(9).width = 25; // Numero de factura
 
     // Agregar elementos
     compras.map(compra => {
@@ -140,6 +142,7 @@ export class ReportesService {
         compra.activo ? 'SI' : 'NO',
         compra.cancelada ? 'SI' : 'NO',
         compra.observacion,
+        compra.nro_factura
       ]);
     });
 
