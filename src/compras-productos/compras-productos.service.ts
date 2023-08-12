@@ -85,7 +85,7 @@ export class ComprasProductosService {
 
     pipeline.push({ $unwind: '$producto' });
 
-    // Informacion de producto
+    // Informacion de unidad de medida
     pipeline.push({
       $lookup: { // Lookup
         from: 'unidad_medida',
@@ -97,6 +97,19 @@ export class ComprasProductosService {
     );
 
     pipeline.push({ $unwind: '$producto.unidad_medida' });
+
+    // Informacion de famili
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'familia_productos',
+        localField: 'producto.familia',
+        foreignField: '_id',
+        as: 'producto.familia'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$producto.familia' });
 
     // Informacion de usuario creador
     pipeline.push({
