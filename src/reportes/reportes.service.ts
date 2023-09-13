@@ -446,8 +446,8 @@ export class ReportesService {
     worksheet.getRow(2).eachCell(cell => { cell.font = { bold: true } });
 
     worksheet.getColumn(1).width = 14; // Codigo
-    worksheet.getColumn(2).width = 20; // Fecha de venta
-    worksheet.getColumn(3).width = 20; // Fecha de carga
+    worksheet.getColumn(2).width = 25; // Fecha de venta
+    worksheet.getColumn(3).width = 25; // Fecha de carga
     worksheet.getColumn(4).width = 40; // Cliente
     worksheet.getColumn(5).width = 25; // Precio total
     worksheet.getColumn(6).width = 15; // Habilitadas
@@ -787,6 +787,21 @@ export class ReportesService {
 
     const movimientos = await this.clientesMovimientosModel.aggregate(pipeline);
 
+    let movimientosReporte = [];
+
+    // Se agrega la fecha de comprobante
+    for (const elemento of movimientos) {
+      let nuevoElemento = elemento;
+      if(elemento.recibo_cobro !== ''){
+        const reciboCobro = await this.recibosCobroModel.findById(elemento.recibo_cobro);
+        nuevoElemento.fecha_cobro = reciboCobro.fecha_cobro ? reciboCobro.fecha_cobro : reciboCobro.createdAt;
+        movimientosReporte.push(nuevoElemento);
+      }else{
+        nuevoElemento.fecha_cobro = '';
+        movimientosReporte.push(nuevoElemento);
+      }
+    }
+
     // GENERACION EXCEL
 
     const workbook = new ExcelJs.Workbook();
@@ -799,7 +814,7 @@ export class ReportesService {
       `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
     ]);
 
-    worksheet.addRow(['Fecha de creación', 'Número', 'Descripción', 'Debe', 'Haber', 'Saldo']);
+    worksheet.addRow(['Fecha de creación', 'Fecha - Recibo de cobro', 'Número', 'Descripción', 'Debe', 'Haber', 'Saldo']);
 
     // Autofiltro
 
@@ -813,17 +828,19 @@ export class ReportesService {
     worksheet.getRow(1).eachCell(cell => { cell.font = { bold: true } });
     worksheet.getRow(2).eachCell(cell => { cell.font = { bold: true } });
 
-    worksheet.getColumn(1).width = 20; // Fecha creacion
-    worksheet.getColumn(2).width = 16; // Numero
-    worksheet.getColumn(3).width = 40; // Descripcion
-    worksheet.getColumn(4).width = 20; // Debe
-    worksheet.getColumn(5).width = 20; // Haber
-    worksheet.getColumn(6).width = 20; // Saldo
+    worksheet.getColumn(1).width = 25; // Fecha creacion
+    worksheet.getColumn(2).width = 25; // Fecha comprobante
+    worksheet.getColumn(3).width = 16; // Numero
+    worksheet.getColumn(4).width = 40; // Descripcion
+    worksheet.getColumn(5).width = 20; // Debe
+    worksheet.getColumn(6).width = 20; // Haber
+    worksheet.getColumn(7).width = 20; // Saldo
 
     // Agregar elementos
-    movimientos.map(movimiento => {
+    movimientosReporte.map(movimiento => {
       worksheet.addRow([
         add(movimiento.createdAt, { hours: -3 }),
+        movimiento.fecha_cobro !== '' ? add(movimiento.fecha_cobro, { hours: -3 }) : '',
         movimiento.nro,
         movimiento.descripcion,
         movimiento.tipo === 'Debe' ? movimiento.monto : '',
@@ -874,6 +891,21 @@ export class ReportesService {
 
     const movimientos = await this.proveedoresMovimientosModel.aggregate(pipeline);
 
+    let movimientosReporte = [];
+
+    // Se agrega la fecha de comprobante
+    for (const elemento of movimientos) {
+      let nuevoElemento = elemento;
+      if(elemento.orden_pago !== ''){
+        const ordenPago = await this.ordenesPagoModel.findById(elemento.orden_pago);
+        nuevoElemento.fecha_pago = ordenPago.fecha_pago ? ordenPago.fecha_pago : ordenPago.createdAt;
+        movimientosReporte.push(nuevoElemento);
+      }else{
+        nuevoElemento.fecha_pago = '';
+        movimientosReporte.push(nuevoElemento);
+      }
+    }
+
     // GENERACION EXCEL
 
     const workbook = new ExcelJs.Workbook();
@@ -886,7 +918,7 @@ export class ReportesService {
       `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
     ]);
 
-    worksheet.addRow(['Fecha de creación', 'Número', 'Descripción', 'Debe', 'Haber', 'Saldo']);
+    worksheet.addRow(['Fecha de creación', 'Fecha - Orden de pago', 'Número', 'Descripción', 'Debe', 'Haber', 'Saldo']);
 
     // Autofiltro
 
@@ -900,17 +932,19 @@ export class ReportesService {
     worksheet.getRow(1).eachCell(cell => { cell.font = { bold: true } });
     worksheet.getRow(2).eachCell(cell => { cell.font = { bold: true } });
 
-    worksheet.getColumn(1).width = 40; // Fecha creacion
-    worksheet.getColumn(2).width = 20; // Numero
-    worksheet.getColumn(3).width = 20; // Descripcion
-    worksheet.getColumn(4).width = 20; // Debe
-    worksheet.getColumn(5).width = 20; // Haber
-    worksheet.getColumn(6).width = 20; // Saldo
+    worksheet.getColumn(1).width = 25; // Fecha creacion
+    worksheet.getColumn(2).width = 25; // Fecha comprobante
+    worksheet.getColumn(3).width = 20; // Numero
+    worksheet.getColumn(4).width = 30; // Descripcion
+    worksheet.getColumn(5).width = 20; // Debe
+    worksheet.getColumn(6).width = 20; // Haber
+    worksheet.getColumn(7).width = 20; // Saldo
 
     // Agregar elementos
-    movimientos.map(movimiento => {
+    movimientosReporte.map(movimiento => {
       worksheet.addRow([
         add(movimiento.createdAt, { hours: -3 }),
+        movimiento.fecha_pago !== '' ? add(movimiento.fecha_pago, { hours: -3 }) : '',
         movimiento.nro,
         movimiento.descripcion,
         movimiento.tipo === 'Debe' ? movimiento.monto : '',
