@@ -98,12 +98,12 @@ export class ReportesService {
     ]);
 
     worksheet.addRow([
-      'Número', 
-      'Fecha de compra', 
-      'Fecha de carga', 
-      'Proveedor', 
-      'Precio total', 
-      'Habilitada', 
+      'Número',
+      'Fecha de compra',
+      'Fecha de carga',
+      'Proveedor',
+      'Precio total',
+      'Habilitada',
       'Cancelada',
       'Observaciones',
       'Número de factura'
@@ -214,11 +214,11 @@ export class ReportesService {
     ]);
 
     worksheet.addRow([
-      'Número', 
-      'Fecha de venta', 
-      'Fecha de carga', 
-      'Cliente', 
-      'Precio total', 
+      'Número',
+      'Fecha de venta',
+      'Fecha de carga',
+      'Cliente',
+      'Precio total',
       'Habilitada',
       'Nro de factura',
       'observaciones'
@@ -327,12 +327,12 @@ export class ReportesService {
     ]);
 
     worksheet.addRow([
-      'Número', 
-      'Fecha de venta', 
-      'Fecha de carga', 
-      'Cliente', 
-      'Precio total', 
-      'Habilitada', 
+      'Número',
+      'Fecha de venta',
+      'Fecha de carga',
+      'Cliente',
+      'Precio total',
+      'Habilitada',
       'Cancelada',
       'Observaciones',
     ]);
@@ -789,19 +789,25 @@ export class ReportesService {
 
     let movimientosReporte = [];
 
-    // Se agrega la fecha de comprobante
+    // Se agrega la fecha de recibo de cobro
     for (const elemento of movimientos) {
+      
       let nuevoElemento = elemento;
-      if(elemento.recibo_cobro !== ''){
+      
+      if (elemento.recibo_cobro !== '') {
         const reciboCobro = await this.recibosCobroModel.findById(elemento.recibo_cobro);
-        nuevoElemento.fecha_cobro = reciboCobro.fecha_cobro ? reciboCobro.fecha_cobro : reciboCobro.createdAt;
+        nuevoElemento.fecha_comprobante = reciboCobro.fecha_cobro ? reciboCobro.fecha_cobro : reciboCobro.createdAt;
         movimientosReporte.push(nuevoElemento);
-      }else{
-        nuevoElemento.fecha_cobro = '';
+      }else if(elemento.venta_propia !== '') {
+        const ventaPropia = await this.ventasPropiasModel.findById(elemento.venta_propia);
+        nuevoElemento.fecha_comprobante = ventaPropia.fecha_venta ? ventaPropia.fecha_venta : ventaPropia.createdAt;
         movimientosReporte.push(nuevoElemento);
-      }
+      }else {
+        nuevoElemento.fecha_comprobante = '';
+        movimientosReporte.push(nuevoElemento);
+      }    
     }
-
+    
     // GENERACION EXCEL
 
     const workbook = new ExcelJs.Workbook();
@@ -814,7 +820,7 @@ export class ReportesService {
       `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
     ]);
 
-    worksheet.addRow(['Fecha de creación', 'Fecha - Recibo de cobro', 'Número', 'Descripción', 'Debe', 'Haber', 'Saldo']);
+    worksheet.addRow(['Fecha de creación', 'Fecha de comprobante', 'Número', 'Descripción', 'Debe', 'Haber', 'Saldo']);
 
     // Autofiltro
 
@@ -829,18 +835,18 @@ export class ReportesService {
     worksheet.getRow(2).eachCell(cell => { cell.font = { bold: true } });
 
     worksheet.getColumn(1).width = 25; // Fecha creacion
-    worksheet.getColumn(2).width = 25; // Fecha comprobante
-    worksheet.getColumn(3).width = 16; // Numero
-    worksheet.getColumn(4).width = 40; // Descripcion
-    worksheet.getColumn(5).width = 20; // Debe
-    worksheet.getColumn(6).width = 20; // Haber
-    worksheet.getColumn(7).width = 20; // Saldo
+    worksheet.getColumn(2).width = 25; // Fecha de comprobante
+    worksheet.getColumn(4).width = 16; // Numero
+    worksheet.getColumn(5).width = 40; // Descripcion
+    worksheet.getColumn(6).width = 20; // Debe
+    worksheet.getColumn(7).width = 20; // Haber
+    worksheet.getColumn(8).width = 20; // Saldo
 
     // Agregar elementos
     movimientosReporte.map(movimiento => {
       worksheet.addRow([
         add(movimiento.createdAt, { hours: -3 }),
-        movimiento.fecha_cobro !== '' ? add(movimiento.fecha_cobro, { hours: -3 }) : '',
+        movimiento.fecha_comprobante !== '' ? add(movimiento.fecha_comprobante, { hours: -3 }) : '',
         movimiento.nro,
         movimiento.descripcion,
         movimiento.tipo === 'Debe' ? movimiento.monto : '',
@@ -896,12 +902,16 @@ export class ReportesService {
     // Se agrega la fecha de comprobante
     for (const elemento of movimientos) {
       let nuevoElemento = elemento;
-      if(elemento.orden_pago !== ''){
+      if (elemento.orden_pago !== '') {
         const ordenPago = await this.ordenesPagoModel.findById(elemento.orden_pago);
-        nuevoElemento.fecha_pago = ordenPago.fecha_pago ? ordenPago.fecha_pago : ordenPago.createdAt;
+        nuevoElemento.fecha_comprobante = ordenPago.fecha_pago ? ordenPago.fecha_pago : ordenPago.createdAt;
         movimientosReporte.push(nuevoElemento);
-      }else{
-        nuevoElemento.fecha_pago = '';
+      }else if (elemento.compra !== '') {
+        const compra = await this.comprasModel.findById(elemento.compra);
+        nuevoElemento.fecha_comprobante = compra.fecha_compra ? compra.fecha_compra : compra.createdAt;
+        movimientosReporte.push(nuevoElemento);
+      }else {
+        nuevoElemento.fecha_comprobante = '';
         movimientosReporte.push(nuevoElemento);
       }
     }
@@ -918,7 +928,7 @@ export class ReportesService {
       `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
     ]);
 
-    worksheet.addRow(['Fecha de creación', 'Fecha - Orden de pago', 'Número', 'Descripción', 'Debe', 'Haber', 'Saldo']);
+    worksheet.addRow(['Fecha de creación', 'Fecha de comprobante', 'Número', 'Descripción', 'Debe', 'Haber', 'Saldo']);
 
     // Autofiltro
 
@@ -933,7 +943,7 @@ export class ReportesService {
     worksheet.getRow(2).eachCell(cell => { cell.font = { bold: true } });
 
     worksheet.getColumn(1).width = 25; // Fecha creacion
-    worksheet.getColumn(2).width = 25; // Fecha comprobante
+    worksheet.getColumn(2).width = 25; // Fecha de comprobante
     worksheet.getColumn(3).width = 20; // Numero
     worksheet.getColumn(4).width = 30; // Descripcion
     worksheet.getColumn(5).width = 20; // Debe
@@ -944,7 +954,7 @@ export class ReportesService {
     movimientosReporte.map(movimiento => {
       worksheet.addRow([
         add(movimiento.createdAt, { hours: -3 }),
-        movimiento.fecha_pago !== '' ? add(movimiento.fecha_pago, { hours: -3 }) : '',
+        movimiento.fecha_comprobante !== '' ? add(movimiento.fecha_comprobante, { hours: -3 }) : '',
         movimiento.nro,
         movimiento.descripcion,
         movimiento.tipo === 'Debe' ? movimiento.monto : '',
