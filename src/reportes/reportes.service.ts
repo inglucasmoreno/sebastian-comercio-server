@@ -836,11 +836,11 @@ export class ReportesService {
 
     worksheet.getColumn(1).width = 25; // Fecha creacion
     worksheet.getColumn(2).width = 25; // Fecha de comprobante
-    worksheet.getColumn(4).width = 16; // Numero
-    worksheet.getColumn(5).width = 40; // Descripcion
-    worksheet.getColumn(6).width = 20; // Debe
-    worksheet.getColumn(7).width = 20; // Haber
-    worksheet.getColumn(8).width = 20; // Saldo
+    worksheet.getColumn(3).width = 16; // Numero
+    worksheet.getColumn(4).width = 40; // Descripcion
+    worksheet.getColumn(5).width = 20; // Debe
+    worksheet.getColumn(6).width = 20; // Haber
+    worksheet.getColumn(7).width = 20; // Saldo
 
     // Agregar elementos
     movimientosReporte.map(movimiento => {
@@ -944,7 +944,7 @@ export class ReportesService {
 
     worksheet.getColumn(1).width = 25; // Fecha creacion
     worksheet.getColumn(2).width = 25; // Fecha de comprobante
-    worksheet.getColumn(3).width = 20; // Numero
+    worksheet.getColumn(3).width = 25; // Numero
     worksheet.getColumn(4).width = 30; // Descripcion
     worksheet.getColumn(5).width = 20; // Debe
     worksheet.getColumn(6).width = 20; // Haber
