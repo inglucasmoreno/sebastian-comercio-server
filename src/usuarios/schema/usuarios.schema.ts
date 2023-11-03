@@ -53,6 +53,11 @@ export const usuarioSchema = new Schema({
         default: []
     },
 
+    permisos_cajas: {
+        type: Array,
+        default: []
+    },
+
     activo: {
         type: Boolean,
         required: true,

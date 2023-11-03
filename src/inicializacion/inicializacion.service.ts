@@ -31,7 +31,7 @@ export class InicializacionService {
         
         // 1) - Verificacion
         const verificacion = await this.usuarioModel.find();
-        if(verificacion.length != 0) throw new NotFoundException('Los usuarios ya fueron inicializados');
+        if(verificacion.length != 0) throw new NotFoundException('El sistema ya fue inicializado');
 
         // 2) - Se crea usuario administrador
         const data: any = {
@@ -50,7 +50,7 @@ export class InicializacionService {
     
         // Se crea y se almacena en la base de datos al usuario administrador
         const usuario = new this.usuarioModel(data);
-        await usuario.save();
+        const usuarioDB = await usuario.save();
 
         // Inicializacion de clientes - Tipo cliente: "Consumidor final"
         const cliente = new this.clientesModel({
@@ -59,8 +59,8 @@ export class InicializacionService {
             identificacion: 0,
             descripcion: 'Consumidor final',
             condicion_iva: 'Consumidor Final',
-            creatorUser: usuario._id,
-            updatorUser: usuario._id,
+            creatorUser: usuarioDB._id,
+            updatorUser: usuarioDB._id,
         });
 
         await cliente.save();
@@ -72,12 +72,36 @@ export class InicializacionService {
             identificacion: 0,
             descripcion: 'SIN ESPECIFICAR',
             condicion_iva: 'Consumidor Final',
-            creatorUser: usuario._id,
-            updatorUser: usuario._id,
+            creatorUser: usuarioDB._id,
+            updatorUser: usuarioDB._id,
         });
 
         await proveedor.save();
 
+        // Inicializacion de cajas
+
+        const efectivo = new this.cajasModel({ 
+            _id: '000000000000000000000000',
+            descripcion: 'Efectivo', 
+            saldo: 0,
+            creatorUser: usuarioDB._id,
+            updatorUser: usuarioDB._id 
+        });
+
+        const cheques = new this.cajasModel({ 
+            _id: '222222222222222222222222',
+            descripcion: 'Cheques', 
+            saldo: 0,
+            creatorUser: usuarioDB._id,
+            updatorUser: usuarioDB._id 
+        });
+
+        await Promise.all([
+            efectivo.save(),
+            cheques.save(),
+        ])
+
+        return 'Sistema inicializado correctamente'
 
     }
 

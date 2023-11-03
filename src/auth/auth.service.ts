@@ -32,6 +32,7 @@ export class AuthService {
             apellido: user._doc.apellido,
             nombre: user._doc.nombre,
             permisos: user._doc.permisos,
+            permisos_cajas: user._doc.permisos_cajas,
             role: user._doc.role
         };
         return {

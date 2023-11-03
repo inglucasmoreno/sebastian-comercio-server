@@ -9,7 +9,6 @@ import { ICheques } from 'src/cheques/interface/cheques.interface';
 import { IRecibosCobroCheque } from 'src/recibos-cobro-cheque/interface/recibos-cheque.interface';
 import { IRecibosCobroVenta } from 'src/recibos-cobro-venta/interface/recibos-cobro-venta.interface';
 import { IVentasPropias } from 'src/ventas-propias/interface/ventas-propias.interface';
-import { RecibosCobroDTO } from './dto/recibos-cobro.dto';
 import { IRecibosCobro } from './interface/recibos-cobro.interface';
 import * as fs from 'fs';
 import { add, format } from 'date-fns';
@@ -242,7 +241,7 @@ export class RecibosCobroService {
     }
 
     const nuevoRecibo = new this.recibosCobroModel(dataRecibo);
-    const reciboDB = await nuevoRecibo.save();
+    const reciboDB: any = await nuevoRecibo.save();
 
     // Codigo de recibo
     let codigoRecibo: string;
@@ -530,7 +529,7 @@ export class RecibosCobroService {
 
     // Adaptando numero
     let mostrarNumero: string;
-    const { nro } = recibo;
+    const { nro }: any = recibo;
     if (nro <= 9) mostrarNumero = 'RC000000' + String(nro);
     else if (nro <= 99) mostrarNumero = 'RC00000' + String(nro);
     else if (nro <= 999) mostrarNumero = 'RC0000' + String(nro);
@@ -689,7 +688,7 @@ export class RecibosCobroService {
 
     // Adaptando numero
     let mostrarNumero: string;
-    const { nro } = recibo;
+    const { nro }: any = recibo;
     if (nro <= 9) mostrarNumero = 'RC000000' + String(nro);
     else if (nro <= 99) mostrarNumero = 'RC00000' + String(nro);
     else if (nro <= 999) mostrarNumero = 'RC0000' + String(nro);
