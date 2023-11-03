@@ -4,11 +4,15 @@ import { Model, Types } from 'mongoose';
 import { MovimientosInternosUpdateDTO } from './dto/movimientos-internos-update.dto';
 import { MovimientosInternosDTO } from './dto/movimientos-internos.dto';
 import { IMovimientosInternos } from './interface/movimientos-internos.interface';
+import { IUsuario } from 'src/usuarios/interface/usuarios.interface';
 
 @Injectable()
 export class MovimientosInternosService {
 
-  constructor(@InjectModel('MovimientosInternos') private readonly movimientosInternosModel: Model<IMovimientosInternos>) { };
+  constructor(
+    @InjectModel('MovimientosInternos') private readonly movimientosInternosModel: Model<IMovimientosInternos>,
+    @InjectModel('Usuarios') private readonly usuarioModel: Model<IUsuario>,
+  ) { };
 
   // Movimientos internos por ID
   async getId(id: string): Promise<IMovimientosInternos> {
@@ -90,7 +94,17 @@ export class MovimientosInternosService {
       desde,
       registerpp,
       parametro,
+      usuario,
     } = querys;
+
+    let permisosAdaptados = [];
+    let usuarioDB: any  = null;
+
+    // Busco usuario por ID
+    if(usuario){
+      usuarioDB = await this.usuarioModel.findById(usuario);
+      permisosAdaptados = usuarioDB.permisos_cajas?.map((permiso: string) => new Types.ObjectId(permiso));
+    }
 
     const pipeline = [];
     const pipelineTotal = [];
@@ -149,6 +163,26 @@ export class MovimientosInternosService {
     );
 
     pipeline.push({ $unwind: '$updatorUser' });
+
+    // mongoose filtrar solo los movimientos por permisos de caja origen o destino
+    if(usuario && usuarioDB?.role !== 'ADMIN_ROLE'){
+      pipeline.push({
+        $match: {
+          $or: [
+            { 'caja_origen._id': { $in: permisosAdaptados } },
+            { 'caja_destino._id': { $in: permisosAdaptados } }
+          ]
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          $or: [
+            { 'caja_origen': { $in: permisosAdaptados } },
+            { 'caja_destino': { $in: permisosAdaptados } }
+          ]
+        }
+      });
+    }
 
     // Filtro por parametros
     if (parametro && parametro !== '') {

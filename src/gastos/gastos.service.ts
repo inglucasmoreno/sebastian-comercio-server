@@ -96,6 +96,7 @@ export class GastosService {
       direccion,
       desde,
       registerpp,
+      creatorUser,
       activo,
       parametro,
     } = querys;
@@ -103,9 +104,16 @@ export class GastosService {
     const pipeline = [];
     const pipelineTotal = [];
 
-    pipeline.push({ $match: {} });
-    pipelineTotal.push({ $match: {} });
-
+    // Filtro por usuario creador
+    if (creatorUser && creatorUser !== '') {
+      const idUsuario = new Types.ObjectId(creatorUser);
+      pipeline.push({ $match: { creatorUser: idUsuario } });
+      pipelineTotal.push({ $match: { creatorUser: idUsuario } });
+    }else{
+      pipeline.push({ $match: {} });
+      pipelineTotal.push({ $match: {} });
+    }
+    
     // Activo / Inactivo
     let filtroActivo = {};
     if (activo && activo !== '') {
