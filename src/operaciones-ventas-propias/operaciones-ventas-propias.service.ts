@@ -202,7 +202,9 @@ export class OperacionesVentasPropiasService {
     if (operacionVentaPropiaDB) throw new NotFoundException('La venta ya esta asignada a esta operacion');
 
     const nuevaOperacionVentaPropia = new this.operacionesVentasPropiasModel(operacionesVentasPropiasDTO);
-    return await nuevaOperacionVentaPropia.save();
+    const relacionDB = await nuevaOperacionVentaPropia.save();
+
+    return await this.getId(relacionDB._id);
 
   }
 

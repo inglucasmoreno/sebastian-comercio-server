@@ -176,7 +176,9 @@ export class OperacionesComprasService {
     if (operacionCompraDB) throw new NotFoundException('La compra ya esta asignada a esta operacion');
 
     const nuevaOperacionCompra = new this.operacionesComprasModel(operacionesComprasDTO);
-    return await nuevaOperacionCompra.save();
+    const relacionDB = await nuevaOperacionCompra.save();
+
+    return await this.getId(relacionDB._id);
 
   }
 
