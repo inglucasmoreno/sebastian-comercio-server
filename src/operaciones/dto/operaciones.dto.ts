@@ -2,6 +2,8 @@
 export class OperacionesDTO {
   fecha_operacion:any;
   numero: number;
+  readonly total_compras: number;
+  readonly total_ventas: number;
   readonly saldo: number;
   readonly total: number;
   readonly estado: string;

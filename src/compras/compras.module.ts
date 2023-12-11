@@ -14,10 +14,14 @@ import { productosSchema } from 'src/productos/schema/productos.schema';
 import { ComprasController } from './compras.controller';
 import { ComprasService } from './compras.service';
 import { comprasSchema } from './schema/compras.schema';
+import { operacionesSchema } from 'src/operaciones/schema/operaciones.schema';
+import { operacionesComprasSchema } from 'src/operaciones-compras/schema/operaciones-compras.schema';
 
 @Module({
   imports: [
 		MongooseModule.forFeature([
+			{ name: 'OperacionesCompras', schema: operacionesComprasSchema },
+			{ name: 'Operaciones', schema: operacionesSchema },
 			{ name: 'Compras', schema: comprasSchema },
 			{ name: 'Productos', schema: productosSchema },
 			{ name: 'ComprasProductos', schema: comprasProductosSchema },

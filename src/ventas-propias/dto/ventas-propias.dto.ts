@@ -6,6 +6,8 @@ export class VentasPropiasDTO {
 
     readonly tipo_cliente: string;
 
+    readonly operacion: string;
+
     @IsString()
     readonly tipo_venta: string;
 

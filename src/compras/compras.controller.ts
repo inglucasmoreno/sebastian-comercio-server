@@ -13,10 +13,11 @@ export class ComprasController {
   @UseGuards(JwtAuthGuard)
   @Get('/:id')
   async getId(@Res() res, @Param('id') compraID) {
-    const compra = await this.comprasService.getId(compraID);
+    const {compra, operacion} = await this.comprasService.getId(compraID);
     res.status(HttpStatus.OK).json({
       message: 'Compra obtenida correctamente',
-      compra
+      compra,
+      operacion
     });
   }
 

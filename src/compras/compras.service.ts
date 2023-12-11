@@ -20,11 +20,15 @@ import * as ExcelJs from 'exceljs';
 import * as path from 'path';
 import { IOrdenesPagoCompra } from 'src/ordenes-pago-compra/interface/ordenes-pago-compra.interface';
 import { IProductos } from 'src/productos/interface/productos.interface';
+import { IOperaciones } from 'src/operaciones/interface/operaciones.interface';
+import { IOperacionesCompras } from 'src/operaciones-compras/interface/operaciones-compras.interface';
 
 @Injectable()
 export class ComprasService {
 
   constructor(
+    @InjectModel('Operaciones') private readonly operacionesModel: Model<IOperaciones>,
+    @InjectModel('OperacionesCompras') private readonly operacionesComprasModel: Model<IOperacionesCompras>,
     @InjectModel('Compras') private readonly comprasModel: Model<ICompras>,
     @InjectModel('Productos') private readonly productosModel: Model<IProductos>,
     @InjectModel('ComprasProductos') private readonly comprasProductosModel: Model<IComprasProductos>,
@@ -51,7 +55,7 @@ export class ComprasService {
   }
 
   // Compra por ID
-  async getId(id: string): Promise<ICompras> {
+  async getId(id: string): Promise<any> {
 
     // Se verifica que la compra existe
     const compraDB = await this.comprasModel.findById(id);
@@ -104,7 +108,14 @@ export class ComprasService {
 
     const compras = await this.comprasModel.aggregate(pipeline);
 
-    return compras[0];
+    // Operacion
+    const operacionCompraDB = await this.operacionesComprasModel.findOne({ compra: String(idCompra) });
+    const operacionDB = await this.operacionesModel.findById(operacionCompraDB.operacion);
+
+    return {
+      compra: compras[0],
+      operacion: operacionDB
+    };
 
   }
 
@@ -222,11 +233,21 @@ export class ComprasService {
     // Paginacion
     pipeline.push({ $skip: Number(desde) }, { $limit: Number(registerpp) });
 
-
     const [compras, comprasTotal] = await Promise.all([
       this.comprasModel.aggregate(pipeline),
       this.comprasModel.aggregate(pipelineTotal),
     ])
+
+    // Se le agrega a cada compra el numero de operacion al que esta asociada
+    for (let i = 0; i < compras.length; i++) {
+      const operacionCompraDB = await this.operacionesComprasModel.findOne({ compra: compras[i]._id });
+      if (operacionCompraDB) {
+        const operacionDB = await this.operacionesModel.findById(operacionCompraDB.operacion);
+        compras[i].operacion = operacionDB.numero.toString();
+      } else {
+        compras[i].opearcion = ''
+      }
+    }
 
     return {
       compras,
@@ -240,6 +261,7 @@ export class ComprasService {
 
     const {
       proveedor,
+      operacion,
       fecha_compra,
       observacion,
       monto_pago,
@@ -505,7 +527,29 @@ export class ComprasService {
 
     }
 
-    //** 6) - GENERACION DE PDF
+    // ** 6) - RELACION DE COMPRA CON OPERACION
+    const nuevaRelacion = new this.operacionesComprasModel({
+      compra: String(compraDB._id),
+      operacion,
+      creatorUser,
+      updatorUser
+    });
+    await nuevaRelacion.save();
+
+    // ** 7) - ADAPTANDO TOTALES DE LA OPERACION
+
+    const operacionDB: any = await this.operacionesModel.findById(operacion);
+    const nuevoTotalCompras = operacionDB.total_compras + precio_total;
+    const nuevoSaldo = operacionDB.saldo - precio_total;
+    const nuevoTotal = operacionDB.total - precio_total;
+
+    await this.operacionesModel.findByIdAndUpdate(operacion, {
+      total_compras: nuevoTotalCompras,
+      saldo: nuevoSaldo,
+      total: nuevoTotal
+    });
+
+    // ** 8) - GENERACION DE PDF
     await this.generarPDF({ compra: compraDB._id });
 
     return compraDB;
@@ -539,6 +583,14 @@ export class ComprasService {
 
     // Verificacion: La compra no existe
     if (!compraDB) throw new NotFoundException('La compra no existe');
+
+    // Verificacion: Compra asignada a una operacion
+    const operacionCompraDB = await this.operacionesComprasModel.findOne({ compra: id });
+
+    if (operacionCompraDB) {
+      const opearcionDB = await this.operacionesModel.findById(operacionCompraDB.operacion);
+      throw new NotFoundException(`La compra esta asociada a la operación Nro ${opearcionDB.numero.toString().padStart(8, '0')}`);
+    }
 
     // Verificacion: Si tiene recibos de cobros asociados no puede darse de baja
     const ordenPagoDB = await this.ordenesPagoCompraModel.find({ compra: compraDB._id });
@@ -871,16 +923,20 @@ export class ComprasService {
 
     // Filtro por fechas [ Desde -> Hasta ]
 
-    if(fechaDesde && fechaDesde.trim() !== ''){
-      pipeline.push({$match: { 
-        fecha_compra: { $gte: add(new Date(fechaDesde),{ hours: 3 })} 
-      }});    
+    if (fechaDesde && fechaDesde.trim() !== '') {
+      pipeline.push({
+        $match: {
+          fecha_compra: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
     }
 
-    if(fechaHasta && fechaHasta.trim() !== ''){
-      pipeline.push({$match: { 
-        fecha_compra: { $lte: add(new Date(fechaHasta),{ days: 1, hours: 3 })} 
-      }});
+    if (fechaHasta && fechaHasta.trim() !== '') {
+      pipeline.push({
+        $match: {
+          fecha_compra: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
     }
 
     pipeline.push(condicionProveedor);
@@ -894,10 +950,10 @@ export class ComprasService {
     const worksheet = workbook.addWorksheet('Reporte - Compras');
 
     worksheet.addRow([
-      'Desde:', 
-      `${fechaDesde && fechaDesde.trim() !== '' ? format(add(new Date(fechaDesde), {hours: 3}), 'dd-MM-yyyy') : 'Principio'}`, 
-      'Hasta:', 
-      `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), {hours: 3}), 'dd-MM-yyyy') : 'Ahora'}`
+      'Desde:',
+      `${fechaDesde && fechaDesde.trim() !== '' ? format(add(new Date(fechaDesde), { hours: 3 }), 'dd-MM-yyyy') : 'Principio'}`,
+      'Hasta:',
+      `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
     ]);
 
     worksheet.addRow(['Número', 'Fecha de compra', 'Fecha de carga', 'Proveedor', 'Precio total', 'Habilitada', 'Cancelada']);

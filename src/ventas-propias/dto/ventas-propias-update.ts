@@ -5,6 +5,8 @@ export class VentasPropiasUpdateDTO {
 
     readonly tipo_cliente: string;
 
+    readonly operacion: string;
+
     readonly tipo_venta: string;
 
     readonly formas_pago: string;

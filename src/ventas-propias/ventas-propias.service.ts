@@ -18,6 +18,8 @@ import { ICajas } from 'src/cajas/interface/cajas.interface';
 import { ICajasMovimientos } from 'src/cajas-movimientos/interface/cajas-movimientos.interface';
 import { IRecibosCobroVenta } from 'src/recibos-cobro-venta/interface/recibos-cobro-venta.interface';
 import { IProductos } from 'src/productos/interface/productos.interface';
+import { IOperacionesVentasPropias } from 'src/operaciones-ventas-propias/interface/operaciones-ventas-propias.interface';
+import { IOperaciones } from 'src/operaciones/interface/operaciones.interface';
 
 @Injectable()
 export class VentasPropiasService {
@@ -25,6 +27,8 @@ export class VentasPropiasService {
     proveedoresModel: any;
 
     constructor(
+        @InjectModel('Operaciones') private readonly operacionesModel: Model<IOperaciones>,
+        @InjectModel('OperacionesVentasPropias') private readonly operacionesVentasPropiasModel: Model<IOperacionesVentasPropias>,
         @InjectModel('VentasPropias') private readonly ventasModel: Model<IVentasPropias>,
         @InjectModel('Productos') private readonly productosModel: Model<IProductos>,
         @InjectModel('Cheques') private readonly chequesModel: Model<ICheques>,
@@ -50,7 +54,7 @@ export class VentasPropiasService {
     }
 
     // Venta propia por ID
-    async getId(id: string): Promise<IVentasPropias> {
+    async getId(id: string): Promise<any> {
 
         // Se verifica si la venta existe
         const ventaDB = await this.ventasModel.findById(id);
@@ -101,9 +105,17 @@ export class VentasPropiasService {
 
         pipeline.push({ $unwind: '$updatorUser' });
 
+        // Venta
         const venta = await this.ventasModel.aggregate(pipeline);
 
-        return venta[0];
+        // Operacion
+        const operacionVentaPropiaDB = await this.operacionesVentasPropiasModel.findOne({ venta_propia: idVenta });
+        const operacionDB = await this.operacionesModel.findById(operacionVentaPropiaDB.operacion);
+
+        return {
+            venta: venta[0],
+            opearcion: operacionDB
+        };
 
     }
 
@@ -234,6 +246,17 @@ export class VentasPropiasService {
             this.ventasModel.aggregate(pipelineTotal),
         ])
 
+        // Se le agrega a cada venta el numero de operacion al que esta asociada
+        for (let i = 0; i < ventas.length; i++) {
+            const operacionVentaPropiaDB = await this.operacionesVentasPropiasModel.findOne({ venta_propia: ventas[i]._id });
+            if(operacionVentaPropiaDB){
+                const operacionDB = await this.operacionesModel.findById(operacionVentaPropiaDB.operacion);
+                ventas[i].operacion = operacionDB.numero.toString();
+            }else{
+                ventas[i].opearcion = ''
+            }
+        }
+
         return {
             ventas,
             totalItems: ventasTotal.length
@@ -246,6 +269,7 @@ export class VentasPropiasService {
 
         let {
             tipo_venta,
+            operacion,
             cliente,
             formas_pago,
             cheques,
@@ -543,6 +567,22 @@ export class VentasPropiasService {
             await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } })    
         })
 
+        // Relacion de venta propia con operacion
+        const nuevaRelacion = new this.operacionesVentasPropiasModel({
+            venta_propia: String(ventaDB._id),
+            operacion,
+            creatorUser,
+            updatorUser
+        });
+        await nuevaRelacion.save();
+
+        // Sumar al total_ventas de la operacion una cantidad igual al precio total de la venta
+        await this.operacionesModel.findByIdAndUpdate(operacion, { $inc: { 
+            total_ventas: precio_total,
+            saldo: precio_total,
+            total: precio_total 
+        } });
+
         // GENERACION DE PDF
 
         const venta = await this.getId(ventaDB._id);
@@ -655,6 +695,14 @@ export class VentasPropiasService {
 
         // Verificacion: La venta no existe
         if (!ventaDB) throw new NotFoundException('La venta no existe');
+
+        // Verificacion: Venta asignada a una operacion
+        const operacionVentaDB = await this.operacionesVentasPropiasModel.findOne({ venta_propia: id });
+        
+        if (operacionVentaDB) {
+            const opearcionDB = await this.operacionesModel.findById(operacionVentaDB.operacion);
+            throw new NotFoundException(`La venta esta asociada a la operación Nro ${opearcionDB.numero.toString().padStart(8, '0')}`);
+        }
 
         // Verificacion: Si tiene recibos de cobros asociados no puede darse de baja
         const reciboVentaDB = await this.recibosCobroVentaModel.find({ venta_propia: ventaDB._id });

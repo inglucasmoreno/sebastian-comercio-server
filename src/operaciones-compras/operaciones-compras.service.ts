@@ -4,11 +4,17 @@ import { Model, Types } from 'mongoose';
 import { IOperacionesCompras } from './interface/operaciones-compras.interface';
 import { OperacionesComprasDTO } from './dto/operaciones-compras.dto';
 import { OperacionesComprasUpdateDTO } from './dto/operaciones-compras-update.dto';
+import { ICompras } from 'src/compras/interface/compras.interface';
+import { IOperaciones } from 'src/operaciones/interface/operaciones.interface';
 
 @Injectable()
 export class OperacionesComprasService {
 
-  constructor(@InjectModel('OperacionesCompras') private readonly operacionesComprasModel: Model<IOperacionesCompras>) { };
+  constructor(
+    @InjectModel('OperacionesCompras') private readonly operacionesComprasModel: Model<IOperacionesCompras>,
+    @InjectModel('Compras') private readonly comprasModel: Model<ICompras>,
+    @InjectModel('Operaciones') private readonly operacionesModel: Model<IOperaciones>
+  ) { };
 
   // OperacionCompra por ID
   async getId(id: string): Promise<IOperacionesCompras> {
@@ -35,6 +41,19 @@ export class OperacionesComprasService {
     );
 
     pipeline.push({ $unwind: '$compra' });
+
+    // Informacion de Compra -> Proveedor
+    pipeline.push({
+      $lookup: { // Lookup
+        from: 'proveedores',
+        localField: 'compra.proveedor',
+        foreignField: '_id',
+        as: 'compra.proveedor'
+      }
+    }
+    );
+
+    pipeline.push({ $unwind: '$compra.proveedor' });
 
     // Informacion de operacion
     pipeline.push({
@@ -170,13 +189,25 @@ export class OperacionesComprasService {
   // Crear OperacionCompra
   async insert(operacionesComprasDTO: OperacionesComprasDTO): Promise<IOperacionesCompras> {
 
+    const { compra } = operacionesComprasDTO;
+
     // La compra ya esta asignada a esta operacion
     const operacionCompraDB = await this.operacionesComprasModel.findOne({ compra: operacionesComprasDTO.compra, operacion: operacionesComprasDTO.operacion });
-
     if (operacionCompraDB) throw new NotFoundException('La compra ya esta asignada a esta operacion');
 
+    // Nueva relacion -> Operacion - Compra
     const nuevaOperacionCompra = new this.operacionesComprasModel(operacionesComprasDTO);
     const relacionDB = await nuevaOperacionCompra.save();
+
+    // Se obtiene los datos de la compra
+    const compraDB = await this.comprasModel.findById(compra);
+
+    // Se actualizan los totales de la operacion
+    const operacionDB: any = await this.operacionesModel.findById(operacionesComprasDTO.operacion);
+    operacionDB.total_compras += compraDB.precio_total;
+    operacionDB.saldo -= compraDB.precio_total;
+    operacionDB.total -= compraDB.precio_total;
+    await this.operacionesModel.findByIdAndUpdate(operacionesComprasDTO.operacion, operacionDB, { new: true });
 
     return await this.getId(relacionDB._id);
 
@@ -202,8 +233,18 @@ export class OperacionesComprasService {
 
     // Verificacion: La OperacionCompra no existe
     if (!operacionCompraDB) throw new NotFoundException('La OperacionCompra no existe');
-
     await this.operacionesComprasModel.findByIdAndDelete(id);
+
+    // Se obtienen los datos de la compra
+    const compraDB = await this.comprasModel.findById(operacionCompraDB.compra);
+
+    // Se decrementa el total_compras de la operacion en una cantidad igual al total de la compra
+    const operacionDB: any = await this.operacionesModel.findById(operacionCompraDB.operacion);
+    operacionDB.total_compras -= compraDB.precio_total;
+    operacionDB.saldo += compraDB.precio_total;
+    operacionDB.total += compraDB.precio_total;
+    await this.operacionesModel.findByIdAndUpdate(operacionCompraDB.operacion, operacionDB, { new: true });
+
     return operacionCompraDB;
 
   }

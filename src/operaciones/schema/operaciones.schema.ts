@@ -12,6 +12,16 @@ export const operacionesSchema = new Schema({
     required: true,
   },
 
+  total_compras: {
+    type: Number,
+    default: 0,
+  },
+
+  total_ventas: {
+    type: Number,
+    default: 0,
+  },
+
   saldo: {
     type: Number,
     default: 0,

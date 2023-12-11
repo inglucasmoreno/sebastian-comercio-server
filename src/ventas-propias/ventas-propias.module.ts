@@ -13,10 +13,14 @@ import { ventasPropiasProductosSchema } from 'src/ventas-propias-productos/schem
 import { ventasPropiasSchema } from './schema/ventas-propias.schema';
 import { VentasPropiasController } from './ventas-propias.controller';
 import { VentasPropiasService } from './ventas-propias.service';
+import { operacionesVentasPropiasSchema } from 'src/operaciones-ventas-propias/schema/operaciones-ventas-propias.schema';
+import { operacionesSchema } from 'src/operaciones/schema/operaciones.schema';
 
 @Module({
 	imports: [
 		MongooseModule.forFeature([
+			{ name: 'Operaciones', schema: operacionesSchema },
+			{ name: 'OperacionesVentasPropias', schema: operacionesVentasPropiasSchema },
 			{ name: 'VentasPropias', schema: ventasPropiasSchema },
 			{ name: 'Productos', schema: productosSchema },
 			{ name: 'Cheques', schema: chequesSchema },

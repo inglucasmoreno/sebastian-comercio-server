@@ -13,10 +13,11 @@ export class VentasPropiasController {
     @UseGuards(JwtAuthGuard)
     @Get('/:id')
     async getId(@Res() res, @Param('id') ventaID) {
-        const venta = await this.ventasPropiasService.getId(ventaID);
+        const { venta, operacion }= await this.ventasPropiasService.getId(ventaID);
         res.status(HttpStatus.OK).json({
             message: 'Venta obtenida correctamente',
-            venta
+            venta,
+            operacion
         });
     }
 

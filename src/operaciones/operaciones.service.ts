@@ -114,7 +114,6 @@ export class OperacionesService {
 
     pipelineVentasPropias.push({ $unwind: '$updatorUser' });
 
-
     // TODO: Se listan las compras de la operacion
 
     const pipelineCompras = [];
@@ -190,10 +189,21 @@ export class OperacionesService {
   // Listar operaciones
   async getAll(querys: any): Promise<IOperaciones[]> {
 
-    const { columna, direccion } = querys;
+    const {
+      columna,
+      direccion,
+      estado,
+      parametro
+    } = querys;
 
     const pipeline = [];
+
     pipeline.push({ $match: {} });
+
+    // Activo / Inactivo
+    if (estado && estado !== '') {
+      pipeline.push({ $match: { estado }});
+    }
 
     // Informacion de usuario creador
     pipeline.push({
@@ -221,6 +231,30 @@ export class OperacionesService {
 
     pipeline.push({ $unwind: '$updatorUser' });
 
+
+    // Filtro por parametros
+    if (parametro && parametro !== '') {
+
+      const porPartes = parametro.split(' ');
+      let parametroFinal = '';
+
+      for (var i = 0; i < porPartes.length; i++) {
+        if (i > 0) parametroFinal = parametroFinal + porPartes[i] + '.*';
+        else parametroFinal = porPartes[i] + '.*';
+      }
+
+      const regex = new RegExp(parametroFinal, 'i');
+      pipeline.push({
+        $match: {
+          $or: [
+            { numero: Number(parametro) },
+          ]
+        }
+      });
+
+    }
+
+
     // Ordenando datos
     const ordenar: any = {};
     if (columna) {
@@ -246,13 +280,13 @@ export class OperacionesService {
 
     const operacion = new this.operacionesModel(operacionesDTO);
     return await operacion.save();
-    
+
   }
 
   // Actualizar operacion
   async update(id: string, operacionesUpdateDTO: OperacionesUpdateDTO): Promise<IOperaciones> {
 
-    if(operacionesUpdateDTO.fecha_operacion){
+    if (operacionesUpdateDTO.fecha_operacion) {
       operacionesUpdateDTO.fecha_operacion = add(new Date(operacionesUpdateDTO.fecha_operacion), { hours: 3 });
     }
 
@@ -262,6 +296,19 @@ export class OperacionesService {
     if (!operacionDB) throw new NotFoundException('La operacion no existe');
 
     const operacion = await this.operacionesModel.findByIdAndUpdate(id, operacionesUpdateDTO, { new: true });
+    return operacion;
+
+  }
+
+  // Completar operacion
+  async complete(id: string): Promise<IOperaciones> {
+
+    const operacionDB = await this.operacionesModel.findById(id);
+
+    // Verificacion: La operacion no existe
+    if (!operacionDB) throw new NotFoundException('La operacion no existe');
+
+    const operacion = await this.operacionesModel.findByIdAndUpdate(id, { estado: 'Completada' }, { new: true });
     return operacion;
 
   }

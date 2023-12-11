@@ -55,4 +55,15 @@ export class OperacionesController {
     });
   }
 
+  // Completar operacion
+  @UseGuards(JwtAuthGuard)
+  @Put('/completar/:id')
+  async complete(@Res() res, @Param('id') operacionID) {
+    const operacion = await this.operacionesService.complete(operacionID);
+    res.status(HttpStatus.OK).json({
+      message: 'Operacion completada correctamente',
+      operacion
+    });
+  }
+
 }

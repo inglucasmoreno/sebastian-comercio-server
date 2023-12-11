@@ -3,6 +3,8 @@ export class ComprasUpdateDTO {
 
   readonly fecha_compra: string;
 
+  readonly operacion: string;
+
   readonly nro_factura: string;
 
   readonly observacion: string;
