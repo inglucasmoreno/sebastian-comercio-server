@@ -14,11 +14,17 @@ import { ICcClientesMovimientos } from 'src/cc-clientes-movimientos/interface/cc
 import { ICcProveedoresMovimientos } from 'src/cc-proveedores-movimientos/interface/cc-proveedores-movimientos.interface';
 import { ICajasMovimientos } from 'src/cajas-movimientos/interface/cajas-movimientos.interface';
 import { ICajas } from 'src/cajas/interface/cajas.interface';
+import { IOperaciones } from 'src/operaciones/interface/operaciones.interface';
+import { IOperacionesVentasPropias } from 'src/operaciones-ventas-propias/interface/operaciones-ventas-propias.interface';
+import { IOperacionesCompras } from 'src/operaciones-compras/interface/operaciones-compras.interface';
 
 @Injectable()
 export class ReportesService {
 
   constructor(
+    @InjectModel('Operaciones') private readonly operacionesModel: Model<IOperaciones>,
+    @InjectModel('OperacionesVentasPropias') private readonly operacionesVentasPropiasModel: Model<IOperacionesVentasPropias>,
+    @InjectModel('OperacionesCompras') private readonly operacionesComprasModel: Model<IOperacionesCompras>,
     @InjectModel('Cajas') private readonly cajasModel: Model<ICajas>,
     @InjectModel('Compras') private readonly comprasModel: Model<ICompras>,
     @InjectModel('Ventas') private readonly ventasModel: Model<IVentas>,
@@ -85,6 +91,17 @@ export class ReportesService {
 
     const compras = await this.comprasModel.aggregate(pipeline);
 
+    // Se le agrega a cada compra el numero de operacion al que esta asociada
+    for (let i = 0; i < compras.length; i++) {
+      const operacionCompraDB = await this.operacionesComprasModel.findOne({ compra: compras[i]._id });
+      if (operacionCompraDB) {
+        const operacionDB = await this.operacionesModel.findById(operacionCompraDB.operacion);
+        compras[i].operacion = operacionDB.numero.toString().padStart(8, '0');
+      } else {
+        compras[i].opearcion = ''
+      }
+    }
+
     // GENERACION EXCEL
 
     const workbook = new ExcelJs.Workbook();
@@ -101,6 +118,7 @@ export class ReportesService {
       'Número',
       'Fecha de compra',
       'Fecha de carga',
+      'Operación',
       'Proveedor',
       'Precio total',
       'Habilitada',
@@ -124,12 +142,13 @@ export class ReportesService {
     worksheet.getColumn(1).width = 14; // Codigo
     worksheet.getColumn(2).width = 20; // Fecha de compra
     worksheet.getColumn(3).width = 20; // Fecha de carga
-    worksheet.getColumn(4).width = 40; // Proveedor
-    worksheet.getColumn(5).width = 25; // Precio total
-    worksheet.getColumn(6).width = 15; // Habilitadas
-    worksheet.getColumn(7).width = 16; // Canceladas
-    worksheet.getColumn(8).width = 40; // Observaciones
-    worksheet.getColumn(9).width = 25; // Numero de factura
+    worksheet.getColumn(4).width = 20; // Operación
+    worksheet.getColumn(5).width = 40; // Proveedor
+    worksheet.getColumn(6).width = 25; // Precio total
+    worksheet.getColumn(7).width = 15; // Habilitadas
+    worksheet.getColumn(8).width = 16; // Canceladas
+    worksheet.getColumn(9).width = 40; // Observaciones
+    worksheet.getColumn(10).width = 25; // Numero de factura
 
     // Agregar elementos
     compras.map(compra => {
@@ -137,6 +156,7 @@ export class ReportesService {
         compra.nro,
         add(compra.fecha_venta ? compra.fecha_venta : compra.createdAt, { hours: -3 }),
         add(compra.createdAt, { hours: -3 }),
+        compra.operacion,
         compra.proveedor['descripcion'],
         Number(compra.precio_total),
         compra.activo ? 'SI' : 'NO',
@@ -314,6 +334,17 @@ export class ReportesService {
 
     const ventas = await this.ventasPropiasModel.aggregate(pipeline);
 
+    // Se le agrega a cada venta el numero de operacion al que esta asociada
+    for (let i = 0; i < ventas.length; i++) {
+      const operacionVentaPropiaDB = await this.operacionesVentasPropiasModel.findOne({ venta_propia: ventas[i]._id });
+      if (operacionVentaPropiaDB) {
+        const operacionDB = await this.operacionesModel.findById(operacionVentaPropiaDB.operacion);
+        ventas[i].operacion = operacionDB.numero.toString().padStart(8, '0');
+      } else {
+        ventas[i].opearcion = ''
+      }
+    }
+
     // GENERACION EXCEL
 
     const workbook = new ExcelJs.Workbook();
@@ -330,6 +361,7 @@ export class ReportesService {
       'Número',
       'Fecha de venta',
       'Fecha de carga',
+      'Operación',
       'Cliente',
       'Precio total',
       'Habilitada',
@@ -352,11 +384,12 @@ export class ReportesService {
     worksheet.getColumn(1).width = 14; // Codigo
     worksheet.getColumn(2).width = 20; // Fecha de venta
     worksheet.getColumn(3).width = 20; // Fecha de carga
-    worksheet.getColumn(4).width = 40; // Cliente
-    worksheet.getColumn(5).width = 25; // Precio total
-    worksheet.getColumn(6).width = 20; // Habilitadas
-    worksheet.getColumn(7).width = 20; // Canceladas
-    worksheet.getColumn(8).width = 20; // Observaciones
+    worksheet.getColumn(4).width = 20; // Operacion
+    worksheet.getColumn(5).width = 40; // Cliente
+    worksheet.getColumn(6).width = 25; // Precio total
+    worksheet.getColumn(7).width = 20; // Habilitadas
+    worksheet.getColumn(8).width = 20; // Canceladas
+    worksheet.getColumn(9).width = 20; // Observaciones
 
     // Agregar elementos
     ventas.map(venta => {
@@ -364,6 +397,7 @@ export class ReportesService {
         venta.nro,
         add(venta.fecha_venta ? venta.fecha_venta : venta.createdAt, { hours: -3 }),
         add(venta.createdAt, { hours: -3 }),
+        venta.operacion,
         venta.cliente['descripcion'],
         Number(venta.precio_total),
         venta.activo ? 'SI' : 'NO',
@@ -791,23 +825,23 @@ export class ReportesService {
 
     // Se agrega la fecha de recibo de cobro
     for (const elemento of movimientos) {
-      
+
       let nuevoElemento = elemento;
-      
+
       if (elemento.recibo_cobro !== '') {
         const reciboCobro = await this.recibosCobroModel.findById(elemento.recibo_cobro);
         nuevoElemento.fecha_comprobante = reciboCobro.fecha_cobro ? reciboCobro.fecha_cobro : reciboCobro.createdAt;
         movimientosReporte.push(nuevoElemento);
-      }else if(elemento.venta_propia !== '') {
+      } else if (elemento.venta_propia !== '') {
         const ventaPropia = await this.ventasPropiasModel.findById(elemento.venta_propia);
         nuevoElemento.fecha_comprobante = ventaPropia.fecha_venta ? ventaPropia.fecha_venta : ventaPropia.createdAt;
         movimientosReporte.push(nuevoElemento);
-      }else {
+      } else {
         nuevoElemento.fecha_comprobante = '';
         movimientosReporte.push(nuevoElemento);
-      }    
+      }
     }
-    
+
     // GENERACION EXCEL
 
     const workbook = new ExcelJs.Workbook();
@@ -906,11 +940,11 @@ export class ReportesService {
         const ordenPago = await this.ordenesPagoModel.findById(elemento.orden_pago);
         nuevoElemento.fecha_comprobante = ordenPago.fecha_pago ? ordenPago.fecha_pago : ordenPago.createdAt;
         movimientosReporte.push(nuevoElemento);
-      }else if (elemento.compra !== '') {
+      } else if (elemento.compra !== '') {
         const compra = await this.comprasModel.findById(elemento.compra);
         nuevoElemento.fecha_comprobante = compra.fecha_compra ? compra.fecha_compra : compra.createdAt;
         movimientosReporte.push(nuevoElemento);
-      }else {
+      } else {
         nuevoElemento.fecha_comprobante = '';
         movimientosReporte.push(nuevoElemento);
       }

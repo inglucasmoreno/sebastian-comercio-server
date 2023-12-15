@@ -171,7 +171,6 @@ export class OperacionesService {
 
     pipelineCompras.push({ $unwind: '$updatorUser' });
 
-
     const [operacion, operacionVentasPropias, operacionCompras] = await Promise.all([
       this.operacionesModel.aggregate(pipeline),
       this.operacionesVentasPropiasModel.aggregate(pipelineVentasPropias),
@@ -195,6 +194,8 @@ export class OperacionesService {
       estado,
       parametro
     } = querys;
+
+    console.log(parametro);
 
     const pipeline = [];
 

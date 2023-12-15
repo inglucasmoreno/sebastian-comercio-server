@@ -251,7 +251,7 @@ export class VentasPropiasService {
             const operacionVentaPropiaDB = await this.operacionesVentasPropiasModel.findOne({ venta_propia: ventas[i]._id });
             if(operacionVentaPropiaDB){
                 const operacionDB = await this.operacionesModel.findById(operacionVentaPropiaDB.operacion);
-                ventas[i].operacion = operacionDB.numero.toString();
+                ventas[i].operacion = operacionDB;
             }else{
                 ventas[i].opearcion = ''
             }
@@ -984,8 +984,6 @@ export class VentasPropiasService {
             fechaDesde,
             fechaHasta
         } = data;        
-
-        console.log(fechaDesde, fechaHasta);
 
         // Obtener ventas
         const respuesta = await this.getAll({

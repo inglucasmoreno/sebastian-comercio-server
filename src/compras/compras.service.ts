@@ -243,7 +243,7 @@ export class ComprasService {
       const operacionCompraDB = await this.operacionesComprasModel.findOne({ compra: compras[i]._id });
       if (operacionCompraDB) {
         const operacionDB = await this.operacionesModel.findById(operacionCompraDB.operacion);
-        compras[i].operacion = operacionDB.numero.toString();
+        compras[i].operacion = operacionDB;
       } else {
         compras[i].opearcion = ''
       }

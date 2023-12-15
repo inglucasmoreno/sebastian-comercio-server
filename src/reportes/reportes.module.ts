@@ -13,10 +13,16 @@ import { CcClientesMovimientosSchema } from 'src/cc-clientes-movimientos/schema/
 import { CcProveedoresMovimientosSchema } from 'src/cc-proveedores-movimientos/schema/cc-proveedores-movimientos.schema';
 import { CajasMovimientosSchema } from 'src/cajas-movimientos/schema/cajas-movimientos.schema';
 import { cajasSchema } from 'src/cajas/schema/cajas.schema';
+import { operacionesSchema } from 'src/operaciones/schema/operaciones.schema';
+import { operacionesVentasPropiasSchema } from 'src/operaciones-ventas-propias/schema/operaciones-ventas-propias.schema';
+import { operacionesComprasSchema } from 'src/operaciones-compras/schema/operaciones-compras.schema';
 
 @Module({
   imports: [
 		MongooseModule.forFeature([
+      { name: 'Operaciones', schema: operacionesSchema },
+			{ name: 'OperacionesVentasPropias', schema: operacionesVentasPropiasSchema },
+      { name: 'OperacionesCompras', schema: operacionesComprasSchema },
       { name: 'Cajas', schema: cajasSchema },
       { name: 'VentasPropias', schema: ventasPropiasSchema },
       { name: 'Ventas', schema: ventasSchema },
