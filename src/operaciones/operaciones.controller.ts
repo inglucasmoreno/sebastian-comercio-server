@@ -22,6 +22,16 @@ export class OperacionesController {
     });
   }
 
+  // Imprimir - Detalles de operacion
+  @UseGuards(JwtAuthGuard)
+  @Get('/imprimir-detalles/:id')
+  async imprimirDetalles(@Res() res, @Param('id') operacionID) {
+    await this.operacionesService.imprimirDetalles(operacionID);
+    res.status(HttpStatus.OK).json({
+      message: 'Detalles generados correctamente',
+    });
+  }
+
   // Listar operaciones
   @UseGuards(JwtAuthGuard)
   @Get('/')

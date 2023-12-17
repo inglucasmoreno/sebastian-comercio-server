@@ -6,7 +6,9 @@ import { OperacionesDTO } from './dto/operaciones.dto';
 import { OperacionesUpdateDTO } from './dto/operaciones-update.dto';
 import { IOperacionesVentasPropias } from 'src/operaciones-ventas-propias/interface/operaciones-ventas-propias.interface';
 import { IOperacionesCompras } from 'src/operaciones-compras/interface/operaciones-compras.interface';
-import { add } from 'date-fns';
+import { add, format } from 'date-fns';
+import * as fs from 'fs';
+import * as pdf from 'pdf-creator-node';
 
 @Injectable()
 export class OperacionesService {
@@ -195,15 +197,13 @@ export class OperacionesService {
       parametro
     } = querys;
 
-    console.log(parametro);
-
     const pipeline = [];
 
     pipeline.push({ $match: {} });
 
     // Activo / Inactivo
     if (estado && estado !== '') {
-      pipeline.push({ $match: { estado }});
+      pipeline.push({ $match: { estado } });
     }
 
     // Informacion de usuario creador
@@ -312,6 +312,67 @@ export class OperacionesService {
     const operacion = await this.operacionesModel.findByIdAndUpdate(id, { estado: 'Completada' }, { new: true });
     return operacion;
 
+  }
+
+  // Imprimir detalles de operacion
+  async imprimirDetalles(id: string): Promise<any> {
+
+    // Datos de operacion
+    const respuesta = await this.getId(id);
+
+    let html: any;
+    html = fs.readFileSync((process.env.PDF_TEMPLATE_DIR || './pdf-template') + '/detalles-operacion.html', 'utf-8');
+
+    // Se recorren las ventas propias y se arma un arreglo con el numero y el precio total
+    let ventasPropias = [];
+    respuesta.operacionVentasPropias.forEach(ventaPropia => {
+      ventasPropias.push({
+        codigo: 'VP' + ventaPropia.venta_propia.nro.toString().padStart(7, '0'),
+        precio_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(ventaPropia.venta_propia.precio_total)),
+      });
+    });
+    
+    // Se recorren las compras y se arma un arreglo con el numero y el precio total
+    let compras = [];
+    respuesta.operacionCompras.forEach(compra => {
+      compras.push({
+        codigo: 'C' + compra.compra.nro.toString().padStart(7, '0'),
+        precio_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(compra.compra.precio_total)),
+      });
+    });
+
+    const data = {
+      codigo_operacion: respuesta.operacion.numero.toString().padStart(8, '0'),
+      fecha_operacion: format(respuesta.operacion.fecha_operacion, 'dd/MM/yyyy'),
+      total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(respuesta.operacion.total)),
+      saldo:Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(respuesta.operacion.saldo)),
+      total_compras: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(respuesta.operacion.total_compras,)),
+      total_ventas: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(respuesta.operacion.total_ventas)),
+      ventasPropias: ventasPropias,
+      compras: compras
+    };
+
+    var options = {
+      format: 'A4',
+      orientation: 'portrait',
+      border: '10mm',
+      footer: {
+        height: "35mm",
+        contents: {}
+      }
+    }
+
+    // Configuraciones de documento
+    var document = {
+      html: html,
+      data,
+      path: (process.env.PUBLIC_DIR || './public') + '/pdf/detalles-operacion.pdf'
+    }
+
+    // Generacion de PDF
+    await pdf.create(document, options);
+
+    return 'Detalles generados correctamente';
   }
 
 }
