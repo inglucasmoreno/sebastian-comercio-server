@@ -633,8 +633,10 @@ export class VentasPropiasService {
         else if (nro <= 99999) mostrarNumero = 'VP00' + String(nro);
         else if (nro <= 999999) mostrarNumero = 'VP0' + String(nro);
 
+        const ventaPDF = venta.venta;
+
         // Adaptando formas de pago
-        venta.formas_pago.map((forma: any) => formasPagoPDF.push({
+        ventaPDF.formas_pago.map((forma: any) => formasPagoPDF.push({
             descripcion: forma.descripcion,
             monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(forma.monto),
         }));
@@ -643,17 +645,17 @@ export class VentasPropiasService {
         if (totalEnCheques > 0) formasPagoPDF.push({ descripcion: 'CHEQUES', monto: totalEnCheques });
 
         const data = {
-            fecha: venta.fecha_venta ? format(venta.fecha_venta, 'dd/MM/yyyy') : format(venta.createdAt, 'dd/MM/yyyy'),
+            fecha: ventaPDF.fecha_venta ? format(ventaPDF.fecha_venta, 'dd/MM/yyyy') : format(ventaPDF.createdAt, 'dd/MM/yyyy'),
             numero: mostrarNumero,
             formas_pago: formasPagoPDF,
             fecha_venta: add(new Date(fecha_venta), { hours: 3 }),
-            descripcion: venta.cliente['descripcion'],
-            correo_electronico: venta.cliente['correo_electronico'],
-            condicion_iva: venta.cliente['condicion_iva'],
-            direccion: venta.cliente['direccion'],
-            telefono: venta.cliente['telefono'],
+            descripcion: ventaPDF.cliente['descripcion'],
+            correo_electronico: ventaPDF.cliente['correo_electronico'],
+            condicion_iva: ventaPDF.cliente['condicion_iva'],
+            direccion: ventaPDF.cliente['direccion'],
+            telefono: ventaPDF.cliente['telefono'],
             productos: productosPDF,
-            total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(venta.precio_total)
+            total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaPDF.precio_total)
         };
 
         // Configuraciones de documento
@@ -915,8 +917,10 @@ export class VentasPropiasService {
         else if (nro <= 99999) mostrarNumero = 'VP00' + String(nro);
         else if (nro <= 999999) mostrarNumero = 'VP0' + String(nro);
 
+        const ventaPDF = venta.venta;
+
         // Adaptando formas de pago
-        venta.formas_pago.map((forma: any) => formasPagoPDF.push({
+        ventaPDF.formas_pago.map((forma: any) => formasPagoPDF.push({
             descripcion: forma.descripcion,
             monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(forma.monto),
         }));
@@ -932,16 +936,16 @@ export class VentasPropiasService {
         }
 
         const data = {
-            fecha: venta.fecha_venta ? format(venta.fecha_venta, 'dd/MM/yyyy') : format(venta.createdAt, 'dd/MM/yyyy'),
+            fecha: ventaPDF.fecha_venta ? format(ventaPDF.fecha_venta, 'dd/MM/yyyy') : format(ventaPDF.createdAt, 'dd/MM/yyyy'),
             numero: mostrarNumero,
-            descripcion: venta.cliente['descripcion'],
+            descripcion: ventaPDF.cliente['descripcion'],
             formas_pago: formasPagoPDF,
-            correo_electronico: venta.cliente['correo_electronico'],
-            condicion_iva: venta.cliente['condicion_iva'],
-            direccion: venta.cliente['direccion'],
-            telefono: venta.cliente['telefono'],
+            correo_electronico: ventaPDF.cliente['correo_electronico'],
+            condicion_iva: ventaPDF.cliente['condicion_iva'],
+            direccion: ventaPDF.cliente['direccion'],
+            telefono: ventaPDF.cliente['telefono'],
             productos: productosPDF,
-            total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(venta.precio_total)
+            total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(ventaPDF.precio_total)
         };
 
         var options = {
@@ -954,7 +958,7 @@ export class VentasPropiasService {
                     first: `
                       <p style="width: 100%; font-size: 9px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${data.total} </span> </p>
                       <p style="width: 100%; font-size: 8px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
-                      <p style="width: 100%; font-size: 8px;"> ${venta.observacion} </p>
+                      <p style="width: 100%; font-size: 8px;"> ${ventaPDF.observacion} </p>
                   `,
                     2: 'Second page',
                     default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',
