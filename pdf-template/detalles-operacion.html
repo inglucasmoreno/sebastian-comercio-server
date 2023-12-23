@@ -23,8 +23,8 @@
 
 
   <p style="font-size: 17px; font-weight: bold;"> DETALLES DE OPERACION </p>
-  <p style="font-size: 15px; margin-top: 20px;"> <span style="font-weight: bold;"> Fecha: </span> {{ fecha_operacion }} </p>
-  <p style="font-size: 15px; margin-top: 10px;"> <span style="font-weight: bold;"> Codigo de operación: </span> {{ codigo_operacion }} </p>
+  <p style="font-size: 10px; margin-top: 20px;"> <span style="font-weight: bold;"> Fecha: </span> {{ fecha_operacion }} </p>
+  <p style="font-size: 10px; margin-top: 10px;"> <span style="font-weight: bold;"> Codigo de operación: </span> {{ codigo_operacion }} </p>
 
   <table style="font-size: 13px; border-collapse: collapse; margin-top: 20px">
 
@@ -32,36 +32,36 @@
 
     {{#each ventasPropias}}
         <tr style="border: 1px solid black">
-          <td style="border: 1px solid black; font-size: 12px; padding: 5px; font-weight: bold;"> {{ codigo }} </td>
-          <td style="border: 1px solid black; font-size: 12px; padding: 5px;"> ${{ precio_total }} </td>
+          <td style="border: 1px solid black; font-size: 9px; padding: 5px; font-weight: bold;"> {{ codigo }} </td>
+          <td style="border: 1px solid black; font-size: 9px; padding: 5px;"> ${{ precio_total }} </td>
         </tr>
     {{/each}}
 
     <!-- Total ventas -->
     <tr style="background-color: #7CFF90; border: 1px solid black">
-      <td style="border: 1px solid black; font-size: 12px; padding: 5px; font-weight: bold;"> Total ventas </td>
-      <td style="border: 1px solid black; font-size: 12px; padding: 5px;"> ${{ total_ventas }} </td>
+      <td style="border: 1px solid black; font-size: 9px; padding: 5px; font-weight: bold;"> Total ventas </td>
+      <td style="border: 1px solid black; font-size: 9px; padding: 5px;"> ${{ total_ventas }} </td>
     </tr>
 
     <!-- Listado de compras -->
 
     {{#each compras}}
         <tr style="border: 1px solid black">
-          <td style="border: 1px solid black; font-size: 12px; padding: 5px; font-weight: bold;"> {{ codigo }} </td>
-          <td style="border: 1px solid black; font-size: 12px; padding: 5px;"> ${{ precio_total }} </td>
+          <td style="border: 1px solid black; font-size: 9px; padding: 5px; font-weight: bold;"> {{ codigo }} </td>
+          <td style="border: 1px solid black; font-size: 9px; padding: 5px;"> ${{ precio_total }} </td>
         </tr>
     {{/each}}
 
     <!-- Total compras -->
     <tr style="background-color: #FF7C7C; border: 1px solid black">
-      <td style="border: 1px solid black; font-size: 12px; padding: 5px; font-weight: bold;"> Total compras </td>
-      <td style="border: 1px solid black; font-size: 12px; padding: 5px;"> ${{ total_compras }} </td>
+      <td style="border: 1px solid black; font-size: 9px; padding: 5px; font-weight: bold;"> Total compras </td>
+      <td style="border: 1px solid black; font-size: 9px; padding: 5px;"> ${{ total_compras }} </td>
     </tr>
 
     <!-- Saldo -->
     <tr style="background-color: #E3E3E3; border: 1px solid black">
-      <td style="border: 1px solid black; font-size: 12px; padding: 5px; font-weight: bold;"> Saldo </td>
-      <td style="border: 1px solid black; font-size: 12px; padding: 5px;"> ${{ saldo }} </td>
+      <td style="border: 1px solid black; font-size: 9px; padding: 5px; font-weight: bold;"> Saldo </td>
+      <td style="border: 1px solid black; font-size: 9px; padding: 5px;"> ${{ saldo }} </td>
     </tr>
   </table>
 
