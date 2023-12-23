@@ -108,9 +108,11 @@ export class ComprasService {
 
     const compras = await this.comprasModel.aggregate(pipeline);
 
+    let operacionDB = null;
+
     // Operacion
     const operacionCompraDB = await this.operacionesComprasModel.findOne({ compra: String(idCompra) });
-    const operacionDB = await this.operacionesModel.findById(operacionCompraDB.operacion);
+    if(operacionCompraDB) operacionDB = await this.operacionesModel.findById(operacionCompraDB.operacion);
 
     return {
       compra: compras[0],
@@ -829,9 +831,11 @@ export class ComprasService {
       precio_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_total)
     }));
 
+    const compraPDF = compra.compra;
+
     // Adaptando numero
     let mostrarNumero: string;
-    const { nro } = compra;
+    const { nro } = compraPDF;
     if (nro <= 9) mostrarNumero = 'C000000' + String(nro);
     else if (nro <= 99) mostrarNumero = 'C00000' + String(nro);
     else if (nro <= 999) mostrarNumero = 'C0000' + String(nro);
@@ -840,7 +844,7 @@ export class ComprasService {
     else if (nro <= 999999) mostrarNumero = 'C0' + String(nro);
 
     // Adaptando formas de pago
-    compra.formas_pago.map((forma: any) => formasPagoPDF.push({
+    compraPDF.formas_pago.map((forma: any) => formasPagoPDF.push({
       descripcion: forma.descripcion,
       monto: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(forma.monto),
     }));
@@ -856,17 +860,17 @@ export class ComprasService {
     }
 
     const data = {
-      fecha: compra.fecha_compra ? format(compra.fecha_compra, 'dd/MM/yyyy') : format(compra.createdAt, 'dd/MM/yyyy'),
+      fecha: compraPDF.fecha_compra ? format(compraPDF.fecha_compra, 'dd/MM/yyyy') : format(compraPDF.createdAt, 'dd/MM/yyyy'),
       numero: mostrarNumero,
-      nro_factura: compra.nro_factura,
-      descripcion: compra.proveedor['descripcion'],
+      nro_factura: compraPDF.nro_factura,
+      descripcion: compraPDF.proveedor['descripcion'],
       formas_pago: formasPagoPDF,
-      correo_electronico: compra.proveedor['correo_electronico'],
-      condicion_iva: compra.proveedor['condicion_iva'],
-      direccion: compra.proveedor['direccion'],
-      telefono: compra.proveedor['telefono'],
+      correo_electronico: compraPDF.proveedor['correo_electronico'],
+      condicion_iva: compraPDF.proveedor['condicion_iva'],
+      direccion: compraPDF.proveedor['direccion'],
+      telefono: compraPDF.proveedor['telefono'],
       productos: productosPDF,
-      total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(compra.precio_total)
+      total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(compraPDF.precio_total)
     };
 
     var options = {
@@ -879,7 +883,7 @@ export class ComprasService {
           first: `
                     <p style="width: 100%; font-size: 9px; padding-bottom: 7px; padding:10px; border-top: 1px solid black; text-align:right; margin-bottom: 10px;"> <b style="background-color:#ECECEC; padding:10px; border-top: 1px solid black;"> Precio total: </b> <span style="background-color:#ECECEC; padding: 10px; border-top: 1px solid black;"> $${data.total} </span> </p>
                     <p style="width: 100%; font-size: 8px; padding-bottom: 7px;"> <b> Observaciones </b> </p>
-                    <p style="width: 100%; font-size: 8px;"> ${compra.observacion} </p>
+                    <p style="width: 100%; font-size: 8px;"> ${compraPDF.observacion} </p>
                 `,
           2: 'Second page',
           default: '<span style="color: #444;">{{page}}</span>/<span>{{pages}}</span>',

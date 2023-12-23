@@ -108,13 +108,15 @@ export class VentasPropiasService {
         // Venta
         const venta = await this.ventasModel.aggregate(pipeline);
 
-        // Operacion
+        // Operacion - Si esta asociada
+        let operacionDB = null;
         const operacionVentaPropiaDB = await this.operacionesVentasPropiasModel.findOne({ venta_propia: idVenta });
-        const operacionDB = await this.operacionesModel.findById(operacionVentaPropiaDB.operacion);
+
+        if(operacionVentaPropiaDB) operacionDB = await this.operacionesModel.findById(operacionVentaPropiaDB.operacion);
 
         return {
             venta: venta[0],
-            opearcion: operacionDB
+            operacion: operacionDB
         };
 
     }
@@ -907,17 +909,17 @@ export class VentasPropiasService {
             precio_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(producto.precio_total)
         }));
 
+        const ventaPDF = venta.venta;
+
         // Adaptando numero
         let mostrarNumero: string;
-        const { nro } = venta;
+        const { nro } = ventaPDF;
         if (nro <= 9) mostrarNumero = 'VP000000' + String(nro);
         else if (nro <= 99) mostrarNumero = 'VP00000' + String(nro);
         else if (nro <= 999) mostrarNumero = 'VP0000' + String(nro);
         else if (nro <= 9999) mostrarNumero = 'VP000' + String(nro);
         else if (nro <= 99999) mostrarNumero = 'VP00' + String(nro);
         else if (nro <= 999999) mostrarNumero = 'VP0' + String(nro);
-
-        const ventaPDF = venta.venta;
 
         // Adaptando formas de pago
         ventaPDF.formas_pago.map((forma: any) => formasPagoPDF.push({
