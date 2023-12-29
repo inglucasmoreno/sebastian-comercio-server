@@ -151,5 +151,18 @@ export class ReportesController {
     res.send(buffer);
   }
 
+  // Reporte en Excel - Operaciones
+  @UseGuards(JwtAuthGuard)
+  @Get('/excel/operaciones')
+  async operacionesExcel(@Res() res, @Query() querys) {
+    const buffer = await this.reportesService.operacionesExcel(querys);
+    res.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename="datos.xlsx"',
+      'Content-Length': buffer.length,
+    });
+    res.send(buffer);
+  }
+
 
 }

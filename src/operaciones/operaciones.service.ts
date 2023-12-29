@@ -255,14 +255,13 @@ export class OperacionesService {
 
     }
 
-
     // Ordenando datos
     const ordenar: any = {};
     if (columna) {
       ordenar[String(columna)] = Number(direccion);
       pipeline.push({ $sort: ordenar });
     }
-
+    
     const operaciones = await this.operacionesModel.aggregate(pipeline);
 
     return operaciones;

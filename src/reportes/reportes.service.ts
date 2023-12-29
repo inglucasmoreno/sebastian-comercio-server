@@ -1172,4 +1172,94 @@ export class ReportesService {
 
   }
 
+  // Reportes -> Operaciones
+
+  async operacionesExcel({
+    fechaDesde = '',
+    fechaHasta = '',
+    estado = ''
+  }): Promise<any> {
+
+    // OBTENCION DE DATOS
+
+    const pipeline = [];
+    pipeline.push({ $match: {} });
+
+    // Filtro por fechas [ Desde -> Hasta ]
+
+    if (fechaDesde && fechaDesde.trim() !== '') {
+      pipeline.push({
+        $match: {
+          createdAt: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+    }
+
+    if (fechaHasta && fechaHasta.trim() !== '') {
+      pipeline.push({
+        $match: {
+          createdAt: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+    }
+
+    if (estado !== '') {
+      pipeline.push({
+        $match: { estado }
+      });
+    }
+
+    const operaciones = await this.operacionesModel.aggregate(pipeline);
+
+    // GENERACION EXCEL
+
+    const workbook = new ExcelJs.Workbook();
+    const worksheet = workbook.addWorksheet('Reporte');
+
+    worksheet.addRow([
+      'Desde:',
+      `${fechaDesde && fechaDesde.trim() !== '' ? format(add(new Date(fechaDesde), { hours: 3 }), 'dd-MM-yyyy') : 'Principio'}`,
+      'Hasta:',
+      `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
+    ]);
+
+    worksheet.addRow(['Codigo', 'Total ventas', 'Total compras', 'Saldo' , 'Fecha de operacion', 'Fecha de operacion', 'Estado']);
+
+    // Autofiltro
+
+    worksheet.autoFilter = 'A2:G2';
+
+    // Estilo de filas y columnas
+
+    worksheet.getRow(1).height = 20;
+    worksheet.getRow(2).height = 20;
+
+    worksheet.getRow(1).eachCell(cell => { cell.font = { bold: true } });
+    worksheet.getRow(2).eachCell(cell => { cell.font = { bold: true } });
+
+    worksheet.getColumn(1).width = 20; // Codigo
+    worksheet.getColumn(2).width = 20; // Total ventas
+    worksheet.getColumn(3).width = 20; // Total compras
+    worksheet.getColumn(4).width = 20; // Saldo
+    worksheet.getColumn(5).width = 20; // Fecha de operacion
+    worksheet.getColumn(6).width = 20; // Fecha de creacion
+    worksheet.getColumn(7).width = 20; // Estado
+
+    // Agregar elementos
+    operaciones.map(operacion => {
+      worksheet.addRow([
+        operacion.numero.toString().padStart(8,'0'),
+        operacion.total_ventas,
+        operacion.total_compras,
+        operacion.saldo,
+        add(operacion.fecha_operacion, { hours: -3 }),
+        add(operacion.createdAt, { hours: -3 }),
+        operacion.estado,
+      ]);
+    });
+
+    return await workbook.xlsx.writeBuffer();
+
+  }
+
 }
