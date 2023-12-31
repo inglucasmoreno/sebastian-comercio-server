@@ -1209,6 +1209,8 @@ export class ReportesService {
       });
     }
 
+    pipeline.push({ $sort: { createdAt: -1 } });
+
     const operaciones = await this.operacionesModel.aggregate(pipeline);
 
     // GENERACION EXCEL
@@ -1223,7 +1225,7 @@ export class ReportesService {
       `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
     ]);
 
-    worksheet.addRow(['Codigo', 'Total ventas', 'Total compras', 'Saldo' , 'Fecha de operacion', 'Fecha de operacion', 'Estado']);
+    worksheet.addRow(['Codigo', 'Total ventas', 'Total compras', 'Saldo', 'Fecha de operacion', 'Fecha de creacion', 'Estado']);
 
     // Autofiltro
 
@@ -1248,7 +1250,7 @@ export class ReportesService {
     // Agregar elementos
     operaciones.map(operacion => {
       worksheet.addRow([
-        operacion.numero.toString().padStart(8,'0'),
+        operacion.numero.toString().padStart(8, '0'),
         operacion.total_ventas,
         operacion.total_compras,
         operacion.saldo,
