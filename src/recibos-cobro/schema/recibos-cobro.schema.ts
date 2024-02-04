@@ -28,6 +28,12 @@ export const recibosCobroSchema = new Schema({
     required: true
   },
 
+  observacion: {
+    uppercase: true,
+    type: String,
+    default: ''
+  },
+
   activo: {
     type: Boolean,
     default: true

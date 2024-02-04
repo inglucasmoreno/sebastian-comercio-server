@@ -245,10 +245,12 @@ export class OperacionesService {
       }
 
       const regex = new RegExp(parametroFinal, 'i');
+
       pipeline.push({
         $match: {
           $or: [
             { numero: Number(parametro) },
+            { observacion: regex }
           ]
         }
       });
@@ -261,7 +263,7 @@ export class OperacionesService {
       ordenar[String(columna)] = Number(direccion);
       pipeline.push({ $sort: ordenar });
     }
-    
+
     const operaciones = await this.operacionesModel.aggregate(pipeline);
 
     return operaciones;
@@ -276,7 +278,8 @@ export class OperacionesService {
     if (operacionDB.length === 0) operacionesDTO.numero = 1;
     else operacionesDTO.numero = operacionDB[0].numero + 1;
 
-    operacionesDTO.fecha_operacion = add(new Date(operacionesDTO.fecha_operacion), { hours: 3 });
+    if (operacionesDTO.fecha_operacion)
+      operacionesDTO.fecha_operacion = add(new Date(operacionesDTO.fecha_operacion), { hours: 3 });
 
     const operacion = new this.operacionesModel(operacionesDTO);
     return await operacion.save();
@@ -330,7 +333,7 @@ export class OperacionesService {
         precio_total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(ventaPropia.venta_propia.precio_total)),
       });
     });
-    
+
     // Se recorren las compras y se arma un arreglo con el numero y el precio total
     let compras = [];
     respuesta.operacionCompras.forEach(compra => {
@@ -344,7 +347,7 @@ export class OperacionesService {
       codigo_operacion: respuesta.operacion.numero.toString().padStart(8, '0'),
       fecha_operacion: format(respuesta.operacion.fecha_operacion, 'dd/MM/yyyy'),
       total: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(respuesta.operacion.total)),
-      saldo:Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(respuesta.operacion.saldo)),
+      saldo: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(respuesta.operacion.saldo)),
       total_compras: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(respuesta.operacion.total_compras,)),
       total_ventas: Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(respuesta.operacion.total_ventas)),
       ventasPropias: ventasPropias,

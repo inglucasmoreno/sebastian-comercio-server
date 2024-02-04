@@ -177,8 +177,8 @@ export class RecibosCobroService {
       }
 
       const regex = new RegExp(parametroFinal, 'i');
-      pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }] } });
-      pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }] } });
+      pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { observacion: regex }, { 'cliente.descripcion': regex }] } });
+      pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { observacion: regex }, { 'cliente.descripcion': regex }] } });
 
     }
 
@@ -214,6 +214,7 @@ export class RecibosCobroService {
       cobro_total,
       carro_pago,
       cheques,
+      observacion,
       creatorUser,
       updatorUser,
     } = recibosCobrosDTO;
@@ -236,6 +237,7 @@ export class RecibosCobroService {
       fecha_cobro: add(new Date(fecha_cobro), { hours: 3 }),
       formas_pago,
       cobro_total,
+      observacion,
       creatorUser,
       updatorUser
     }
@@ -252,7 +254,7 @@ export class RecibosCobroService {
     else if (reciboDB.nro <= 99999) codigoRecibo = 'RC00' + String(reciboDB.nro);
     else if (reciboDB.nro <= 999999) codigoRecibo = 'RC0' + String(reciboDB.nro);
 
-    const observacion = `COBRO ${codigoRecibo}`;
+    const descripcion = `COBRO ${codigoRecibo}`;
 
     //** RELACION RECIBOS - VENTAS
 
@@ -337,7 +339,7 @@ export class RecibosCobroService {
       const dataMovimientoCaja = {
         nro: nroMovimientoCaja,
         tipo: 'Debe',
-        descripcion: observacion,
+        descripcion,
         caja: chequeDB._id,
         saldo_anterior: this.redondear(chequeDB.saldo, 2),
         saldo_nuevo: nuevoSaldoCheque,
@@ -372,7 +374,7 @@ export class RecibosCobroService {
     const dataMovimientoCC = {
       nro: nroMovimientoCC,
       tipo: 'Debe',
-      descripcion: observacion,
+      descripcion,
       cc_cliente: cuentaCorrienteDB._id,
       cliente,
       saldo_anterior: this.redondear(cuentaCorrienteDB.saldo, 2),
@@ -402,7 +404,7 @@ export class RecibosCobroService {
       const dataMovimientoCaja = {
         nro: nroMovimientoCaja,
         tipo: 'Debe',
-        descripcion: observacion,
+        descripcion,
         caja: cajaDB._id,
         saldo_anterior: this.redondear(cajaDB.saldo, 2),
         saldo_nuevo: nuevoSaldoCaja,

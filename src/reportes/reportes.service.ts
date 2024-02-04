@@ -451,6 +451,8 @@ export class ReportesService {
       });
     }
 
+    pipeline.push({ $sort: { createdAt: -1 } });
+
     const recibos = await this.recibosCobroModel.aggregate(pipeline);
 
     // GENERACION EXCEL
@@ -465,11 +467,11 @@ export class ReportesService {
       `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
     ]);
 
-    worksheet.addRow(['Número', 'Fecha de cobro', 'Fecha de carga', 'Cliente', 'Cobro total']);
+    worksheet.addRow(['Número', 'Fecha de cobro', 'Fecha de carga', 'Cliente', 'Cobro total', 'Observacion']);
 
     // Autofiltro
 
-    worksheet.autoFilter = 'A2:E2';
+    worksheet.autoFilter = 'A2:F2';
 
     // Estilo de filas y columnas
 
@@ -484,7 +486,7 @@ export class ReportesService {
     worksheet.getColumn(3).width = 25; // Fecha de carga
     worksheet.getColumn(4).width = 40; // Cliente
     worksheet.getColumn(5).width = 25; // Precio total
-    worksheet.getColumn(6).width = 15; // Habilitadas
+    worksheet.getColumn(6).width = 40; // Observacion
 
     // Agregar elementos
     recibos.map(recibo => {
@@ -494,6 +496,7 @@ export class ReportesService {
         add(recibo.createdAt, { hours: -3 }),
         recibo.cliente['descripcion'],
         Number(recibo.cobro_total),
+        recibo.observacion ? recibo.observacion : ''
       ]);
     });
 
@@ -542,6 +545,9 @@ export class ReportesService {
       });
     }
 
+    // Ordenando datos
+    pipeline.push({ $sort: { createdAt: -1 } });
+
     const ordenes = await this.ordenesPagoModel.aggregate(pipeline);
 
     // GENERACION EXCEL
@@ -556,11 +562,11 @@ export class ReportesService {
       `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
     ]);
 
-    worksheet.addRow(['Número', 'Fecha de pago', 'Fecha de carga', 'Proveedor', 'Pago total']);
+    worksheet.addRow(['Número', 'Fecha de pago', 'Fecha de carga', 'Proveedor', 'Pago total', 'Observacion']);
 
     // Autofiltro
 
-    worksheet.autoFilter = 'A2:E2';
+    worksheet.autoFilter = 'A2:F2';
 
     // Estilo de filas y columnas
 
@@ -575,6 +581,7 @@ export class ReportesService {
     worksheet.getColumn(3).width = 20; // Fecha de carga
     worksheet.getColumn(4).width = 40; // Cliente
     worksheet.getColumn(5).width = 25; // Precio total
+    worksheet.getColumn(6).width = 40; // Observacion
 
     // Agregar elementos
     ordenes.map(orden => {
@@ -584,6 +591,7 @@ export class ReportesService {
         add(orden.createdAt, { hours: -3 }),
         orden.proveedor['descripcion'],
         Number(orden.pago_total),
+        orden.observacion ? orden.observacion : ''
       ]);
     });
 
@@ -1225,11 +1233,20 @@ export class ReportesService {
       `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
     ]);
 
-    worksheet.addRow(['Codigo', 'Total ventas', 'Total compras', 'Saldo', 'Fecha de operacion', 'Fecha de creacion', 'Estado']);
+    worksheet.addRow(
+      [ 'Codigo', 
+        'Total ventas', 
+        'Total compras', 
+        'Saldo', 
+        'Observacion',
+        'Fecha de operacion', 
+        'Fecha de creacion', 
+        'Estado'
+      ]);
 
     // Autofiltro
 
-    worksheet.autoFilter = 'A2:G2';
+    worksheet.autoFilter = 'A2:H2';
 
     // Estilo de filas y columnas
 
@@ -1243,9 +1260,10 @@ export class ReportesService {
     worksheet.getColumn(2).width = 20; // Total ventas
     worksheet.getColumn(3).width = 20; // Total compras
     worksheet.getColumn(4).width = 20; // Saldo
-    worksheet.getColumn(5).width = 20; // Fecha de operacion
-    worksheet.getColumn(6).width = 20; // Fecha de creacion
-    worksheet.getColumn(7).width = 20; // Estado
+    worksheet.getColumn(5).width = 20; // Observacion
+    worksheet.getColumn(6).width = 20; // Fecha de operacion
+    worksheet.getColumn(7).width = 20; // Fecha de creacion
+    worksheet.getColumn(8).width = 20; // Estado
 
     // Agregar elementos
     operaciones.map(operacion => {
@@ -1254,6 +1272,7 @@ export class ReportesService {
         operacion.total_ventas,
         operacion.total_compras,
         operacion.saldo,
+        operacion.observacion ? operacion.observacion : '',
         add(operacion.fecha_operacion, { hours: -3 }),
         add(operacion.createdAt, { hours: -3 }),
         operacion.estado,

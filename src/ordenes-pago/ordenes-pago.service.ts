@@ -179,8 +179,8 @@ export class OrdenesPagoService {
       }
 
       const regex = new RegExp(parametroFinal, 'i');
-      pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'proveedor.descripcion': regex }] } });
-      pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'proveedor.descripcion': regex }] } });
+      pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { observacion: regex }, { 'proveedor.descripcion': regex }] } });
+      pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { observacion: regex }, { 'proveedor.descripcion': regex }] } });
 
     }
 
@@ -216,6 +216,7 @@ export class OrdenesPagoService {
       pago_total,
       carro_pago,
       cheques,
+      observacion,
       creatorUser,
       updatorUser,
     } = ordenesPagoDTO;
@@ -253,6 +254,7 @@ export class OrdenesPagoService {
       fecha_pago: add(new Date(fecha_pago), { hours: 3 }),
       formas_pago,
       pago_total,
+      observacion,
       creatorUser,
       updatorUser
     }
@@ -269,7 +271,7 @@ export class OrdenesPagoService {
     else if (pagoDB.nro <= 99999) codigoPago = 'OP00' + String(pagoDB.nro);
     else if (pagoDB.nro <= 999999) codigoPago = 'OP0' + String(pagoDB.nro);
 
-    const observacion = `PAGO ${codigoPago}`;
+    const descripcion = `PAGO ${codigoPago}`;
 
     //** RELACION PAGO - COMPRA
 
@@ -355,7 +357,7 @@ export class OrdenesPagoService {
       const dataMovimientoCaja = {
         nro: nroMovimientoCaja,
         tipo: 'Haber',
-        descripcion: observacion,
+        descripcion,
         caja: chequeDB._id,
         saldo_anterior: this.redondear(chequeDB.saldo, 2),
         saldo_nuevo: nuevoSaldoCheque,
@@ -390,7 +392,7 @@ export class OrdenesPagoService {
     const dataMovimientoCC = {
       nro: nroMovimientoCC,
       tipo: 'Debe',
-      descripcion: observacion,
+      descripcion,
       cc_proveedor: cuentaCorrienteDB._id,
       proveedor,
       saldo_anterior: this.redondear(cuentaCorrienteDB.saldo, 2),
@@ -420,7 +422,7 @@ export class OrdenesPagoService {
       const dataMovimientoCaja = {
         nro: nroMovimientoCaja,
         tipo: 'Haber',
-        descripcion: observacion,
+        descripcion,
         caja: cajaDB._id,
         saldo_anterior: this.redondear(cajaDB.saldo, 2),
         saldo_nuevo: nuevoSaldoCaja,

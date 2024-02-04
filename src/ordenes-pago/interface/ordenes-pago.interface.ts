@@ -7,6 +7,7 @@ export interface IOrdenesPago extends Document {
   readonly formas_pago: Array<any>;
   readonly proveedor: string;
   readonly pago_total: number;
+  readonly observacion: string;
   readonly activo: boolean;
   readonly creatorUser: string;
   readonly updatorUser: string;

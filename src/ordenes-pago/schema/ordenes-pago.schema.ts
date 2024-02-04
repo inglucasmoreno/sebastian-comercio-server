@@ -29,6 +29,12 @@ export const ordenesPagoSchema = new Schema({
     required: true,
   },
 
+  observacion: {
+    type: String,
+    uppercase: true,
+    default: ''
+  },
+
   activo: {
     type: Boolean,
     default: true

@@ -1,13 +1,13 @@
-
 export class OperacionesUpdateDTO {
   fecha_operacion: any;
-  readonly numero: number;
-  readonly total_compras: number;
-  readonly total_ventas: number;
-  readonly saldo: number;
-  readonly total: number;
-  readonly estado: string;
-  readonly activo: boolean;
-  readonly creatorUser: string;
-  readonly updatorUser: string;
+  numero: number;
+  total_compras: number;
+  total_ventas: number;
+  saldo: number;
+  total: number;
+  observacion: string;
+  estado: string;
+  activo: boolean;
+  creatorUser: string;
+  updatorUser: string;
 }

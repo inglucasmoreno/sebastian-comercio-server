@@ -11,6 +11,8 @@ export class RecibosCobroUpdateDTO {
   
   readonly fecha_cobro: String;
 
+  observacion: String;
+
   readonly activo: Boolean;
   
   readonly creatorUser: String;

@@ -22,6 +22,8 @@ export class RecibosCobroDTO {
   @IsString()
   readonly fecha_cobro: String;
 
+  observacion: String;
+
   readonly activo: Boolean;
   
   @IsString()

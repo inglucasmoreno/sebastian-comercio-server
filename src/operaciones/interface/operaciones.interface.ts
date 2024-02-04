@@ -7,6 +7,7 @@ export interface IOperaciones extends Document {
   readonly total_ventas: number;
   readonly saldo: number;
   readonly total: number;
+  readonly observacion: string;
   readonly estado: string;
   readonly activo: boolean;
   readonly creatorUser: string;

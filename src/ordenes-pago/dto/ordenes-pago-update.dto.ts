@@ -11,6 +11,8 @@ export class OrdenesPagoUpdateDTO {
   
   readonly pago_total: number;
   
+  readonly observacion: string;
+
   readonly activo: boolean;
   
   readonly creatorUser: string;

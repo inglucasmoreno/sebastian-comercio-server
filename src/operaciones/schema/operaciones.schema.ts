@@ -32,6 +32,12 @@ export const operacionesSchema = new Schema({
     default: 0,
   },
 
+  observacion: {
+    type: String,
+    uppercase: true,
+    default: '',
+  },
+
   estado: {
     type: String,
     required: true,
