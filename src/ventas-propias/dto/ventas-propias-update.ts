@@ -3,6 +3,8 @@ export class VentasPropiasUpdateDTO {
 
     readonly nro: number;
 
+    readonly operacion_nro: string;
+
     readonly tipo_cliente: string;
 
     readonly operacion: string;

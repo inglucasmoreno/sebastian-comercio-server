@@ -2,6 +2,7 @@ import { Document } from 'mongoose';
 
 export interface IVentasPropias extends Document {
   readonly nro: number;
+  readonly operacion_nro: string;
   readonly tipo: string;
   readonly cliente: string;
   readonly cheques: [];

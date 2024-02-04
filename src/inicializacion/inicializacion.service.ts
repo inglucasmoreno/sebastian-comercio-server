@@ -12,10 +12,14 @@ import { IFamiliaProductos } from 'src/familia-productos/interface/familia-produ
 import { find } from 'rxjs';
 import { ICajas } from 'src/cajas/interface/cajas.interface';
 import { ITiposMovimientos } from 'src/tipos-movimientos/interface/tipos-movimientos.interface';
+import { IOperaciones } from 'src/operaciones/interface/operaciones.interface';
+import { IVentasPropias } from 'src/ventas-propias/interface/ventas-propias.interface';
+import { IOperacionesCompras } from 'src/operaciones-compras/interface/operaciones-compras.interface';
+import { ICompras } from 'src/compras/interface/compras.interface';
 
 @Injectable()
 export class InicializacionService {
-    
+
     constructor(
         @InjectModel('Usuario') private readonly usuarioModel: Model<IUsuario>,
         @InjectModel('Productos') private readonly productosModel: Model<IProductos>,
@@ -25,13 +29,18 @@ export class InicializacionService {
         @InjectModel('Proveedores') private readonly proveedoresModel: Model<IProveedores>,
         @InjectModel('Cajas') private readonly cajasModel: Model<ICajas>,
         @InjectModel('TiposMovimientos') private readonly tiposMovimientosModel: Model<ITiposMovimientos>,
-    ){}
+        @InjectModel('Operaciones') private readonly operacionesModel: Model<IOperaciones>,
+        @InjectModel('OperacionesVentasPropias') private readonly operacionesVentasPropiasModel: Model<IOperaciones>,
+        @InjectModel('VentasPropias') private readonly ventasPropiasModel: Model<IVentasPropias>,
+        @InjectModel('Compras') private readonly comprasModel: Model<ICompras>,
+        @InjectModel('OperacionesCompras') private readonly operacionesComprasModel: Model<IOperacionesCompras>,
+    ) { }
 
     async initUsuarios(): Promise<any> {
-        
+
         // 1) - Verificacion
         const verificacion = await this.usuarioModel.find();
-        if(verificacion.length != 0) throw new NotFoundException('El sistema ya fue inicializado');
+        if (verificacion.length != 0) throw new NotFoundException('El sistema ya fue inicializado');
 
         // 2) - Se crea usuario administrador
         const data: any = {
@@ -43,11 +52,11 @@ export class InicializacionService {
             role: 'ADMIN_ROLE',
             activo: true
         }
-    
+
         // Generacion de password encriptado
         const salt = bcryptjs.genSaltSync();
         data.password = bcryptjs.hashSync('admin', salt);
-    
+
         // Se crea y se almacena en la base de datos al usuario administrador
         const usuario = new this.usuarioModel(data);
         const usuarioDB = await usuario.save();
@@ -80,20 +89,20 @@ export class InicializacionService {
 
         // Inicializacion de cajas
 
-        const efectivo = new this.cajasModel({ 
+        const efectivo = new this.cajasModel({
             _id: '000000000000000000000000',
-            descripcion: 'Efectivo', 
+            descripcion: 'Efectivo',
             saldo: 0,
             creatorUser: usuarioDB._id,
-            updatorUser: usuarioDB._id 
+            updatorUser: usuarioDB._id
         });
 
-        const cheques = new this.cajasModel({ 
+        const cheques = new this.cajasModel({
             _id: '222222222222222222222222',
-            descripcion: 'Cheques', 
+            descripcion: 'Cheques',
             saldo: 0,
             creatorUser: usuarioDB._id,
-            updatorUser: usuarioDB._id 
+            updatorUser: usuarioDB._id
         });
 
         await Promise.all([
@@ -105,8 +114,8 @@ export class InicializacionService {
 
     }
 
-     // Se importan productos desde un documento de excel
-     async importarProductos(query: any): Promise<any> {
+    // Se importan productos desde un documento de excel
+    async importarProductos(query: any): Promise<any> {
 
         const { usuario } = query;
         let familia = '';
@@ -114,10 +123,10 @@ export class InicializacionService {
 
         // Familia
         const familiaDB = await this.familiaProductosModel.findOne({ descripcion: 'GENERAL' });
-        
-        if(familiaDB){
+
+        if (familiaDB) {
             familia = String(familiaDB._id);
-        }else{
+        } else {
             const crearFamilia = new this.familiaProductosModel({
                 descripcion: 'GENERAL',
                 creatorUser: usuario,
@@ -125,14 +134,14 @@ export class InicializacionService {
             })
             const nuevaFamilia: any = await crearFamilia.save();
             familia = String(nuevaFamilia._id);
-        }      
-        
+        }
+
         // Unidad de medida
         const unidadMedidaDB = await this.unidadMedidaModel.findOne({ descripcion: 'UNIDAD' });
-        
-        if(unidadMedidaDB){
+
+        if (unidadMedidaDB) {
             unidad = String(unidadMedidaDB._id);
-        }else{
+        } else {
             const crearUnidad = new this.unidadMedidaModel({
                 descripcion: 'UNIDAD',
                 creatorUser: usuario,
@@ -140,8 +149,8 @@ export class InicializacionService {
             })
             const nuevaUnidad: any = await crearUnidad.save();
             unidad = String(nuevaUnidad._id);
-        } 
-        
+        }
+
         // IMPORT - PRODUCTOS
 
         const workbook = XLSX.readFile('./importar/productos.xlsx');
@@ -151,19 +160,19 @@ export class InicializacionService {
 
         // Verificacion de formato excel
         const condicion = dataExcel.length > 0 &&
-                          dataExcel[0].CODIGO &&
-                          dataExcel[0].DESCRIPCION
+            dataExcel[0].CODIGO &&
+            dataExcel[0].DESCRIPCION
 
-        if(!condicion) throw new NotFoundException('Excel con formato incorrecto');
+        if (!condicion) throw new NotFoundException('Excel con formato incorrecto');
 
         let registrosCargados = 0;
 
-        for(const productoRec of dataExcel){
+        for (const productoRec of dataExcel) {
 
             let producto: any = productoRec;
 
-            if(producto.CODIGO && producto.DESCRIPCION){
-                
+            if (producto.CODIGO && producto.DESCRIPCION) {
+
                 const data = {
                     codigo: String(producto.CODIGO).toUpperCase(),
                     descripcion: String(producto.DESCRIPCION).toUpperCase(),
@@ -177,22 +186,22 @@ export class InicializacionService {
                     updatorUser: usuario,
                     activo: true
                 }
-                
-                const productoDB = await this.productosModel.findOne({codigo: producto.CODIGO.toUpperCase()});
 
-                if(!productoDB){
+                const productoDB = await this.productosModel.findOne({ codigo: producto.CODIGO.toUpperCase() });
+
+                if (!productoDB) {
                     registrosCargados += 1;
                     const nuevoProducto = new this.productosModel(data);
-                    await nuevoProducto.save();        
+                    await nuevoProducto.save();
                 }
-            
+
             }
 
-        }              
+        }
 
-        if(registrosCargados === 0){
+        if (registrosCargados === 0) {
             return 'La base de productos ya se encuentra actualizada';
-        }else{
+        } else {
             return `Cantidad de registros cargados: ${registrosCargados}`
         }
 
@@ -208,14 +217,14 @@ export class InicializacionService {
         const { usuario } = query;
 
         const verificacion = await this.cajasModel.findById('000000000000000000000000');
-        if(verificacion) throw new NotFoundException('Los saldos ya se encuentran inicializados');
+        if (verificacion) throw new NotFoundException('Los saldos ya se encuentran inicializados');
 
-        const efectivo = new this.cajasModel({ 
+        const efectivo = new this.cajasModel({
             _id: '000000000000000000000000',
-            descripcion: 'Efectivo', 
+            descripcion: 'Efectivo',
             saldo: 0,
             creatorUser: usuario,
-            updatorUser: usuario 
+            updatorUser: usuario
         });
 
         // const dolares = new this.cajasModel({ 
@@ -226,12 +235,12 @@ export class InicializacionService {
         //     updatorUser: usuario 
         // });
 
-        const cheques = new this.cajasModel({ 
+        const cheques = new this.cajasModel({
             _id: '222222222222222222222222',
-            descripcion: 'Cheques', 
+            descripcion: 'Cheques',
             saldo: 0,
             creatorUser: usuario,
-            updatorUser: usuario 
+            updatorUser: usuario
         });
 
         // const bancoProvisorio = new this.cajasModel({ 
@@ -261,14 +270,14 @@ export class InicializacionService {
         const { usuario } = query;
 
         const verificacion = await this.tiposMovimientosModel.findById('000000000000000000000000');
-        if(verificacion) throw new NotFoundException('Los tipos ya se encuentran inicializados');
+        if (verificacion) throw new NotFoundException('Los tipos ya se encuentran inicializados');
 
-        const ingreso = new this.tiposMovimientosModel({ 
+        const ingreso = new this.tiposMovimientosModel({
             _id: '000000000000000000000000',
-            descripcion: 'Ingreso', 
+            descripcion: 'Ingreso',
             saldo: 0,
             creatorUser: usuario,
-            updatorUser: usuario 
+            updatorUser: usuario
         });
 
         await Promise.all([
@@ -278,5 +287,33 @@ export class InicializacionService {
         return 'Inicializacion completada';
 
     }
+
+    async ventasOperaciones(): Promise<string> {
+
+        const relaciones: any = await this.operacionesVentasPropiasModel.find({});
+
+        for (const rel of relaciones) {
+            const operacion = await this.operacionesModel.findById(rel.operacion);
+            await this.ventasPropiasModel.updateOne({ _id: rel.venta_propia }, { operacion_nro: String(operacion.numero) }, { new: true });
+        }
+
+        return 'Ajustes complicados correctamente';
+
+    }
+
+    async comprasOperaciones(): Promise<string> {
+
+        const relaciones: any = await this.operacionesComprasModel.find({});
+
+        for (const rel of relaciones) {
+            const operacion = await this.operacionesModel.findById(rel.operacion);
+            await this.comprasModel.updateOne({ _id: rel.compra }, { operacion_nro: String(operacion.numero) }, { new: true });
+        }
+
+        return 'Ajustes complicados correctamente';
+
+    }
+
+
 
 }

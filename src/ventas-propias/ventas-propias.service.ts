@@ -112,7 +112,7 @@ export class VentasPropiasService {
         let operacionDB = null;
         const operacionVentaPropiaDB = await this.operacionesVentasPropiasModel.findOne({ venta_propia: idVenta });
 
-        if(operacionVentaPropiaDB) operacionDB = await this.operacionesModel.findById(operacionVentaPropiaDB.operacion);
+        if (operacionVentaPropiaDB) operacionDB = await this.operacionesModel.findById(operacionVentaPropiaDB.operacion);
 
         return {
             venta: venta[0],
@@ -125,14 +125,17 @@ export class VentasPropiasService {
     async getAll(querys: any): Promise<any> {
 
         const {
-            columna,
-            direccion,
-            desde,
-            registerpp,
-            activo,
-            parametro,
-            cliente,
-            cancelada
+            columna = 'fecha_venta',
+            direccion = -1,
+            desde = 0,
+            registerpp = 1000000,
+            activo = '',
+            parametro = '',
+            cliente = '',
+            cancelada = '',
+            fechaDesde = '',
+            fechaHasta = '',
+            conOperacion = ''
         } = querys;
 
         const pipeline = [];
@@ -140,6 +143,59 @@ export class VentasPropiasService {
 
         pipeline.push({ $match: {} });
         pipelineTotal.push({ $match: {} });
+
+        // Solo con OPERACION
+        if (conOperacion === 'true') {
+            pipeline.push({ $match: { operacion_nro: { $ne: null } } });
+            pipelineTotal.push({ $match: { operacion_nro: { $ne: null } } });
+            pipeline.push({ $match: { operacion_nro: { $ne: '' } } });
+            pipelineTotal.push({ $match: { operacion_nro: { $ne: '' } } });
+        } else if (conOperacion === 'false') {
+            pipeline.push({
+                $match: {
+                    $or: [
+                        {operacion_nro: null},
+                        {operacion_nro: ""},
+                    ]
+                }
+            });
+            pipeline.push({
+                $match: {
+                    $or: [
+                        {operacion_nro: null},
+                        {operacion_nro: ""},
+                    ]
+                }
+            });
+        }
+
+        // Filtro por fechas [ Desde -> Hasta ]
+
+        if (fechaDesde && fechaDesde.trim() !== '') {
+            pipeline.push({
+                $match: {
+                    fecha_venta: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+                }
+            });
+            pipelineTotal.push({
+                $match: {
+                    fecha_venta: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+                }
+            });
+        }
+
+        if (fechaHasta && fechaHasta.trim() !== '') {
+            pipeline.push({
+                $match: {
+                    fecha_venta: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+                }
+            });
+            pipelineTotal.push({
+                $match: {
+                    fecha_venta: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+                }
+            });
+        }
 
         // Filtrado por cliente
         if (cliente && cliente !== '') {
@@ -229,7 +285,7 @@ export class VentasPropiasService {
 
             const regex = new RegExp(parametroFinal, 'i');
             pipeline.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }, { observacion: regex }] } });
-            pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }, { observacion: regex } ] } });
+            pipelineTotal.push({ $match: { $or: [{ nro: Number(parametro) }, { 'cliente.descripcion': regex }, { observacion: regex }] } });
 
         }
 
@@ -251,10 +307,10 @@ export class VentasPropiasService {
         // Se le agrega a cada venta el numero de operacion al que esta asociada
         for (let i = 0; i < ventas.length; i++) {
             const operacionVentaPropiaDB = await this.operacionesVentasPropiasModel.findOne({ venta_propia: ventas[i]._id });
-            if(operacionVentaPropiaDB){
+            if (operacionVentaPropiaDB) {
                 const operacionDB = await this.operacionesModel.findById(operacionVentaPropiaDB.operacion);
                 ventas[i].operacion = operacionDB;
-            }else{
+            } else {
                 ventas[i].opearcion = ''
             }
         }
@@ -565,8 +621,8 @@ export class VentasPropiasService {
         await this.ventaProductosModel.insertMany(productosVenta);
 
         // Impacto en stock
-        productosVenta.map( async producto => {
-            await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } })    
+        productosVenta.map(async producto => {
+            await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } })
         })
 
         // Relacion de venta propia con operacion
@@ -579,11 +635,13 @@ export class VentasPropiasService {
         await nuevaRelacion.save();
 
         // Sumar al total_ventas de la operacion una cantidad igual al precio total de la venta
-        await this.operacionesModel.findByIdAndUpdate(operacion, { $inc: { 
-            total_ventas: precio_total,
-            saldo: precio_total,
-            total: precio_total 
-        } });
+        await this.operacionesModel.findByIdAndUpdate(operacion, {
+            $inc: {
+                total_ventas: precio_total,
+                saldo: precio_total,
+                total: precio_total
+            }
+        });
 
         // GENERACION DE PDF
 
@@ -694,7 +752,7 @@ export class VentasPropiasService {
 
         const [ventaDB, productos] = await Promise.all([
             this.ventasModel.findById(id),
-            this.ventaProductosModel.find({venta_propia: id})
+            this.ventaProductosModel.find({ venta_propia: id })
         ]);
 
         // Verificacion: La venta no existe
@@ -702,7 +760,7 @@ export class VentasPropiasService {
 
         // Verificacion: Venta asignada a una operacion
         const operacionVentaDB = await this.operacionesVentasPropiasModel.findOne({ venta_propia: id });
-        
+
         if (operacionVentaDB) {
             const opearcionDB = await this.operacionesModel.findById(operacionVentaDB.operacion);
             throw new NotFoundException(`La venta esta asociada a la operación Nro ${opearcionDB.numero.toString().padStart(8, '0')}`);
@@ -710,7 +768,7 @@ export class VentasPropiasService {
 
         // Verificacion: Si tiene recibos de cobros asociados no puede darse de baja
         const reciboVentaDB = await this.recibosCobroVentaModel.find({ venta_propia: ventaDB._id });
-        if(reciboVentaDB.length !== 0) throw new NotFoundException('La venta tiene un recibo de cobro asociado');
+        if (reciboVentaDB.length !== 0) throw new NotFoundException('La venta tiene un recibo de cobro asociado');
 
         let condicion: any = null;
         let saldoCC: number = 0;
@@ -725,7 +783,7 @@ export class VentasPropiasService {
         // AJUSTE DE SALDOS
 
         ventaDB.formas_pago.map(async (pago: any) => {
-            
+
             let codigoVenta: string;
             const { nro } = ventaDB;
             if (nro <= 9) codigoVenta = 'VP000000' + String(nro);
@@ -737,11 +795,11 @@ export class VentasPropiasService {
 
 
             // CAJAS VARIAS
-            if(pago._id !== 'cuenta_corriente'){
-                
+            if (pago._id !== 'cuenta_corriente') {
+
                 // Impacto en saldo
                 const caja = await this.cajasModel.findById(pago._id);
-                if(estado === 'Alta') saldoCaja = caja.saldo + pago.monto;
+                if (estado === 'Alta') saldoCaja = caja.saldo + pago.monto;
                 else saldoCaja = caja.saldo - pago.monto;
                 await this.cajasModel.findByIdAndUpdate(caja._id, { saldo: saldoCaja });
 
@@ -754,7 +812,7 @@ export class VentasPropiasService {
                 nroMovimientoCaja += 1;
                 const dataMovimiento = {
                     nro: nroMovimientoCaja,
-                    descripcion: estado === 'Alta' ?  `ALTA DE VENTA - ${codigoVenta}` : `BAJA DE VENTA - ${codigoVenta}`,
+                    descripcion: estado === 'Alta' ? `ALTA DE VENTA - ${codigoVenta}` : `BAJA DE VENTA - ${codigoVenta}`,
                     tipo: estado === 'Alta' ? 'Debe' : 'Haber',
                     caja: String(caja._id),
                     venta_propia: String(ventaDB._id),
@@ -772,13 +830,13 @@ export class VentasPropiasService {
 
             // CUENTA CORRIENTE
             if (pago._id === 'cuenta_corriente') {
-                
+
                 // Impacto en saldo
                 const cc_cliente = await this.ccClientesModel.findOne({ cliente: ventaDB.cliente });
-                if(estado === 'Alta') saldoCC = cc_cliente.saldo - pago.monto;
+                if (estado === 'Alta') saldoCC = cc_cliente.saldo - pago.monto;
                 else saldoCC = cc_cliente.saldo + pago.monto;
                 await this.ccClientesModel.findByIdAndUpdate(cc_cliente._id, { saldo: saldoCC });
-            
+
                 // Generacion de movimiento
 
                 let nroMovimientoCC = 0;
@@ -788,7 +846,7 @@ export class VentasPropiasService {
                 nroMovimientoCC += 1;
                 const dataMovimiento = {
                     nro: nroMovimientoCC,
-                    descripcion: estado === 'Alta' ?  `ALTA DE VENTA - ${codigoVenta}` : `BAJA DE VENTA - ${codigoVenta}`,
+                    descripcion: estado === 'Alta' ? `ALTA DE VENTA - ${codigoVenta}` : `BAJA DE VENTA - ${codigoVenta}`,
                     tipo: estado === 'Alta' ? 'Haber' : 'Debe',
                     cc_cliente: String(cc_cliente._id),
                     cliente: String(ventaDB.cliente),
@@ -805,7 +863,7 @@ export class VentasPropiasService {
 
 
             }
-        
+
         });
 
         // CHEQUES
@@ -813,9 +871,9 @@ export class VentasPropiasService {
         let saldoCheque = 0;
 
         const pipelineCheques = [];
-        
+
         const idVenta = new Types.ObjectId(ventaDB._id);
-        pipelineCheques.push({$match:{ venta_propia: idVenta }});
+        pipelineCheques.push({ $match: { venta_propia: idVenta } });
 
         // Informacion de cliente - TOTAL
         pipelineCheques.push({
@@ -831,29 +889,29 @@ export class VentasPropiasService {
         pipelineCheques.push({ $unwind: '$cheque' });
 
         const cheques = await this.ventasPropiasChequesModel.aggregate(pipelineCheques);
-        
+
         // RECORRIDO Y BAJA DE CHEQUES
-        cheques.map( async (elemento: any) => {
+        cheques.map(async (elemento: any) => {
             saldoCheque += elemento.cheque.importe;
             let dataCheque: any = null
-            if(estado === 'Alta') dataCheque = { estado: 'Creado', activo: true };  
-            else dataCheque = { estado: 'Baja', activo: false };  
+            if (estado === 'Alta') dataCheque = { estado: 'Creado', activo: true };
+            else dataCheque = { estado: 'Baja', activo: false };
             await this.chequesModel.findByIdAndUpdate(elemento.cheque._id, dataCheque);
         });
 
-        if(saldoCheque){
+        if (saldoCheque) {
             const cajaCheque = await this.cajasModel.findById('222222222222222222222222');
-            if(estado === 'Alta') saldoCheque = cajaCheque.saldo + saldoCheque;
+            if (estado === 'Alta') saldoCheque = cajaCheque.saldo + saldoCheque;
             else saldoCheque = cajaCheque.saldo - saldoCheque;
             await this.cajasModel.findByIdAndUpdate('222222222222222222222222', { saldo: saldoCheque });
         }
 
         // Ajuste de stock
-        productos.map( async producto => {
-            if(estado === 'Alta'){
-            await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } }) // Incrementando stock
-            }else{
-            await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: producto.cantidad } }) // Decrementando stock
+        productos.map(async producto => {
+            if (estado === 'Alta') {
+                await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: -producto.cantidad } }) // Incrementando stock
+            } else {
+                await this.productosModel.findByIdAndUpdate(producto.producto, { $inc: { cantidad: producto.cantidad } }) // Decrementando stock
             }
         })
 
@@ -989,7 +1047,7 @@ export class VentasPropiasService {
         const {
             fechaDesde,
             fechaHasta
-        } = data;        
+        } = data;
 
         // Obtener ventas
         const respuesta = await this.getAll({

@@ -209,6 +209,9 @@ export class OperacionesComprasService {
     operacionDB.total -= compraDB.precio_total;
     await this.operacionesModel.findByIdAndUpdate(operacionesComprasDTO.operacion, operacionDB, { new: true });
 
+    // Se le agrega a la compra el numero de operacion
+    await this.comprasModel.findByIdAndUpdate(compra, { operacion_nro: operacionDB.numero }, { new: true });
+
     return await this.getId(relacionDB._id);
 
   }
@@ -244,6 +247,9 @@ export class OperacionesComprasService {
     operacionDB.saldo += compraDB.precio_total;
     operacionDB.total += compraDB.precio_total;
     await this.operacionesModel.findByIdAndUpdate(operacionCompraDB.operacion, operacionDB, { new: true });
+
+    // Se elimina de la compra el numero de operacion
+    await this.comprasModel.findByIdAndUpdate(compraDB._id, { operacion_nro: "" }, { new: true });
 
     return operacionCompraDB;
 

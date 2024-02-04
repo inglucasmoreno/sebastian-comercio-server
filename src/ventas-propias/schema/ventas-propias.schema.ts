@@ -7,6 +7,11 @@ export const ventasPropiasSchema = new Schema({
     required: true
   }, 
 
+  operacion_nro: {
+    type: String,
+    default: ''
+  }, 
+
   tipo: {
     type: String,
     default: 'Propia'

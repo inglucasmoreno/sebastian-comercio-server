@@ -10,6 +10,11 @@ import { familiaProductosSchema } from 'src/familia-productos/schema/familia-pro
 import { unidadMedidadSchema } from 'src/unidad-medida/schema/unidad-medida.schema';
 import { cajasSchema } from 'src/cajas/schema/cajas.schema';
 import { tiposMovimientosSchema } from 'src/tipos-movimientos/schema/tipos-movimientos.schema';
+import { operacionesSchema } from '../operaciones/schema/operaciones.schema';
+import { operacionesVentasPropiasSchema } from 'src/operaciones-ventas-propias/schema/operaciones-ventas-propias.schema';
+import { ventasPropiasSchema } from 'src/ventas-propias/schema/ventas-propias.schema';
+import { comprasSchema } from 'src/compras/schema/compras.schema';
+import { operacionesComprasSchema } from 'src/operaciones-compras/schema/operaciones-compras.schema';
 
 @Module({
   imports: [
@@ -21,6 +26,11 @@ import { tiposMovimientosSchema } from 'src/tipos-movimientos/schema/tipos-movim
     MongooseModule.forFeature([{name: 'Proveedores', schema: proveedoresSchema}]),
     MongooseModule.forFeature([{name: 'Cajas', schema: cajasSchema}]),
     MongooseModule.forFeature([{name: 'TiposMovimientos', schema: tiposMovimientosSchema}]),
+    MongooseModule.forFeature([{name: 'Operaciones', schema: operacionesSchema}]),
+    MongooseModule.forFeature([{name: 'OperacionesVentasPropias', schema: operacionesVentasPropiasSchema}]),
+    MongooseModule.forFeature([{name: 'VentasPropias', schema: ventasPropiasSchema}]),
+    MongooseModule.forFeature([{name: 'Compras', schema: comprasSchema}]),
+    MongooseModule.forFeature([{name: 'OperacionesCompras', schema: operacionesComprasSchema}]),
   ],
   controllers: [InicializacionController],
   providers: [InicializacionService]

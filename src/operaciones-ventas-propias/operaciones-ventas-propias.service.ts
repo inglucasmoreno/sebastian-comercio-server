@@ -213,12 +213,16 @@ export class OperacionesVentasPropiasService {
     // Se obtiene los datos de la venta propia
     const ventaPropiaDB = await this.ventasPropiasModel.findById(venta_propia);
 
+
     // Se actualizan los totales de la operacion
     const operacionDB: any = await this.operacionesModel.findById(operacionesVentasPropiasDTO.operacion);
     operacionDB.total_ventas += ventaPropiaDB.precio_total;
     operacionDB.saldo += ventaPropiaDB.precio_total;
     operacionDB.total += ventaPropiaDB.precio_total;
     await this.operacionesModel.findByIdAndUpdate(operacionesVentasPropiasDTO.operacion, operacionDB, { new: true });
+
+    // Se le agrega a la venta propia el numero de operacion
+    await this.ventasPropiasModel.findByIdAndUpdate(venta_propia, { operacion_nro: operacionDB.numero }, { new: true });
 
     return await this.getId(relacionDB._id);
 
@@ -255,6 +259,9 @@ export class OperacionesVentasPropiasService {
     operacionDB.saldo -= ventaPropiaDB.precio_total;
     operacionDB.total -= ventaPropiaDB.precio_total;
     await this.operacionesModel.findByIdAndUpdate(operacionVentaPropiaDB.operacion, operacionDB, { new: true });
+
+    // Se elimina de la venta propia el numero de operacion
+    await this.ventasPropiasModel.findByIdAndUpdate(ventaPropiaDB._id, { operacion_nro: "" }, { new: true });
 
     return operacionVentaPropiaDB;
 

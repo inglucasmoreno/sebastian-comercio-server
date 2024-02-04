@@ -112,7 +112,7 @@ export class ComprasService {
 
     // Operacion
     const operacionCompraDB = await this.operacionesComprasModel.findOne({ compra: String(idCompra) });
-    if(operacionCompraDB) operacionDB = await this.operacionesModel.findById(operacionCompraDB.operacion);
+    if (operacionCompraDB) operacionDB = await this.operacionesModel.findById(operacionCompraDB.operacion);
 
     return {
       compra: compras[0],
@@ -125,14 +125,17 @@ export class ComprasService {
   async getAll(querys: any): Promise<any> {
 
     const {
-      columna,
-      direccion,
-      desde,
-      registerpp,
-      activo,
-      parametro,
-      proveedor,
-      cancelada
+      columna = 'fecha_compra',
+      direccion = -1,
+      desde = 0,
+      registerpp = 1000000,
+      activo = '',
+      parametro = '',
+      proveedor = '',
+      cancelada = '',
+      fechaDesde = '',
+      fechaHasta = '',
+      conOperacion = ''
     } = querys;
 
     const pipeline = [];
@@ -140,6 +143,60 @@ export class ComprasService {
 
     pipeline.push({ $match: {} });
     pipelineTotal.push({ $match: {} });
+
+    // Solo con OPERACION
+    if (conOperacion === 'true') {
+      pipeline.push({ $match: { operacion_nro: { $ne: null } } });
+      pipelineTotal.push({ $match: { operacion_nro: { $ne: null } } });
+      pipeline.push({ $match: { operacion_nro: { $ne: '' } } });
+      pipelineTotal.push({ $match: { operacion_nro: { $ne: '' } } });
+    } else if (conOperacion === 'false') {
+      pipeline.push({
+        $match: {
+          $or: [
+            { operacion_nro: null },
+            { operacion_nro: "" },
+          ]
+        }
+      });
+      pipeline.push({
+        $match: {
+          $or: [
+            { operacion_nro: null },
+            { operacion_nro: "" },
+          ]
+        }
+      });
+    }
+
+    // Filtro por fechas [ Desde -> Hasta ]
+
+    if (fechaDesde && fechaDesde.trim() !== '') {
+      pipeline.push({
+        $match: {
+          fecha_compra: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          fecha_compra: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+    }
+
+    if (fechaHasta && fechaHasta.trim() !== '') {
+      pipeline.push({
+        $match: {
+          fecha_compra: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+      pipelineTotal.push({
+        $match: {
+          fecha_compra: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+    }
+
 
     // Filtrado por proveedor
     if (proveedor && proveedor !== '') {
