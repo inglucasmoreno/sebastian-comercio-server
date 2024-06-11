@@ -16,7 +16,7 @@ constructor(
   @InjectModel('MovimientosInternos') private readonly movimientosInternosModel: Model<IMovimientosInternos>,
   ){};
 
-  // Funcion para redondeo
+  // Funcion para redondar
   redondear(numero:number, decimales:number):number {
   
     if (typeof numero != 'number' || typeof decimales != 'number') return null;
