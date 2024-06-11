@@ -164,5 +164,17 @@ export class ReportesController {
     res.send(buffer);
   }
 
+  // Reporte en Excel - Gastos
+  @UseGuards(JwtAuthGuard)
+  @Get('/excel/gastos')
+  async operacionesGastos(@Res() res, @Query() querys) {
+    const buffer = await this.reportesService.gastosExcel(querys);
+    res.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename="datos.xlsx"',
+      'Content-Length': buffer.length,
+    });
+    res.send(buffer);
+  }
 
 }

@@ -16,6 +16,7 @@ import { cajasSchema } from 'src/cajas/schema/cajas.schema';
 import { operacionesSchema } from 'src/operaciones/schema/operaciones.schema';
 import { operacionesVentasPropiasSchema } from 'src/operaciones-ventas-propias/schema/operaciones-ventas-propias.schema';
 import { operacionesComprasSchema } from 'src/operaciones-compras/schema/operaciones-compras.schema';
+import { gastosSchema } from 'src/gastos/schema/gastos.schema';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { operacionesComprasSchema } from 'src/operaciones-compras/schema/operaci
       { name: 'CcClientesMovimientos', schema: CcClientesMovimientosSchema },
       { name: 'CcProveedoresMovimientos', schema: CcProveedoresMovimientosSchema },
       { name: 'CajasMovimientos', schema: CajasMovimientosSchema },
+      { name: 'Gastos', schema: gastosSchema },
 		])
 	],
   providers: [ReportesService],

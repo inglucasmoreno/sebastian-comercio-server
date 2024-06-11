@@ -17,6 +17,7 @@ import { ICajas } from 'src/cajas/interface/cajas.interface';
 import { IOperaciones } from 'src/operaciones/interface/operaciones.interface';
 import { IOperacionesVentasPropias } from 'src/operaciones-ventas-propias/interface/operaciones-ventas-propias.interface';
 import { IOperacionesCompras } from 'src/operaciones-compras/interface/operaciones-compras.interface';
+import { IGastos } from 'src/gastos/interface/gastos.interface';
 
 @Injectable()
 export class ReportesService {
@@ -36,6 +37,7 @@ export class ReportesService {
     @InjectModel('CcClientesMovimientos') private readonly clientesMovimientosModel: Model<ICcClientesMovimientos>,
     @InjectModel('CcProveedoresMovimientos') private readonly proveedoresMovimientosModel: Model<ICcProveedoresMovimientos>,
     @InjectModel('CajasMovimientos') private readonly cajasMovimientosModel: Model<ICajasMovimientos>,
+    @InjectModel('Gastos') private readonly gastosModel: Model<IGastos>,
   ) { };
 
   // REPORTES - EXCEL
@@ -1234,13 +1236,13 @@ export class ReportesService {
     ]);
 
     worksheet.addRow(
-      [ 'Codigo', 
-        'Total ventas', 
-        'Total compras', 
-        'Saldo', 
+      ['Codigo',
+        'Total ventas',
+        'Total compras',
+        'Saldo',
         'Observacion',
-        'Fecha de operacion', 
-        'Fecha de creacion', 
+        'Fecha de operacion',
+        'Fecha de creacion',
         'Estado'
       ]);
 
@@ -1282,5 +1284,131 @@ export class ReportesService {
     return await workbook.xlsx.writeBuffer();
 
   }
+
+  // Reportes -> Gastos
+  async gastosExcel({
+    fechaDesde = '',
+    fechaHasta = '',
+    activas = 'true'
+  }): Promise<any> {
+
+    // OBTENCION DE DATOS
+
+    const pipeline = [];
+    pipeline.push({ $match: {} });
+
+    const condicionTipoGasto = {
+      $lookup: { // Lookup
+        from: 'tipos_gastos',
+        localField: 'tipo_gasto',
+        foreignField: '_id',
+        as: 'tipo_gasto'
+      }
+    }
+
+    pipeline.push(condicionTipoGasto);
+    pipeline.push({ $unwind: '$tipo_gasto' });
+
+    const condicionCajas = {
+      $lookup: { // Lookup
+        from: 'cajas',
+        localField: 'caja',
+        foreignField: '_id',
+        as: 'caja'
+      }
+    }
+
+    pipeline.push(condicionCajas);
+    pipeline.push({ $unwind: '$caja' });
+
+    // Filtro gastos activas/inactivas
+    if (activas && activas !== '') {
+      pipeline.push({
+        $match: { activo: activas === 'true' ? true : false }
+      });
+    }
+
+    // Filtro por fechas [ Desde -> Hasta ]
+
+    if (fechaDesde && fechaDesde.trim() !== '') {
+      pipeline.push({
+        $match: {
+          fecha_gasto: { $gte: add(new Date(fechaDesde), { hours: 3 }) }
+        }
+      });
+    }
+
+    if (fechaHasta && fechaHasta.trim() !== '') {
+      pipeline.push({
+        $match: {
+          fecha_gasto: { $lte: add(new Date(fechaHasta), { days: 1, hours: 3 }) }
+        }
+      });
+    }
+
+    // Ordenar por fecha
+    pipeline.push({ $sort: { numero: -1 } });
+
+    const gastos = await this.gastosModel.aggregate(pipeline);
+
+    // GENERACION EXCEL
+
+    const workbook = new ExcelJs.Workbook();
+    const worksheet = workbook.addWorksheet('Reporte');
+
+    worksheet.addRow([
+      'Desde:',
+      `${fechaDesde && fechaDesde.trim() !== '' ? format(add(new Date(fechaDesde), { hours: 3 }), 'dd-MM-yyyy') : 'Principio'}`,
+      'Hasta:',
+      `${fechaHasta && fechaHasta.trim() !== '' ? format(add(new Date(fechaHasta), { hours: 3 }), 'dd-MM-yyyy') : 'Ahora'}`
+    ]);
+
+    worksheet.addRow([
+      'Número',
+      'Fecha de gasto',
+      'Tipo de gasto',
+      'Observaciones',
+      'Caja',
+      'Monto',
+      'Estado',
+    ]);
+
+    // Autofiltro
+
+    worksheet.autoFilter = 'A2:E2';
+
+    // Estilo de filas y columnas
+
+    worksheet.getRow(1).height = 20;
+    worksheet.getRow(2).height = 20;
+
+    worksheet.getRow(1).eachCell(cell => { cell.font = { bold: true } });
+    worksheet.getRow(2).eachCell(cell => { cell.font = { bold: true } });
+
+    worksheet.getColumn(1).width = 14; // Numero
+    worksheet.getColumn(2).width = 20; // Fecha de gasto
+    worksheet.getColumn(3).width = 20; // Tipo de gasto
+    worksheet.getColumn(4).width = 20; // Observaciones
+    worksheet.getColumn(5).width = 20; // Caja
+    worksheet.getColumn(6).width = 20; // Monto
+    worksheet.getColumn(7).width = 20; // Estado
+
+    // Agregar elementos
+    gastos.map(gasto => {
+      worksheet.addRow([
+        gasto.numero,
+        add(gasto.fecha_gasto ? gasto.fecha_gasto : gasto.createdAt, { hours: -3 }),
+        gasto.tipo_gasto['descripcion'],
+        gasto.observacion,
+        gasto.caja['descripcion'],
+        Number(gasto.monto),
+        gasto.activo ? 'Habilitado' : 'Deshabilitado',
+      ]);
+    });
+
+    return await workbook.xlsx.writeBuffer();
+
+  }
+
 
 }
