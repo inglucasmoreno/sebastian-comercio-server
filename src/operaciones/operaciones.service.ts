@@ -274,15 +274,23 @@ export class OperacionesService {
   async insert(operacionesDTO: OperacionesDTO): Promise<IOperaciones> {
 
     // Se le agrega el numero a la operacion donde el numero es el ultimo numero de la operacion + 1 usando find
-    const operacionDB = await this.operacionesModel.find().sort({ numero: -1 }).limit(1);
+    const operacionDB = await this.operacionesModel.find().sort({ createdAt: -1 }).limit(1);
+
     if (operacionDB.length === 0) operacionesDTO.numero = 1;
     else operacionesDTO.numero = operacionDB[0].numero + 1;
 
+    // Se verifica que no haya otra operacion con el mismo numero
+    const operacionNumero = await this.operacionesModel.findOne({ numero: operacionesDTO.numero });
+    if (operacionNumero) throw new NotFoundException('El numero de operacion ya existe');
+
+    // Adaptacion de fecha de operacion
     if (operacionesDTO.fecha_operacion)
       operacionesDTO.fecha_operacion = add(new Date(operacionesDTO.fecha_operacion), { hours: 3 });
 
+    // Generacion de operacion
     const operacion = new this.operacionesModel(operacionesDTO);
-    return await operacion.save();
+    const nuevaOperacion = await operacion.save();
+    return nuevaOperacion;
 
   }
 
